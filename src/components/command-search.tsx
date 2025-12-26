@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Command as CommandPrimitive } from "cmdk"
 import {
   Search,
-  LayoutPanelLeft,
   LayoutDashboard,
   Mail,
   CheckSquare,
@@ -29,7 +28,7 @@ import { cn } from "@/lib/utils"
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive>
->(({ className, ...props }, ref) => (
+>(({ className,...props }, ref) => (
   <CommandPrimitive
     ref={ref}
     className={cn(
@@ -44,7 +43,7 @@ Command.displayName = CommandPrimitive.displayName
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
+>(({ className,...props }, ref) => (
   <CommandPrimitive.Input
     ref={ref}
     className={cn(
@@ -59,7 +58,7 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, ...props }, ref) => (
+>(({ className,...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
     className={cn("max-h-[400px] overflow-y-auto overflow-x-hidden pb-2", className)}
@@ -83,7 +82,7 @@ CommandEmpty.displayName = CommandPrimitive.Empty.displayName
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
->(({ className, ...props }, ref) => (
+>(({ className,...props }, ref) => (
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
@@ -98,7 +97,7 @@ CommandGroup.displayName = CommandPrimitive.Group.displayName
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
->(({ className, ...props }, ref) => (
+>(({ className,...props }, ref) => (
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
@@ -128,38 +127,36 @@ export function CommandSearch({ open, onOpenChange }: CommandSearchProps) {
 
   const searchItems: SearchItem[] = [
     // Dashboards
-    { title: "Dashboard 1", url: "/dashboard", group: "Dashboards", icon: LayoutDashboard },
-    { title: "Dashboard 2", url: "/dashboard-2", group: "Dashboards", icon: LayoutPanelLeft },
-
+    { title: "Dashboard", url: "/dashboard", group: "Dashboards", icon: LayoutDashboard },
     // Apps
     { title: "Mail", url: "/mail", group: "Apps", icon: Mail },
     { title: "Tasks", url: "/tasks", group: "Apps", icon: CheckSquare },
     { title: "Chat", url: "/chat", group: "Apps", icon: MessageCircle },
     { title: "Calendar", url: "/calendar", group: "Apps", icon: Calendar },
-
+    { title: "Users", url: "/users", group: "Apps", icon: User },
     // Auth Pages
-    { title: "Sign In 1", url: "/auth/sign-in", group: "Auth Pages", icon: Shield },
-    { title: "Sign In 2", url: "/auth/sign-in-2", group: "Auth Pages", icon: Shield },
-    { title: "Sign Up 1", url: "/auth/sign-up", group: "Auth Pages", icon: Shield },
-    { title: "Sign Up 2", url: "/auth/sign-up-2", group: "Auth Pages", icon: Shield },
-    { title: "Forgot Password 1", url: "/auth/forgot-password", group: "Auth Pages", icon: Shield },
-    { title: "Forgot Password 2", url: "/auth/forgot-password-2", group: "Auth Pages", icon: Shield },
-
+    { title: "Sign In 1", url: "/sign-in", group: "Auth Pages", icon: Shield },
+    { title: "Sign In 2", url: "/sign-in-2", group: "Auth Pages", icon: Shield },
+    { title: "Sign In 3", url: "/sign-in-3", group: "Auth Pages", icon: Shield },
+    { title: "Sign Up 1", url: "/sign-up", group: "Auth Pages", icon: Shield },
+    { title: "Sign Up 2", url: "/sign-up-2", group: "Auth Pages", icon: Shield },
+    { title: "Sign Up 3", url: "/sign-up-3", group: "Auth Pages", icon: Shield },
+    { title: "Forgot Password 1", url: "/forgot-password", group: "Auth Pages", icon: Shield },
+    { title: "Forgot Password 2", url: "/forgot-password-2", group: "Auth Pages", icon: Shield },
+    { title: "Forgot Password 3", url: "/forgot-password-3", group: "Auth Pages", icon: Shield },
     // Errors
     { title: "Unauthorized", url: "/errors/unauthorized", group: "Errors", icon: AlertTriangle },
     { title: "Forbidden", url: "/errors/forbidden", group: "Errors", icon: AlertTriangle },
     { title: "Not Found", url: "/errors/not-found", group: "Errors", icon: AlertTriangle },
     { title: "Internal Server Error", url: "/errors/internal-server-error", group: "Errors", icon: AlertTriangle },
     { title: "Under Maintenance", url: "/errors/under-maintenance", group: "Errors", icon: AlertTriangle },
-
     // Settings
-    { title: "User Settings", url: "/settings/user", group: "Settings", icon: User },
+    { title: "User Settings", url: "/settings/user", group: "Settings", icon: Settings },
     { title: "Account Settings", url: "/settings/account", group: "Settings", icon: Settings },
     { title: "Plans & Billing", url: "/settings/billing", group: "Settings", icon: CreditCard },
     { title: "Appearance", url: "/settings/appearance", group: "Settings", icon: Palette },
     { title: "Notifications", url: "/settings/notifications", group: "Settings", icon: Bell },
     { title: "Connections", url: "/settings/connections", group: "Settings", icon: Link2 },
-
     // Pages
     { title: "FAQs", url: "/faqs", group: "Pages", icon: HelpCircle },
     { title: "Pricing", url: "/pricing", group: "Pages", icon: CreditCard },
@@ -232,7 +229,7 @@ export function SearchTrigger({ onClick }: { onClick: () => void }) {
       <span className="hidden lg:inline-flex">Search...</span>
       <span className="inline-flex lg:hidden">Search...</span>
       <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-4 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-        <span className="text-xs">⌘</span>K
+        <span className="text-xs"></span>K
       </kbd>
     </button>
   )

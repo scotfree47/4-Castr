@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  LayoutPanelLeft,
   LayoutDashboard,
   Mail,
   CheckSquare,
@@ -13,7 +12,6 @@ import {
   Settings,
   HelpCircle,
   CreditCard,
-  LayoutTemplate,
   Users,
 } from "lucide-react"
 import Link from "next/link"
@@ -43,14 +41,9 @@ const data = {
       label: "Dashboards",
       items: [
         {
-          title: "Dashboard 1",
+          title: "Dashboard",
           url: "/dashboard",
           icon: LayoutDashboard,
-        },
-        {
-          title: "Dashboard 2",
-          url: "/dashboard-2",
-          icon: LayoutPanelLeft,
         },
       ],
     },
@@ -91,7 +84,7 @@ const data = {
           title: "Landing",
           url: "/landing",
           target: "_blank",
-          icon: LayoutTemplate,
+          icon: LayoutDashboard,
         },
         {
           title: "Auth Pages",
@@ -209,7 +202,7 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
