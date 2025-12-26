@@ -4,7 +4,7 @@ import { RecentTransactions } from "./components/recent-transactions"
 import { TopProducts } from "./components/top-products"
 import { CustomerInsights } from "./components/customer-insights"
 import { QuickActions } from "./components/quick-actions"
-import { RevenueBreakdown } from "./components/revenue-breakdown"
+// import { RevenueBreakdown } from "./components/revenue-breakdown"
 
 export default function Dashboard2() {
   return (
@@ -24,7 +24,7 @@ export default function Dashboard2() {
         {/* Second Row - Charts in 6-6 columns */}
         <div className="grid gap-6 grid-cols-1 @5xl:grid-cols-2">
           <SalesChart />
-          <RevenueBreakdown />
+          {/* <RevenueBreakdown /> */}
         </div>
         {/* Third Row - Two Column Layout */}
         <div className="grid gap-6 grid-cols-1 @5xl:grid-cols-2">
