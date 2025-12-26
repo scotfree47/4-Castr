@@ -1,19 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {
-  LayoutDashboard,
-  Mail,
-  CheckSquare,
-  MessageCircle,
-  Calendar,
-  Shield,
-  AlertTriangle,
-  Settings,
-  HelpCircle,
-  CreditCard,
-  Users,
-} from "lucide-react"
+import { LayoutDashboard, Mail, CheckSquare, MessageCircle, Calendar, Shield, AlertTriangle, Settings, HelpCircle, CreditCard, Users, } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
 import { SidebarNotification } from "@/components/sidebar-notification"
@@ -38,10 +26,10 @@ const data = {
   },
   navGroups: [
     {
-      label: "Dashboards",
+      label: "Home",
       items: [
         {
-          title: "Dashboard",
+          title: "Home",
           url: "/dashboard",
           icon: LayoutDashboard,
         },

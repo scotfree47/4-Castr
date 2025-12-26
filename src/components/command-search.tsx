@@ -3,25 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Command as CommandPrimitive } from "cmdk"
-import {
-  Search,
-  LayoutDashboard,
-  Mail,
-  CheckSquare,
-  MessageCircle,
-  Calendar,
-  Shield,
-  AlertTriangle,
-  Settings,
-  HelpCircle,
-  CreditCard,
-  User,
-  Bell,
-  Link2,
-  Palette,
-  type LucideIcon,
-} from "lucide-react"
-
+import { Search, LayoutDashboard, Mail, CheckSquare, MessageCircle, Calendar, Shield, AlertTriangle, Settings, HelpCircle, CreditCard, User, Bell, Link2, Palette, type LucideIcon, } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
@@ -126,8 +108,8 @@ export function CommandSearch({ open, onOpenChange }: CommandSearchProps) {
   const commandRef = React.useRef<HTMLDivElement>(null)
 
   const searchItems: SearchItem[] = [
-    // Dashboards
-    { title: "Dashboard", url: "/dashboard", group: "Dashboards", icon: LayoutDashboard },
+    // Home
+    { title: "Home", url: "/dashboard", group: "Home", icon: LayoutDashboard },
     // Apps
     { title: "Mail", url: "/mail", group: "Apps", icon: Mail },
     { title: "Tasks", url: "/tasks", group: "Apps", icon: CheckSquare },
