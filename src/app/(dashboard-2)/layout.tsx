@@ -12,7 +12,7 @@ export function DashboardLayout() {
           to="/dashboard-2"
           className="block py-2 text-sm text-gray-700 hover:bg-gray-100"
         >
-          Dashboard
+          Home
         </NavLink>
         <NavLink
           to="/dashboard-2/calendar"
