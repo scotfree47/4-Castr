@@ -6,9 +6,6 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle, 
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, } from "@/components/ui/chart"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem, } from "@/components/ui/toggle-group"
-
-export const description = "An interactive area chart"
-
 const chartData = [
   { date: "2024-04-01", desktop: 222, mobile: 150 },
   { date: "2024-04-02", desktop: 97, mobile: 180 },
@@ -102,7 +99,6 @@ const chartData = [
   { date: "2024-06-29", desktop: 103, mobile: 160 },
   { date: "2024-06-30", desktop: 446, mobile: 400 },
 ]
-
 const chartConfig = {
   visitors: {
     label: "Visitors",
@@ -116,19 +112,15 @@ const chartConfig = {
     color: "var(--primary)",
   },
 } satisfies ChartConfig
-
 const [showRevenueBreakdown, setShowRevenueBreakdown] = React.useState(false)
-
 export function ChartAreaInteractive() {
   const isMobile = useIsMobile()
   const [timeRange, setTimeRange] = React.useState("90d")
-
   React.useEffect(() => {
     if (isMobile) {
       setTimeRange("7d")
     }
   }, [isMobile])
-
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date)
     const referenceDate = new Date("2024-06-30")
@@ -142,7 +134,6 @@ export function ChartAreaInteractive() {
     startDate.setDate(startDate.getDate() - daysToSubtract)
     return date >= startDate
   })
-
   return (
     <div>
       <Card className="@container/card">
@@ -192,10 +183,7 @@ export function ChartAreaInteractive() {
           </CardAction>
         </CardHeader>
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-[250px] w-full"
-          >
+          <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
             <AreaChart data={filteredData}>
               <defs>
                 <linearGradient
@@ -282,6 +270,7 @@ export function ChartAreaInteractive() {
           </ChartContainer>
         </CardContent>
       </Card>
+      {/* 
       {showRevenueBreakdown && (
         <Card className="@container/card">
           <CardHeader>
@@ -291,7 +280,8 @@ export function ChartAreaInteractive() {
             {/* Add pie chart here */}
           </CardContent>
         </Card>
-      )}
+      )} 
+      */}
     </div>
   )
 }
