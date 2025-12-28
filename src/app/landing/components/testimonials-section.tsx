@@ -124,9 +124,9 @@ export function TestimonialsSection() {
                     />
                     <AvatarFallback>
                       {testimonial.name
-                        .split(' ')
-                        .map(n => n[0])
-                        .join('')}
+                       .split(' ')
+                       .map(n => n[0])
+                       .join('')}
                     </AvatarFallback>
                   </Avatar>
 
