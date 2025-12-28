@@ -68,80 +68,76 @@ const metrics = [
 ]
 
 export function MetricsOverview() {
-  const handleDotClick = (index: number) => {
-    const carousel = document.querySelector('.carousel');
-    if (carousel) {
-      const slideWidth = carousel.children[0].clientWidth;
-      carousel.scrollTo({ left: index * slideWidth, behavior: 'smooth' });
-    }
+  const handleDotClick = (index: number, emblaApi: any) => {
+    emblaApi.scrollTo(index)
+  }
+
+  const handlePrevClick = (emblaApi: any) => {
+    emblaApi.prev()
+  }
+
+  const handleNextClick = (emblaApi: any) => {
+    emblaApi.next()
   }
 
   return (
-    <Carousel>
-      <CarouselContent>
-        {metrics.map((metric) => {
-          const TrendIcon = metric.trend === "up"? TrendingUp : TrendingDown
-          return (
-            <CarouselItem key={metric.title}>
-              <Card className="cursor-pointer">
-                <CardHeader>
-                  <CardDescription>{metric.title}</CardDescription>
-                  <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                    {metric.value}
-                  </CardTitle>
-                  <CardAction>
-                    <Badge variant="outline">
-                      <TrendIcon className="h-4 w-4" />
-                      {metric.change}
-                    </Badge>
-                  </CardAction>
-                </CardHeader>
-                <CardFooter className="flex-col items-start gap-1.5 text-sm">
-                  <div className="line-clamp-1 flex gap-2 font-medium">
-                    {metric.footer}
-                    <TrendIcon className="size-4" />
-                  </div>
-                  <div className="text-muted-foreground">
-                    {metric.subfooter}
-                  </div>
-                </CardFooter>
-              </Card>
-            </CarouselItem>
-          )
-        })}
-      </CarouselContent>
-      <div className="flex justify-center gap-4 py-4">
-        {metrics.map((_, index) => (
-          <button
-            key={index}
-            className={`h-2 w-8 rounded-lg ${index === 0? 'bg-primary' : 'bg-muted-foreground hover:bg-primary'}`}
-            onClick={() => handleDotClick(index)}
-          />
-        ))}
-      </div>
-      <div className="flex justify-between py-4">
-        <button
-          className="h-12 w-12 rounded-lg bg-transparent hover:bg-muted-foreground"
-          onClick={() => {
-            const carousel = document.querySelector('.carousel');
-            if (carousel) {
-              const slideWidth = carousel.children[0].clientWidth;
-              carousel.scrollTo({ left: -slideWidth, behavior: 'smooth' });
-            }
-          }}
-        />
-        <button
-          className="h-12 w-12 rounded-lg bg-transparent hover:bg-muted-foreground"
-          onClick={() => {
-            const carousel = document.querySelector('.carousel');
-            if (carousel) {
-              const slideWidth = carousel.children[0].clientWidth;
-              const scrollLeft = carousel.scrollLeft;
-              carousel.scrollTo({ left: scrollLeft + slideWidth, behavior: 'smooth' });
-            }
-          }}
-        />
-      </div>
-    </Carousel>
+    <Carousel setApi={(emblaApi: any) => {
+      return (
+        <div>
+          <CarouselContent>
+            {metrics.map((metric) => {
+              const TrendIcon = metric.trend === "up"? TrendingUp : TrendingDown
+              return (
+                <CarouselItem key={metric.title}>
+                  <Card className="cursor-pointer">
+                    <CardHeader>
+                      <CardDescription>{metric.title}</CardDescription>
+                      <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                        {metric.value}
+                      </CardTitle>
+                      <CardAction>
+                        <Badge variant="outline">
+                          <TrendIcon className="h-4 w-4" />
+                          {metric.change}
+                        </Badge>
+                      </CardAction>
+                    </CardHeader>
+                    <CardFooter className="flex-col items-start gap-1.5 text-sm">
+                      <div className="line-clamp-1 flex gap-2 font-medium">
+                        {metric.footer}
+                        <TrendIcon className="size-4" />
+                      </div>
+                      <div className="text-muted-foreground">
+                        {metric.subfooter}
+                      </div>
+                    </CardFooter>
+                  </Card>
+                </CarouselItem>
+              )
+            })}
+          </CarouselContent>
+          <div className="flex justify-center gap-4 py-4">
+            {metrics.map((_, index) => (
+              <button
+                key={index}
+                className={`h-2 w-8 rounded-lg ${index === 0? 'bg-primary' : 'bg-muted-foreground hover:bg-primary'}`}
+                onClick={() => handleDotClick(index, emblaApi)}
+              />
+            ))}
+          </div>
+          <div className="flex justify-between py-4">
+            <button
+              className="h-12 w-12 rounded-lg bg-transparent hover:bg-muted-foreground"
+              onClick={() => handlePrevClick(emblaApi)}
+            />
+            <button
+              className="h-12 w-12 rounded-lg bg-transparent hover:bg-muted-foreground"
+              onClick={() => handleNextClick(emblaApi)}
+            />
+          </div>
+        </div>
+      )
+    }}
+    />
   )
 }
