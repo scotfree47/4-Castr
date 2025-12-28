@@ -2,7 +2,7 @@
 import { TrendingUp, TrendingDown, DollarSign, Users, ShoppingCart, BarChart3 } from "lucide-react"
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { Carousel, CarouselContent, CarouselItem, useCarousel } from "@/components/ui/carousel"
 
 const metrics = [
   {
@@ -68,9 +68,10 @@ const metrics = [
 ]
 
 export function MetricsOverview() {
+  const { scrollPrev, scrollNext, canScrollPrev, canScrollNext } = useCarousel()
+
   return (
     <Carousel>
-      <CarouselPrevious />
       <CarouselContent>
         {metrics.map((metric) => {
           const TrendIcon = metric.trend === "up"? TrendingUp : TrendingDown
@@ -103,7 +104,25 @@ export function MetricsOverview() {
           )
         })}
       </CarouselContent>
-      <CarouselNext />
+      <div className="flex justify-center gap-4 py-4">
+        {metrics.map((_, index) => (
+          <button
+            key={index}
+            className={`h-2 w-8 rounded-lg ${index === 0? 'bg-primary' : 'bg-muted-foreground hover:bg-primary'}`}
+            onClick={() => console.log(`Navigate to slide ${index}`)}
+          />
+        ))}
+      </div>
+      <div className="flex justify-between py-4">
+        <button
+          className={`h-12 w-12 rounded-lg bg-transparent hover:bg-muted-foreground ${canScrollPrev? 'visible' : 'invisible'}`}
+          onClick={scrollPrev}
+        />
+        <button
+          className={`h-12 w-12 rounded-lg bg-transparent hover:bg-muted-foreground ${canScrollNext? 'visible' : 'invisible'}`}
+          onClick={scrollNext}
+        />
+      </div>
     </Carousel>
   )
 }
