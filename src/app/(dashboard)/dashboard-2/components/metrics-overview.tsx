@@ -2,7 +2,7 @@
 import { TrendingUp, TrendingDown, DollarSign, Users, ShoppingCart, BarChart3 } from "lucide-react"
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Carousel, CarouselContent, CarouselItem, useCarousel } from "@/components/ui/carousel"
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 
 const metrics = [
   {
@@ -68,7 +68,13 @@ const metrics = [
 ]
 
 export function MetricsOverview() {
-  const { scrollPrev, scrollNext, canScrollPrev, canScrollNext } = useCarousel()
+  const handleDotClick = (index: number) => {
+    const carousel = document.querySelector('.carousel');
+    if (carousel) {
+      const slideWidth = carousel.children[0].clientWidth;
+      carousel.scrollTo({ left: index * slideWidth, behavior: 'smooth' });
+    }
+  }
 
   return (
     <Carousel>
@@ -109,18 +115,31 @@ export function MetricsOverview() {
           <button
             key={index}
             className={`h-2 w-8 rounded-lg ${index === 0? 'bg-primary' : 'bg-muted-foreground hover:bg-primary'}`}
-            onClick={() => console.log(`Navigate to slide ${index}`)}
+            onClick={() => handleDotClick(index)}
           />
         ))}
       </div>
       <div className="flex justify-between py-4">
         <button
-          className={`h-12 w-12 rounded-lg bg-transparent hover:bg-muted-foreground ${canScrollPrev? 'visible' : 'invisible'}`}
-          onClick={scrollPrev}
+          className="h-12 w-12 rounded-lg bg-transparent hover:bg-muted-foreground"
+          onClick={() => {
+            const carousel = document.querySelector('.carousel');
+            if (carousel) {
+              const slideWidth = carousel.children[0].clientWidth;
+              carousel.scrollTo({ left: -slideWidth, behavior: 'smooth' });
+            }
+          }}
         />
         <button
-          className={`h-12 w-12 rounded-lg bg-transparent hover:bg-muted-foreground ${canScrollNext? 'visible' : 'invisible'}`}
-          onClick={scrollNext}
+          className="h-12 w-12 rounded-lg bg-transparent hover:bg-muted-foreground"
+          onClick={() => {
+            const carousel = document.querySelector('.carousel');
+            if (carousel) {
+              const slideWidth = carousel.children[0].clientWidth;
+              const scrollLeft = carousel.scrollLeft;
+              carousel.scrollTo({ left: scrollLeft + slideWidth, behavior: 'smooth' });
+            }
+          }}
         />
       </div>
     </Carousel>
