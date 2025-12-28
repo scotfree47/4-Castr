@@ -1,13 +1,5 @@
 "use client"
-
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Users, 
-  ShoppingCart, 
-  BarChart3 
-} from "lucide-react"
+import { TrendingUp, TrendingDown, DollarSign, Users, ShoppingCart, BarChart3 } from "lucide-react"
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
@@ -27,7 +19,7 @@ const metrics = [
     title: "Rates",
     value: "2,350",
     description: "Total active users",
-    change: "+5.2%", 
+    change: "+5.2%",
     trend: "up",
     icon: Users,
     footer: "Strong user retention",
@@ -38,7 +30,7 @@ const metrics = [
     value: "1,247",
     description: "Orders this month",
     change: "-2.1%",
-    trend: "down", 
+    trend: "down",
     icon: ShoppingCart,
     footer: "Down 2% this period",
     subfooter: "Order volume needs attention"
@@ -78,36 +70,40 @@ const metrics = [
 export function MetricsOverview() {
   return (
     <Carousel>
-      {metrics.map((metric) => {
-        const TrendIcon = metric.trend === "up"? TrendingUp : TrendingDown
-        
-        return (
-          <CarouselItem key={metric.title}>
-            <Card className=" cursor-pointer">
-              <CardHeader>
-                <CardDescription>{metric.title}</CardDescription>
-                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                  {metric.value}
-                </CardTitle>
-                <CardAction>
-                  <Badge variant="outline">
-                    <TrendIcon className="h-4 w-4" />
-                    {metric.change}
-                  </Badge>
-                </CardAction>
-              </CardHeader>
-              <CardFooter className="flex-col items-start gap-1.5 text-sm">
-                <div className="line-clamp-1 flex gap-2 font-medium">
-                  {metric.footer} <TrendIcon className="size-4" />
-                </div>
-                <div className="text-muted-foreground">
-                  {metric.subfooter}
-                </div>
-              </CardFooter>
-            </Card>
-          </CarouselItem>
-        )
-      })}
+      <CarouselPrevious />
+      <CarouselContent>
+        {metrics.map((metric) => {
+          const TrendIcon = metric.trend === "up"? TrendingUp : TrendingDown
+          return (
+            <CarouselItem key={metric.title}>
+              <Card className="cursor-pointer">
+                <CardHeader>
+                  <CardDescription>{metric.title}</CardDescription>
+                  <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                    {metric.value}
+                  </CardTitle>
+                  <CardAction>
+                    <Badge variant="outline">
+                      <TrendIcon className="h-4 w-4" />
+                      {metric.change}
+                    </Badge>
+                  </CardAction>
+                </CardHeader>
+                <CardFooter className="flex-col items-start gap-1.5 text-sm">
+                  <div className="line-clamp-1 flex gap-2 font-medium">
+                    {metric.footer}
+                    <TrendIcon className="size-4" />
+                  </div>
+                  <div className="text-muted-foreground">
+                    {metric.subfooter}
+                  </div>
+                </CardFooter>
+              </Card>
+            </CarouselItem>
+          )
+        })}
+      </CarouselContent>
+      <CarouselNext />
     </Carousel>
   )
 }
