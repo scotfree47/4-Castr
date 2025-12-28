@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Carousel } from "@/components/ui/carousel"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 
 const metrics = [
   {
@@ -82,7 +82,7 @@ export function MetricsOverview() {
         const TrendIcon = metric.trend === "up"? TrendingUp : TrendingDown
         
         return (
-          <Carousel.Item key={metric.title}>
+          <CarouselItem key={metric.title}>
             <Card className=" cursor-pointer">
               <CardHeader>
                 <CardDescription>{metric.title}</CardDescription>
@@ -105,7 +105,7 @@ export function MetricsOverview() {
                 </div>
               </CardFooter>
             </Card>
-          </Carousel.Item>
+          </CarouselItem>
         )
       })}
     </Carousel>
