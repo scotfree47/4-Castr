@@ -132,7 +132,7 @@ export function LandingNavbar() {
             </a>
           </Button>
           <Button variant="outline" asChild className="cursor-pointer">
-            <Link href="/dashboard" target="_blank" rel="noopener noreferrer">
+            <Link href="/charts" target="_blank" rel="noopener noreferrer">
               <LayoutDashboard className="h-4 w-4 mr-2" />
               Dashboard
             </Link>
@@ -249,7 +249,7 @@ export function LandingNavbar() {
                 {/* Primary Actions */}
                 <div className="space-y-3">
                   <Button variant="outline" size="lg" asChild className="w-full cursor-pointer">
-                    <Link href="/dashboard">
+                    <Link href="/charts">
                       <LayoutDashboard className="size-4" />
                       Dashboard
                     </Link>

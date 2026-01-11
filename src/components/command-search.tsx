@@ -3,12 +3,12 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Command as CommandPrimitive } from "cmdk"
-import { Search, LayoutDashboard, Mail, CheckSquare, MessageCircle, Calendar, Shield, AlertTriangle, Settings, HelpCircle, CreditCard, User, Bell, Link2, Palette, type LucideIcon, } from "lucide-react"
+import { Search, LayoutDashboard, Mail, CheckSquare, MessageCircle, Calendar, Shield, AlertTriangle, Settings, HelpCircle, CreditCard, User, Bell, Link2, Palette, type LucideIcon, House, Newspaper, ChartSpline, AlignHorizontalDistributeCenter, ChevronRight } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
 const Command = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive>,
+  React.ComponentRef<typeof CommandPrimitive>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive>
 >(({ className,...props }, ref) => (
   <CommandPrimitive
@@ -23,7 +23,7 @@ const Command = React.forwardRef<
 Command.displayName = CommandPrimitive.displayName
 
 const CommandInput = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Input>,
+  React.ComponentRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className,...props }, ref) => (
   <CommandPrimitive.Input
@@ -38,7 +38,7 @@ const CommandInput = React.forwardRef<
 CommandInput.displayName = CommandPrimitive.Input.displayName
 
 const CommandList = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.List>,
+  React.ComponentRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
 >(({ className,...props }, ref) => (
   <CommandPrimitive.List
@@ -50,7 +50,7 @@ const CommandList = React.forwardRef<
 CommandList.displayName = CommandPrimitive.List.displayName
 
 const CommandEmpty = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Empty>,
+  React.ComponentRef<typeof CommandPrimitive.Empty>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>
 >((props, ref) => (
   <CommandPrimitive.Empty
@@ -62,7 +62,7 @@ const CommandEmpty = React.forwardRef<
 CommandEmpty.displayName = CommandPrimitive.Empty.displayName
 
 const CommandGroup = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Group>,
+  React.ComponentRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
 >(({ className,...props }, ref) => (
   <CommandPrimitive.Group
@@ -77,7 +77,7 @@ const CommandGroup = React.forwardRef<
 CommandGroup.displayName = CommandPrimitive.Group.displayName
 
 const CommandItem = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Item>,
+  React.ComponentRef<typeof CommandPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
 >(({ className,...props }, ref) => (
   <CommandPrimitive.Item
@@ -107,16 +107,18 @@ export function CommandSearch({ open, onOpenChange }: CommandSearchProps) {
   const router = useRouter()
   const commandRef = React.useRef<HTMLDivElement>(null)
 
+  // TODO: Update these items to match your actual pages
   const searchItems: SearchItem[] = [
-    // Home
-    { title: "Home", url: "/dashboard", group: "Home", icon: LayoutDashboard },
-    // Apps
-    { title: "Mail", url: "/mail", group: "Apps", icon: Mail },
-    { title: "Tasks", url: "/tasks", group: "Apps", icon: CheckSquare },
-    { title: "Chat", url: "/chat", group: "Apps", icon: MessageCircle },
-    { title: "Calendar", url: "/calendar", group: "Apps", icon: Calendar },
-    { title: "Users", url: "/users", group: "Apps", icon: User },
-    // Auth Pages
+    // Market
+    { title: "Watchlist", url: "/1watchlist", group: "Market", icon: AlignHorizontalDistributeCenter },
+    { title: "Charts", url: "/2charts", group: "Market", icon: AlignHorizontalDistributeCenter },
+    // Events
+    { title: "Calendar", url: "/3calendar", group: "Events", icon: Calendar },
+    { title: "Alerts", url: "/4alerts", group: "Events", icon: Bell },
+    { title: "News", url: "/5news", group: "Events", icon: Newspaper },
+    // Admin
+    { title: "Mail", url: "/6mail", group: "Auth Pages", icon: Mail },    
+    { title: "Users", url: "/7users", group: "Auth Pages", icon: User },
     { title: "Sign In 1", url: "/sign-in", group: "Auth Pages", icon: Shield },
     { title: "Sign In 2", url: "/sign-in-2", group: "Auth Pages", icon: Shield },
     { title: "Sign In 3", url: "/sign-in-3", group: "Auth Pages", icon: Shield },
@@ -140,8 +142,8 @@ export function CommandSearch({ open, onOpenChange }: CommandSearchProps) {
     { title: "Notifications", url: "/settings/notifications", group: "Settings", icon: Bell },
     { title: "Connections", url: "/settings/connections", group: "Settings", icon: Link2 },
     // Pages
-    { title: "FAQs", url: "/faqs", group: "Pages", icon: HelpCircle },
-    { title: "Pricing", url: "/pricing", group: "Pages", icon: CreditCard },
+    { title: "FAQs", url: "/8faqs", group: "Pages", icon: HelpCircle },
+    { title: "Pricing", url: "/9pricing", group: "Pages", icon: CreditCard },
   ]
 
   const groupedItems = searchItems.reduce((acc, item) => {
@@ -168,11 +170,12 @@ export function CommandSearch({ open, onOpenChange }: CommandSearchProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden p-0 shadow-2xl border border-zinc-200 dark:border-zinc-800 max-w-[640px]">
-        <DialogTitle className="sr-only">Command Search</DialogTitle>
+      <DialogContent className="overflow-hidden p-0 shadow-2xl border border-zinc-200 dark:border-zinc-800 max-w-[640px]" aria-describedby={undefined}>
+        <DialogTitle className="sr-only">Search</DialogTitle>
         <Command
           ref={commandRef}
           className="transition-transform duration-100 ease-out"
+          aria-label="Command menu"
         >
           <CommandInput placeholder="What do you need?" autoFocus />
           <CommandList>
@@ -208,10 +211,10 @@ export function SearchTrigger({ onClick }: { onClick: () => void }) {
       className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 px-3 py-1 relative w-full justify-start text-muted-foreground sm:pr-12 md:w-36 lg:w-56"
     >
       <Search className="mr-2 h-3.5 w-3.5" />
-      <span className="hidden lg:inline-flex">Search...</span>
-      <span className="inline-flex lg:hidden">Search...</span>
-      <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-4 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-        <span className="text-xs"></span>K
+      <span className="hidden lg:inline-flex">Search</span>
+      <span className="inline-flex lg:hidden">Search</span>
+      <kbd className="pointer-events-none absolute right-1 hidden h-6 select-none items-center gap-1 rounded border border-1 border-white/30 bg-muted px-1.5 font-mono text-[13px] font-medium opacity-100 sm:flex">
+        <span className="text-lg">⌘</span>K
       </kbd>
     </button>
   )

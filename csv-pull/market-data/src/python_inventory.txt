@@ -1,0 +1,91 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: calculate_confidence_scores.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PURPOSE (from comments):
+#!/usr/bin/env python3
+# Configuration
+# Scoring thresholds
+# Planetary rulerships and associations for different sectors
+
+MAIN FUNCTIONS:
+def load_astro_data():
+def load_fibonacci_data():
+def identify_sector(symbol, category):
+def score_ingress_period(current_date, ingresses_df, sector_info):
+def score_planetary_aspects(current_date, aspects_df, retrogrades_df, sector_info):
+def score_lunar_phase(current_date, lunar_phases_df):
+def score_18yr_lunar_cycle(current_date, lunar_cycle_df):
+def calculate_confidence_score(symbol_data, astro_data, current_date=None):
+def main():
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: calculate_fibonacci_levels.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PURPOSE (from comments):
+#!/usr/bin/env python3
+# Configuration
+# Fibonacci ratios for retracement levels
+# Fibonacci ratios for fan/speed lines
+# Years to analyze (6 years of historical data for pattern recognition)
+
+MAIN FUNCTIONS:
+def load_price_data(category):
+def load_seasonal_anchors():
+def get_anchor_price(price_df, anchor_date, anchor_type, symbol):
+def calculate_fibonacci_retracement(high, low, levels=RETRACEMENT_LEVELS):
+def calculate_fibonacci_fan(start_price, end_price, start_date, end_date, levels=FAN_LEVELS):
+def calculate_time_projections(start_date, end_date, target_levels):
+def process_symbol(symbol, price_df, anchors_df, category):
+def main():
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: fetch_astro_data.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PURPOSE (from comments):
+#!/usr/bin/env python3
+# Configuration
+# Initialize ephemeris
+# Setup Swiss Ephemeris data directory
+
+MAIN FUNCTIONS:
+def get_zodiac_sign(longitude):
+def normalize_angle(angle):
+def check_aspect(lon1, lon2):
+def calculate_lunar_phase(sun_lon, moon_lon):
+def calculate_lunar_cycle_phase(date):
+def get_planet_position(planet_code, jd):
+def calculate_angles(jd, latitude=40.7128, longitude=-74.0060):
+def compute_daily_positions(date):
+def generate_aspects(positions, date, primary_only=True):
+def detect_ingresses(current_positions, previous_positions, date):
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: fetch_ticker_data.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PURPOSE (from comments):
+#!/usr/bin/env python3
+# Load environment variables
+# Ticker mapping for yfinance compatibility
+
+MAIN FUNCTIONS:
+def fetch_ticker_data(ticker, start_date='2024-12-22', end_date=None):
+def main():
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: fetch.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PURPOSE (from comments):
+#!/usr/bin/env python3
+# Target dates
+# Symbols from your config
+
+MAIN FUNCTIONS:
+def fetch_data(symbol, start='2005-01-01', end='2025-12-31'):
+def save_equities():
+def save_crypto():
+def save_forex():
+def save_commodities():
+def save_stress():
+def save_rates_macro():
+def main():
+

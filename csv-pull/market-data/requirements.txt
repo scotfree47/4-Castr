@@ -1,0 +1,20 @@
+# Core data processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Astrological calculations
+skyfield>=1.46
+pyswisseph>=2.10.3.2
+
+# Financial data fetching (if not already installed)
+yfinance>=0.2.28
+requests>=2.31.0
+
+# Environment and configuration
+python-dotenv>=1.0.0
+
+# Database (if using Supabase)
+supabase>=2.0.0
+
+# Optional: Data validation and type checking
+pydantic>=2.0.0

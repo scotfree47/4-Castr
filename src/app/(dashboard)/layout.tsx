@@ -4,9 +4,8 @@ import React from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { FloatingActionMenu } from "@/components/floating-action-menu";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { ThemeCustomizer, ThemeCustomizerTrigger } from "@/components/theme-customizer";
-import { UpgradeToProButton } from "@/components/upgrade-to-pro-button";
 import { useSidebarConfig } from "@/hooks/use-sidebar-config";
 
 export default function DashboardLayout({
@@ -44,6 +43,7 @@ export default function DashboardLayout({
             </div>
             <SiteFooter />
           </SidebarInset>
+          <FloatingActionMenu />
         </>
       ) : (
         <>
@@ -63,16 +63,9 @@ export default function DashboardLayout({
             collapsible={config.collapsible}
             side={config.side}
           />
+          <FloatingActionMenu />
         </>
       )}
-
-      {/* Theme Customizer */}
-      <ThemeCustomizerTrigger onClick={() => setThemeCustomizerOpen(true)} />
-      <ThemeCustomizer
-        open={themeCustomizerOpen}
-        onOpenChange={setThemeCustomizerOpen}
-      />
-      <UpgradeToProButton />
     </SidebarProvider>
   );
 }

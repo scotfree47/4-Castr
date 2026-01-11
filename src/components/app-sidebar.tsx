@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { LayoutDashboard, Mail, CheckSquare, MessageCircle, Calendar, Shield, AlertTriangle, Settings, HelpCircle, CreditCard, Users, } from "lucide-react"
+import { LayoutDashboard, Mail, CheckSquare, MessageCircle, Calendar, Shield, AlertTriangle, Settings, HelpCircle, CreditCard, Users, House, Bell, Newspaper, ChartSpline, AlignHorizontalDistributeCenter, Gem } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
 import { SidebarNotification } from "@/components/sidebar-notification"
@@ -20,59 +20,69 @@ import {
 
 const data = {
   user: {
-    name: "ShadcnStore",
-    email: "store@example.com",
+    name: "Scot Free",
+    email: "scotproton@gmail.com",
     avatar: "",
   },
   navGroups: [
     {
-      label: "Home",
+      label: "Market",
       items: [
         {
-          title: "Home",
-          url: "/dashboard",
-          icon: LayoutDashboard,
+          title: "Watchlist",
+          url: "/1watchlist",
+          icon: Gem,
+        },
+        {
+          title: "Tickers",
+          url: "/h1-tickers",
+          icon: AlignHorizontalDistributeCenter,
+        },
+        {
+          title: "Charts",
+          url: "/2charts",
+          icon: ChartSpline,
         },
       ],
     },
     {
-      label: "Apps",
+      label: "Events",
       items: [
         {
-          title: "Mail",
-          url: "/mail",
-          icon: Mail,
-        },
-        {
-          title: "Tasks",
-          url: "/tasks",
-          icon: CheckSquare,
-        },
-        {
-          title: "Chat",
-          url: "/chat",
-          icon: MessageCircle,
-        },
-        {
           title: "Calendar",
-          url: "/calendar",
+          url: "/3calendar",
           icon: Calendar,
         },
         {
-          title: "Users",
-          url: "/users",
-          icon: Users,
+          title: "Alerts",
+          url: "/4alerts",
+          icon: Bell,
+        },
+        {
+          title: "News",
+          url: "/5news",
+          icon: Newspaper,
         },
       ],
     },
     {
-      label: "Pages",
+      label: "Admin",
       items: [
         {
           title: "Landing",
           url: "/landing",
           target: "_blank",
           icon: LayoutDashboard,
+        },
+        {
+          title: "Mail",
+          url: "/6mail",
+          icon: Mail,
+        },
+        {
+          title: "Users",
+          url: "/7users",
+          icon: Users,
         },
         {
           title: "Auth Pages",
@@ -177,12 +187,12 @@ const data = {
         },
         {
           title: "FAQs",
-          url: "/faqs",
+          url: "/8faqs",
           icon: HelpCircle,
         },
         {
           title: "Pricing",
-          url: "/pricing",
+          url: "/9pricing",
           icon: CreditCard,
         },
       ],
@@ -197,13 +207,13 @@ export function AppSidebar({...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
+              <Link href="/1watchlist">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Logo size={24} className="text-current" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">ShadcnStore</span>
-                  <span className="truncate text-xs">Admin Dashboard</span>
+                  <span className="truncate font-large">4Castr</span>
+                  <span className="truncate text-xs">"Stars Impel, Not Compel"</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -216,7 +226,9 @@ export function AppSidebar({...props }: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
       <SidebarFooter>
+        {/*}
         <SidebarNotification />
+        */}
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>

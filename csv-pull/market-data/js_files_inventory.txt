@@ -1,0 +1,715 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./convert-historical-data.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// convert-historical-data.js
+// Run from csv-pull/market-data directory: node convert-historical-data.js
+
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Parse CSV file
+function parseCSV(filePath) {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const lines = content.trim().split('\n');
+  
+  // Skip comment lines and empty lines
+  const dataLines = lines.filter(line => {
+    const trimmed = line.trim();
+    return trimmed.length > 0 && !trimmed.startsWith('//');
+  });
+  
+  if (dataLines.length === 0) {
+    console.warn(`⚠️  No data found in ${filePath} after filtering comments`);
+    return [];
+  }
+  
+  const headers = dataLines[0].split(',');
+  
+  return dataLines.slice(1).map(line => {
+    const values = line.split(',');
+    const obj = {};
+    headers.forEach((header, i) => {
+      obj[header.trim()] = values[i]?.trim();
+    });
+    return obj;
+  });
+}
+
+// Get all unique dates from anchors
+function getAnchorDates() {
+  const anchorsPath = path.join(__dirname, 'data/unintegrated/anchors/anchors_solstice_equinox.csv');
+  const anchors = parseCSV(anchorsPath);
+  return anchors.map(a => a.Date).sort();
+}
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./seed-astro-events.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import fs from 'fs';
+import path from 'path';
+import Papa from 'papaparse';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '..', '..', '.env.local') });
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ Missing Supabase credentials in .env.local');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Map month-day to zodiac sign for solar ingress
+const DATE_TO_ZODIAC = {
+  '03-20': 'Aries',     // Spring Equinox
+  '03-21': 'Aries',
+  '06-20': 'Cancer',    // Summer Solstice
+  '06-21': 'Cancer',
+  '09-22': 'Libra',     // Autumn Equinox
+  '09-23': 'Libra',
+  '12-21': 'Capricorn'  // Winter Solstice
+};
+
+async function seedAstroEvents() {
+  const csvPath = path.join(__dirname, 'data', 'anchors', 'anchors_solstice_equinox.csv');
+  const fileContent = fs.readFileSync(csvPath, 'utf8');
+  const parsed = Papa.parse(fileContent, { header: true });
+
+  const events = parsed.data
+    .filter(row => row.Date)
+    .map(row => {
+      const monthDay = row.Date.slice(5); // Get MM-DD
+      const zodiacSign = DATE_TO_ZODIAC[monthDay] || 'Unknown';
+      
+      return {
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/config/gannDates.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export const GANN_DATES = {
+  highs: ["06-21", "12-21"],
+  lows: ["03-21", "09-22"]
+};
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/config/sources.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/config/symbols.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export const SYMBOLS = {
+  equities: [
+    "SPY","QQQ","XLY","AAL","AIG","AMZN","AXP","BA","BABA","BAC",
+    "C","CLF","CLSK","COST","CSCO","CVX","DIS","DKNG","EQT","F",
+    "GE","GS","HLT","HP","IBM","IBIT","ILMN","INTC","JNJ","JPM",
+    "KO","LYV","MRVL","NKE","NUE","NVDA","PG","PTON","QCOM","RACE",
+    "RIOT","RKT","SPCE","T","TEVA","TSLA","V","WKHS","WMG"
+  ],
+
+  crypto: {
+    BTC: "bitcoin",
+    ETH: "ethereum",
+    BNB: "binancecoin",
+    XRP: "ripple",
+    BCH: "bitcoin-cash",
+    SOL: "solana",
+    ADA: "cardano",
+    DOT: "polkadot",
+    LINK: "chainlink",
+    XLM: "stellar"
+  },
+
+  forex: [
+    ["EUR","USD","EURUSD"],
+    ["USD","JPY","USDJPY"],
+    ["GBP","JPY","GBPJPY"],
+    ["GBP","NZD","GBPNZD"],
+    ["EUR","NZD","EURNZD"],
+    ["GBP","AUD","GBPAUD"],
+    ["GBP","CAD","GBPCAD"],
+    ["NZD","CAD","NZDCAD"],
+    ["NZD","CHF","NZDCHF"]
+  ],
+
+  quandl: {
+    commodities: {
+      COTTON: "CHRIS/ICE_CT1",
+      WHEAT: "CHRIS/CME_W1",
+      CORN: "CHRIS/CME_C1",
+      SUGAR: "CHRIS/ICE_SB1",
+      COFFEE: "CHRIS/ICE_KC1"
+    },
+    stress: {
+      VIX: "CBOE/VIX",
+      MOVE: "ICE/BAML_MOVE"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/fetchers/alpha-vantage.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import https from 'https';
+
+const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
+
+// Alpha Vantage: 25 calls/day free, 75/min premium
+// Best for: Forex (excellent historical coverage)
+export async function fetchAlphaVantageForex(fromCurrency, toCurrency, pairName, targetDates) {
+  if (!ALPHA_VANTAGE_API_KEY) {
+    throw new Error('ALPHA_VANTAGE_API_KEY not set');
+  }
+
+  // Get full historical data (daily)
+  const url = `https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=${fromCurrency}&to_symbol=${toCurrency}&outputsize=full&apikey=${ALPHA_VANTAGE_API_KEY}`;
+
+  try {
+    const data = await new Promise((resolve, reject) => {
+      https.get(url, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(body);
+            resolve(json);
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }).on('error', reject);
+    });
+
+    if (!data['Time Series FX (Daily)']) {
+      return [];
+    }
+
+    const timeSeries = data['Time Series FX (Daily)'];
+    const targetSet = new Set(targetDates);
+    
+    return Object.entries(timeSeries)
+      .filter(([date]) => targetSet.has(date))
+      .map(([date, values]) => ({
+        pair: pairName,
+        date: date,
+        rate: parseFloat(values['4. close']),
+        change: 0
+      }));
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/fetchers/coingecko.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import https from 'https';
+
+const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY;
+
+export async function fetchCoinGeckoData(coinId, targetDates) {
+  // CoinGecko Pro has better rate limits and historical data
+  const results = [];
+  const headers = COINGECKO_API_KEY 
+    ? { 'x-cg-pro-api-key': COINGECKO_API_KEY }
+    : {};
+
+  for (const date of targetDates) {
+    const dateObj = new Date(date);
+    
+    // Skip dates before Bitcoin existed (2009) or before specific coins launched
+    if (dateObj < new Date('2009-01-03') && coinId === 'bitcoin') continue;
+    if (dateObj < new Date('2015-07-30') && coinId === 'ethereum') continue;
+    if (dateObj < new Date('2017-01-01') && !['bitcoin', 'ethereum'].includes(coinId)) continue;
+
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+    const formattedDate = `${day}-${month}-${year}`;
+
+    const baseUrl = COINGECKO_API_KEY 
+      ? 'https://pro-api.coingecko.com/api/v3'
+      : 'https://api.coingecko.com/api/v3';
+    const url = `${baseUrl}/coins/${coinId}/history?date=${formattedDate}`;
+
+    try {
+      const data = await new Promise((resolve, reject) => {
+        const options = { headers };
+        https.get(url, options, (res) => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.on('end', () => {
+            try {
+              const json = JSON.parse(body);
+              resolve(json);
+            } catch (err) {
+              reject(err);
+            }
+          });
+        }).on('error', reject);
+      });
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/fetchers/coinmarketcap.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import https from 'https';
+
+const CMC_API_KEY = process.env.COINMARKETCAP_API_KEY;
+
+export async function fetchCMCHistorical(symbol, targetDates) {
+  if (!CMC_API_KEY) {
+    throw new Error('COINMARKETCAP_API_KEY not set');
+  }
+
+  const symbolMap = {
+    'bitcoin': 1,
+    'ethereum': 1027,
+    'binancecoin': 1839,
+    'ripple': 52,
+    'bitcoin-cash': 1831,
+    'solana': 5426,
+    'cardano': 2010,
+    'polkadot': 6636,
+    'chainlink': 1975,
+    'stellar': 512
+  };
+
+  const id = symbolMap[symbol];
+  if (!id) return [];
+
+  const results = [];
+
+  for (const date of targetDates) {
+    const dateObj = new Date(date);
+    if (dateObj < new Date('2009-01-03')) continue;
+
+    const url = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/historical?id=${id}&time_start=${date}T00:00:00Z&time_end=${date}T23:59:59Z`;
+
+    try {
+      const data = await new Promise((resolve, reject) => {
+        https.get(url, {
+          headers: { 'X-CMC_PRO_API_KEY': CMC_API_KEY }
+        }, (res) => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.on('end', () => {
+            try {
+              const json = JSON.parse(body);
+              resolve(json);
+            } catch (err) {
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/fetchers/exhangerate.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import https from 'https';
+
+const EXCHANGE_RATE_API_KEY = process.env.EXCHANGE_RATE_API_KEY;
+
+export async function fetchExchangeRateData(base, quote, pairName, targetDates) {
+  const results = [];
+
+  // exchangerate-api.com supports historical data
+  // Free tier: 1500 requests/month
+  for (const date of targetDates) {
+    const url = EXCHANGE_RATE_API_KEY 
+      ? `https://v6.exchangerate-api.com/v6/${EXCHANGE_RATE_API_KEY}/history/${base}/${date.split('-')[0]}/${date.split('-')[1]}/${date.split('-')[2]}`
+      : `https://api.exchangerate-api.com/v4/history/${base}/${date}`;
+
+    try {
+      const data = await new Promise((resolve, reject) => {
+        https.get(url, (res) => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.on('end', () => {
+            try {
+              const json = JSON.parse(body);
+              resolve(json);
+            } catch (err) {
+              reject(err);
+            }
+          });
+        }).on('error', reject);
+      });
+
+      const rate = data.rates?.[quote] || data.conversion_rates?.[quote];
+      if (rate) {
+        results.push({
+          pair: pairName,
+          date: date,
+          rate: rate,
+          change: 0 // Would need previous day data to calculate
+        });
+      }
+    } catch (err) {
+      console.error(`  Failed to fetch ${pairName} for ${date}:`, err.message);
+    }
+  }
+
+  return results;
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/fetchers/fmp.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import https from 'https';
+
+const FMP_API_KEY = process.env.FMP_API_KEY;
+
+export async function fetchFMPData(symbol, targetDates) {
+  if (!FMP_API_KEY) {
+    throw new Error('FMP_API_KEY not set in environment');
+  }
+
+  // FMP has full historical data back to 2005+ for most equities
+  const url = `https://financialmodelingprep.com/api/v3/historical-price-full/${symbol}?from=2005-01-01&to=2025-12-31&apikey=${FMP_API_KEY}`;
+
+  const allData = await new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(body);
+          if (json.historical) {
+            resolve(json.historical);
+          } else {
+            reject(new Error(`No historical data for ${symbol}`));
+          }
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }).on('error', reject);
+  });
+
+  // Filter to only target dates
+  const targetSet = new Set(targetDates);
+  const filtered = allData
+    .filter(day => targetSet.has(day.date))
+    .map(day => ({
+      symbol,
+      date: day.date,
+      open: day.open,
+      high: day.high,
+      low: day.low,
+      close: day.close,
+      volume: day.volume
+    }));
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/fetchers/fred.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import https from 'https';
+
+const FRED_API_KEY = process.env.FRED_API_KEY;
+
+export async function fetchFREDData(seriesId, indicatorName, targetDates) {
+  if (!FRED_API_KEY) {
+    throw new Error('FRED_API_KEY not set');
+  }
+
+  const minDate = Math.min(...targetDates.map(d => new Date(d)));
+  const maxDate = Math.max(...targetDates.map(d => new Date(d)));
+  const startDate = new Date(minDate).toISOString().split('T')[0];
+  const endDate = new Date(maxDate).toISOString().split('T')[0];
+
+  const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&observation_start=${startDate}&observation_end=${endDate}&api_key=${FRED_API_KEY}&file_type=json`;
+
+  try {
+    const data = await new Promise((resolve, reject) => {
+      https.get(url, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(body);
+            resolve(json);
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }).on('error', reject);
+    });
+
+    if (!data.observations) {
+      return [];
+    }
+
+    const targetSet = new Set(targetDates);
+    return data.observations
+      .filter(obs => targetSet.has(obs.date) && obs.value !== '.')
+      .map(obs => ({
+        indicator: indicatorName,
+        date: obs.date,
+        value: parseFloat(obs.value),
+        unit: 'index'
+      }));
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/fetchers/polygon.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import https from 'https';
+
+const POLYGON_API_KEY = process.env.POLYGON_API_KEY;
+
+export async function fetchPolygonData(symbol, targetDates) {
+  if (!POLYGON_API_KEY) {
+    throw new Error('POLYGON_API_KEY not set');
+  }
+
+  const results = [];
+  const twoYearsAgo = new Date();
+  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+  
+  const recentDates = targetDates.filter(d => new Date(d) >= twoYearsAgo);
+
+  for (const date of recentDates) {
+    const url = `https://api.polygon.io/v1/open-close/${symbol}/${date}?adjusted=true&apiKey=${POLYGON_API_KEY}`;
+
+    try {
+      const data = await new Promise((resolve, reject) => {
+        https.get(url, (res) => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.on('end', () => {
+            try {
+              const json = JSON.parse(body);
+              resolve(json);
+            } catch (err) {
+              reject(err);
+            }
+          });
+        }).on('error', reject);
+      });
+
+      if (data.status === 'OK') {
+        results.push({
+          symbol,
+          date: date,
+          open: data.open,
+          high: data.high,
+          low: data.low,
+          close: data.close,
+          volume: data.volume
+        });
+      }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/fetchers/quandl.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import https from 'https';
+
+// Nasdaq Data Link (formerly Quandl) - use for commodities
+const NASDAQ_API_KEY = process.env.NASDAQ_DATA_LINK_API_KEY || process.env.QUANDL_API_KEY;
+
+export async function fetchQuandlData(quandlCode, commodityName, targetDates) {
+  if (!NASDAQ_API_KEY) {
+    throw new Error('NASDAQ_DATA_LINK_API_KEY not set');
+  }
+
+  const minDate = Math.min(...targetDates.map(d => new Date(d)));
+  const maxDate = Math.max(...targetDates.map(d => new Date(d)));
+  const startDate = new Date(minDate).toISOString().split('T')[0];
+  const endDate = new Date(maxDate).toISOString().split('T')[0];
+
+  const url = `https://data.nasdaq.com/api/v3/datasets/${quandlCode}/data.json?start_date=${startDate}&end_date=${endDate}&api_key=${NASDAQ_API_KEY}`;
+
+  try {
+    const data = await new Promise((resolve, reject) => {
+      https.get(url, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(body);
+            resolve(json);
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }).on('error', reject);
+    });
+
+    if (!data.dataset_data?.data) {
+      return [];
+    }
+
+    const targetSet = new Set(targetDates);
+    const filtered = data.dataset_data.data
+      .filter(row => targetSet.has(row[0]))
+      .map(row => ({
+        commodity: commodityName,
+        date: row[0],
+        price: row[1],
+        unit: 'USD'
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/fetchers/yfinance.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import https from 'https';
+
+const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36';
+
+// Yahoo Finance API - completely free, no key needed
+export async function fetchYahooFinance(symbol, targetDates, assetType = 'equity') {
+  // Get date range
+  const minDate = Math.min(...targetDates.map(d => new Date(d).getTime()));
+  const maxDate = Math.max(...targetDates.map(d => new Date(d).getTime()));
+  
+  // Yahoo uses Unix timestamps
+  const period1 = Math.floor(minDate / 1000);
+  const period2 = Math.floor(maxDate / 1000);
+
+  // Yahoo Finance symbol format
+  let yahooSymbol = symbol;
+  if (assetType === 'crypto') {
+    yahooSymbol = `${symbol}-USD`;
+  } else if (assetType === 'forex') {
+    yahooSymbol = `${symbol}=X`;
+  }
+
+  const url = `https://query1.finance.yahoo.com/v7/finance/download/${yahooSymbol}?period1=${period1}&period2=${period2}&interval=1d&events=history`;
+
+  try {
+    const csvData = await new Promise((resolve, reject) => {
+      const options = {
+        headers: { 'User-Agent': USER_AGENT }
+      };
+
+      https.get(url, options, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          if (res.statusCode !== 200) {
+            reject(new Error(`HTTP ${res.statusCode}: ${body.substring(0, 100)}`));
+          } else {
+            resolve(body);
+          }
+        });
+      }).on('error', reject);
+    });
+
+    // Parse CSV manually
+    const lines = csvData.trim().split('\n');
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/gann/findAnchors.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import fs from "fs";
+import { GANN_DATES } from "../config/gannDates.js";
+
+export function findAnchors(csvPath) {
+  const rows = fs.readFileSync(csvPath, "utf8")
+    .split("\n")
+    .slice(1)
+    .map(r => r.split(","));
+
+  const anchors = [];
+
+  for (const [date, , , , close] of rows) {
+    const md = date.slice(5);
+    if (GANN_DATES.highs.includes(md)) {
+      anchors.push({ date, type: "HIGH", price: close });
+    }
+    if (GANN_DATES.lows.includes(md)) {
+      anchors.push({ date, type: "LOW", price: close });
+    }
+  }
+
+  return anchors;
+}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/gann/rules.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/run.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { createObjectCsvWriter } from 'csv-writer';
+import https from 'https';
+
+// Import config
+import { SYMBOLS } from './config/symbols.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DATA_ROOT = path.join(__dirname, '..', 'data');
+
+const ASTRO_DATES = {
+  2005: ['2005-03-20', '2005-06-21', '2005-09-22', '2005-12-21'],
+  2015: ['2015-03-20', '2015-06-21', '2015-09-23', '2015-12-21'],
+  2018: ['2018-03-20', '2018-06-21', '2018-09-22', '2018-12-21'],
+  2022: ['2022-03-20', '2022-06-21', '2022-09-22', '2022-12-21'],
+  2025: ['2025-03-20', '2025-06-20', '2025-09-22', '2025-12-21']
+};
+
+const ALL_TARGET_DATES = Object.values(ASTRO_DATES).flat();
+
+const DATA_DIRS = ['anchors', 'commodities', 'crypto', 'equities', 'forex', 'stress'];
+
+function ensureDirectories() {
+  DATA_DIRS.forEach(dir => {
+    const fullPath = path.join(DATA_ROOT, dir);
+    if (!fs.existsSync(fullPath)) {
+      fs.mkdirSync(fullPath, { recursive: true });
+    }
+  });
+}
+
+// Check if CSV already exists and has data
+function csvExists(filename) {
+  if (!fs.existsSync(filename)) return false;
+  
+  const content = fs.readFileSync(filename, 'utf8');
+  const lines = content.trim().split('\n');
+  return lines.length > 1; // More than just header
+}
+
+async function writeCSV(filename, records, headers) {
+  if (!records || records.length === 0) {
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/utils/csv.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import fs from "fs";
+import path from "path";
+import { stringify } from "csv-stringify/sync";
+
+export function writeCSV(filePath, rows) {
+  if (!rows || rows.length === 0) return;
+
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+
+  const csv = stringify(rows, {
+    header: true,
+    columns: ["date", "open", "high", "low", "close", "volume"]
+  });
+
+  fs.writeFileSync(filePath, csv);
+}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/utils/rateLimiter.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export function rateLimit(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./src/utils/retry.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export async function withRetry(fn, retries = 3, delayMs = 1000) {
+  try {
+    return await fn();
+  } catch (err) {
+    if (retries <= 0) throw err;
+    await new Promise(r => setTimeout(r, delayMs));
+    return withRetry(fn, retries - 1, delayMs);
+  }
+}

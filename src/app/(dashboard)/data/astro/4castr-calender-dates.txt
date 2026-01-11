@@ -1,0 +1,964 @@
+//////////////////// 4castr: Calender ////////////////////
+
+/////////// Daily ///////////
+12:00a (00:00)	0°	Anchor / Reset
+12:30a (00:30)	7.5°	1x8 angle
+1:00 a	15°	1x4 angle
+1:15 a	18.75°	1x3 angle
+1:24a	21.24°	Fib 23.6% from 0°
+1:45 a  	26.25°	1x2 angle
+2:17 a	34.38°	Fib 38.2% from 0º
+3:00a	45°	BALANCE POINT (1/8 of Day)
+3:42 a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+4:07 a	61.8º	Fib 0.618 (Actual)
+4:15 a	63.75°	2x1 angle (After 61.8º Actual)
+4:42 a	70.74º	Fib 78.6% from 90°
+4:45 a	71.25°	3x1 angle
+5:00 a	75°	4x1 angle
+5:14 a	78.6°	Fib 78.6 (Actual)
+5:30 a	82.5°	8x1 angle
+6:00 a  	90°	MAJOR PIVOT POINT
+6:30a	97.5°	8x1 angle (mirrored)
+7:00 a	105°	4x1 angle (mirrored)
+7:15 a	108.75°	3x1 angle (mirrored)
+7:48 a	117.2°	Fib 1.272 (Actual)
+8:17 a	124.38°	Fib 38.2% from 90° mark
+9:00 a	135	BALANCE POINT (3/8 of Day)
+9:30 a	(0º)	MARKET OPEN
+10:07 a	151.8º	Fib 1.618 (Actual)
+10:15 a	153.75°	1x2 angle (mirrored)
+10:43 a	160.74°	Fib 78.6% from 90°
+10:45 a	161.25°	1x3 angle (mirrored)
+11:00 a	165°	1x4 angle (mirrored)
+11:30 a	172.5°	1x8 angle (mirrored)
+12:00 a	180° 	REVERSALS (50% of Day)
+12:30 p	187.5°	1x8 angle
+1:00 p (13:00)	195°	1x4 angle
+1:15 p (13:15)	198.75°	1x3 angle
+1:24p (13:24)	201.24°	Fib 23.6% from 180°
+1:45 p (13:45)	206.25°	1x2 angle
+2:17p (14:17)	214.38°	Fib 38.2% from 180°
+3:00 p (15:00)	225°	BALANCE POINT (5/8 of Day)
+3:42 p (15:42)	235.62°	Fib 61.8% from 180°
+4:00 p (16:00)	(360º)	MARKET CLOSE
+4:15 p (16:15)	243.75°	2x1 angle (After 61.8º Actual)
+4:42 p (16:45)	250.74°	Fib 78.6% from 180°
+4:45 p (16:45)   	251.25°	3x1 angle
+5:00p (17:00)	255°	4x1 angle
+5:14 p (17:14)	258.6º	Fib 78.6 (Actual)
+5:30 p (17:30)	262.5°	8x1 angle
+6:00 p (18:00)	270°	 MAJOR PIVOT (75% of Day)
+6:30 p (19:30)	277.5°	8x1 angle (mirrored)
+7:00 p (20:00)	285°	4x1 angle (mirrored)
+7:15 p (20:15)   	288.75°	3x1 angle (mirrored)
+7:48 p (19:48)	297.2°	Fib 1.272 (Actual)
+8:17p (20:45)	304.38°	Fib 38.2% from 270°
+9:00 p (21:00)	315°	BALANCE POINT (7/8 of Day)
+9:42 p (21:42)	325.62°	Fib 61.8% from 270°
+10:07 p (10:07)	331.8°	Fib 1.618 (Actual)
+10:15 p (22:15)	333.75°	1x2 angle (mirrored)
+10:43 p (22:43)	340.74°	Fib 78.6% from 270°
+10:45 p (22:45)	341.25°	1x3 angle (mirrored)
+11:16 p (23:16)	345°	1x4 angle (mirrored)
+11:30p (23:16)	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+3:00a	45°	BALANCE POINT (1/8 of Day)
+3:42 a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+4:07 a	61.8º	Fib 0.618 (Actual)
+4:15 a	63.75°	2x1 angle (After 61.8º Actual)
+6:00 a  	90°	MAJOR PIVOT POINT
+9:00 a	135	BALANCE POINT (3/8 of Day)
+9:30 a	(0º)	MARKET OPEN
+10:07 a	151.8º	Fib 1.618 (Actual)
+3:00 p (15:00)	225°	BALANCE POINT (5/8 of Day)
+3:42 p (15:42)	235.62°	Fib 61.8% from 180°
+4:00 p (16:00)	(360º)	MARKET CLOSE
+4:15 p (16:15)	243.75°	2x1 angle (After 61.8º Actual)
+6:00 p (18:00)	270°	 MAJOR PIVOT (75% of Day)
+9:00 p (21:00)	315°	BALANCE POINT (7/8 of Day)
+9:42 p (21:42)	325.62°	Fib 61.8% from 270°
+10:07 p (10:07)	331.8°	Fib 1.618 (Actual)
+
+/////////// Weekly ///////////
+Mon / 12:00a	0°      	Anchor / Reset
+Mon / 3:30a	7.5°    	1x8 angle
+Mon / 7:00a	15°     	1x4 angle
+Mon / 8:45a	18.75°  	1x3 angle
+Mon / 9:54a	21.24°  	Fib 23.6% from 0°
+Mon / 12:15p	26.25°  	1x2 angle
+Mon / 4:02p	34.38°   	Fib 38.2% from 0º
+Mon / 9:00p	45°     	BALANCE POINT (1/8 of Week)
+Tue / 1:57a	55.62°     	Fib 61.8% from 0º (Golden Ratio)
+Tue / 5:45a	63.75°  	2x1 angle (After 61.8º Actual)
+Tue / 9:00a	70.74º	Fib 78.6% from 0°
+Tue / 9:14a	71.25°  	3x1 angle
+Tue / 11:00a	75°     	4x1 angle
+Tue / 12:40p	78.6°     	Fib 78.6 (Actual)
+Tue / 2:30p	82.5°   	8x1 angle
+Tue / 6:00p	90°     	MAJOR PIVOT POINT
+Tue / 9:30p	97.5º	8x1 angle (mirrored)
+Wed / 1:00a	105º	4x1 angle (mirrored)
+Wed / 2:45a	108.75º	3x1 angle (mirrored)
+Wed / 6:15a	116.25°	2x1 angle
+Wed / 6:41a	117.2°	Fib 1.272 (Actual)
+Wed / 10:02a	124.38°  	Fib 38.2% from 90° mark
+Wed / 3:00p	135°    	BALANCE POINT (3/8 of Week)
+Wed / 7:57p	145.62°  	Fib 61.8% from 90°
+Wed / 10:50p	151.8º	Fib 1.618 (Actual)
+Wed / 11:45p	153.75°	1x2 angle (mirrored)
+Thu / 3:00a	160.74°	Fib 78.6% from 90°
+Thu / 3:15a	161.25° 	1x3 angle (mirrored)
+Thu / 5:00a	165°    	1x4 angle (mirrored)
+Thu / 8:30a	172.5°  	1x8 angle (mirrored)
+Thu / 12:00p	180° 	REVERSALS (50% of Week)
+Thu / 3:30p	187.5°  	1x8 angle
+Thu / 7:00p	195°    	1x4 angle
+Thu / 8:45p	198.75° 	1x3 angle
+Thu / 9:54p	201.24°    	Fib 23.6% from 180°
+Fri 12:15a	206.25° 	1x2 angle
+Fri / 4:02a	214.38°  	Fib 38.2% from 180°
+Fri / 9:00a	225°    	BALANCE POINT (5/8 of Week)
+Fri / 1:57p	235.62°    	Fib 61.8% from 180°
+Fri / 5:45p	243.75° 	2x1 angle (After 61.8º Actual)
+Fri / 9:00p	250.74°    	Fib 78.6% from 180°
+Fri / 9:14p	251.25° 	3x1 angle
+Fri / 11:00p	255°   	4x1 angle
+Sat / 12:40a	258.6º	Fib 78.6 (Actual)
+Sat / 2:30a	262.5°  	8x1 angle
+Sat / 6:00a	270°    	 MAJOR PIVOT (75% of Week)
+Sat / 9:30a	292.5°  	8x1 angle (mirrored)
+Sat / 1:00p	300°    	4x1 angle (mirrored)
+Sat / 2:45p	303.75° 	3x1 angle (mirrored)
+Sat / 6:15p	311.25° 	2x1 angle
+Sat / 6:41p	297.2°  	Fib 1.272 (Actual)
+Sat / 10:02p	304.38°  	Fib 38.2% from 270°
+Sun / 3:00a	315°    	BALANCE POINT (7/8 of Week)
+Sun / 7:57a	325.62°  	Fib 61.8% from 270°
+Sun / 10:50a	331.8° 	Fib 1.618 (Actual)
+Sun / 11:45a	333.75° 	1x2 angle (mirrored)
+Sun / 3:00p	340.74°    	Fib 78.6% from 270°
+Sun / 3:15p	341.25° 	1x3 angle (mirrored)
+Sun / 5:00p	345°    	1x4 angle (mirrored)
+Sun / 8:29p	352.5°  	1x8 angle (mirrored)
+
+# Key Moments
+Mon / 12:00a	0°      	Anchor / Reset
+Mon / 9:00p	45°     	BALANCE POINT (1/8 of Week)
+Tue / 1:57a	55.62°     	Fib 61.8% from 0º (Golden Ratio)
+Tue / 5:45a	63.75°  	2x1 angle (After 61.8º Actual)
+Tue / 6:00p	90°     	MAJOR PIVOT POINT
+Wed / 3:00p	135°    	BALANCE POINT (3/8 of Week)
+Wed / 7:57p	145.62°  	Fib 61.8% from 90°
+Wed / 10:50p	151.8º	Fib 1.618 (Actual)
+Thu / 12:00p	180° 	REVERSALS (50% of Week)
+Fri / 9:00a	225°    	BALANCE POINT (5/8 of Week)
+Fri / 1:57p	235.62°    	Fib 61.8% from 180°
+Fri / 5:45p	243.75° 	2x1 angle (After 61.8º Actual)
+Sat / 6:00a	270°    	 MAJOR PIVOT (75% of Week)
+Sun / 3:00a	315°    	BALANCE POINT (7/8 of Week)
+Sun / 7:57a	325.62°  	Fib 61.8% from 270°
+Sun / 10:50a	331.8° 	Fib 1.618 (Actual)
+
+/////////// Monthly
+###### 28 ######
+1st / 12:00a	0°	Anchor / Reset
+1st / 2:00p	7.5°	1x8 angle
+2nd / 4:00a	15°	1x4 angle
+2nd / 11:00a	18.75°	1x3 angle
+2nd / 3:38p	21.24°	Fib 23.6% from 0°
+3rd / 1:00a	26.25°	1x2 angle
+3rd / 4:10p	34.38°	Fib 38.2% from 0º
+4th / 12:00p	45°	BALANCE POINT (1/8 of Month)
+5th / 7:49a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+5th / 11:00p	63.75°	2x1 angle (After 61.8º Actual)
+6th / 12:02p	70.74º	Fib 78.6% from 90°
+6th / 12:58p	71.25°	3x1 angle
+6th / 8:00p	75°	4x1 angle
+7th / 2:43a	78.6°	Fib 78.6 (Actual)
+7th / 10:00a	82.5°	8x1 angle
+8th / 12:00a	90°	MAJOR PIVOT POINT
+8th / 2:00p	97.5°	8x1 angle (mirrored)
+9th / 4:00a	105°	4x1 angle (mirrored)
+9th / 11:00a	108.75°	3x1 angle (mirrored)
+10th / 1:00a	116.25°	2x1 angle
+10th / 2:46a	117.2°	Fib 1.272 (Actual)
+10th / 4:10p	124.38° 	Fib 38.2% from 90°
+11th / 12:00p	135°	BALANCE POINT (3/8 of Month)
+12th / 7:49a	145.62°	Fib 61.8% from 90°
+12th / 7:21p	151.8º	Fib 1.618 (Actual)
+12th / 11:00p	153.75°	1x2 angle (mirrored)
+12th / 12:15p	160.74°	Fib 78.6% from 90°
+13th / 1:00p	161.25°	1x3 angle (mirrored)
+13th / 8:00p	165°	1x4 angle (mirrored)
+14th / 10:00a	172.5°	1x8 angle (mirrored)
+15th / 12:00a	180°	REVERSALS (50% of Month)
+15th / 2:00p	187.5°	1x8 angle
+16th / 4:00a	195°	1x4 angle
+16th / 11:00a	198.75°	1x3 angle
+16th / 3:38p	201.24°	Fib 23.6% from 180°
+17th / 1:00a	206.25°	1x2 angle
+17th / 4:10p	214.38°	Fib 38.2% from 180°
+18th / 12:00p	225°	BALANCE POINT (5/8 of Month)
+19th / 7:49a	235.62°	Fib 61.8% from 180°
+19th / 11:00p	243.75°	2x1 angle (After 61.8º Actual)
+20th / 12:15p	250.74°	Fib 78.6% from 180°
+20th / 1:10p	251.25°	3x1 angle
+20th / 8:00p	255°	4x1 angle
+21st / 2:43a	258.6º	Fib 78.6 (Actual)
+21st / 10:00a	262.5°	8x1 angle
+22nd / 12:00a	270°	 MAJOR PIVOT (75% of Month)
+22nd / 2:00p	277.5°	8x1 angle (mirrored)
+23rd / 4:00a	285°	4x1 angle (mirrored)
+23rd / 11:00a	288.75°	3x1 angle (mirrored)
+24th / 1:00a	296.25°	2x1 angle
+24th / 2:46a	297.2°	Fib 1.272 (Actual)
+24th / 4:10p	304.38°	Fib 38.2% from 270°
+25th / 12:00p	315°	BALANCE POINT (7/8 of Month)
+26th / 7:49a	325.62°	Fib 61.8% from 270°
+26th / 7:21p	331.8°	Fib 1.618 (Actual)
+26th / 11:00p	333.75°	1x2 angle (mirrored)
+27th / 12:15p	340.74°	Fib 78.6% from 270°
+27th / 1:00p	341.25°	1x3 angle (mirrored)
+27th / 8:00p	345°	1x4 angle (mirrored)
+28th / 10:00a	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+1st / 12:00a	0°	Anchor / Reset
+4th / 12:00p	45°	BALANCE POINT (1/8 of Month)
+5th / 7:49a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+5th / 11:00p	63.75°	2x1 angle (After 61.8º Actual)
+8th / 12:00a	90°	MAJOR PIVOT POINT
+11th / 12:00p	135°	BALANCE POINT (3/8 of Month)
+12th / 7:49a	145.62°	Fib 61.8% from 90°
+12th / 7:21p	151.8º	Fib 1.618 (Actual)
+15th / 12:00a	180°	REVERSALS (50% of Month)
+18th / 12:00p	225°	BALANCE POINT (5/8 of Month)
+19th / 7:49a	235.62°	Fib 61.8% from 180°
+19th / 11:00p	243.75°	2x1 angle (After 61.8º Actual)
+22nd / 12:00a	270°	 MAJOR PIVOT (75% of Month)
+25th / 12:00p	315°	BALANCE POINT (7/8 of Month)
+26th / 7:49a	325.62°	Fib 61.8% from 270°
+26th / 7:21p	331.8°	Fib 1.618 (Actual)
+
+###### 29 ######
+1st / 12:00a	0°	Anchor / Reset
+1st / 2:30p	7.5°	1x8 angle
+2nd / 5:00a	15°	1x4 angle
+2nd / 12:15p	18.75°	1x3 angle
+2nd / 5:03p	21.24°	Fib 23.6% from 0°
+3rd / 2:45a	26.25°	1x2 angle
+3rd / 6:28p	34.38°	Fib 38.2% from 0º
+4th / 3:00p	45°	BALANCE POINT (1/8 of Month)
+5th / 11:31a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+6th / 3:15a	63.75°	2x1 angle (After 61.8º Actual)
+6th / 5:00p	70.74º	Fib 78.6% from 90°
+6th / 6:00p	71.25°	3x1 angle
+7th / 1:00a	75°	4x1 angle
+7th / 7:57a	78.6°	Fib 78.6 (Actual)
+7th / 3:30p	82.5°	8x1 angle
+8th / 6:00a	90°	MAJOR PIVOT POINT
+8th / 8:30p	97.5°	8x1 angle (mirrored)
+9th / 11:00a	105°	4x1 angle (mirrored)
+9th / 6:15p	108.75°	3x1 angle (mirrored)
+10th / 8:45a	116.25°	2x1 angle
+10th / 10:35a	117.2°	Fib 1.272 (Actual)
+11th / 12:28a	124.38° 	Fib 38.2% from 90°
+11th / 9:00p	135°	BALANCE POINT (3/8 of Month)
+12th / 5:31p	145.62°	Fib 61.8% from 90°
+13th / 5:28a	151.8º	Fib 1.618 (Actual)
+13th / 9:15a	153.75°	1x2 angle (mirrored)
+13th / 11:00p	160.74°	Fib 78.6% from 90°
+13th / 12:00a	161.25°	1x3 angle (mirrored)
+14th / 7:00a	165°	1x4 angle (mirrored)
+14th / 9:30p	172.5°	1x8 angle (mirrored)
+15th / 12:00p	180°	REVERSALS (50% of Month)
+16th / 2:30a	187.5°	1x8 angle
+16th / 5:00p	195°	1x4 angle
+17th / 12:15a	198.75°	1x3 angle
+17th / 5:03a	201.24°	Fib 23.6% from 180°
+17th / 2:45p	206.25°	1x2 angle
+18th / 6:28a	214.38°	Fib 38.2% from 180°
+19th / 3:00a	225°	BALANCE POINT (5/8 of Month)
+19th / 11:31p	235.62°	Fib 61.8% from 180°
+20th / 3:15p	243.75°	2x1 angle (After 61.8º Actual)
+21st / 5:00a	250.74°	Fib 78.6% from 180°
+21st / 6:00a	251.25°	3x1 angle
+21st / 1:00p	255°	4x1 angle
+21st / 7:57p	258.6º	Fib 78.6 (Actual)
+22nd / 3:30a	262.5°	8x1 angle
+22nd / 6:00p	270°	 MAJOR PIVOT (75% of Month)
+23rd / 8:30a	277.5°	8x1 angle (mirrored)
+23rd / 11:00p	285°	4x1 angle (mirrored)
+24th / 6:15a	288.75°	3x1 angle (mirrored)
+24th / 8:45p	296.25°	2x1 angle
+24th / 10:35p	297.2°	Fib 1.272 (Actual)
+25th / 12:28p	304.38°	Fib 38.2% from 270°
+26th / 9:00a	315°	BALANCE POINT (7/8 of Month)
+27th / 5:31a	325.62°	Fib 61.8% from 270°
+27th / 5:28p	331.8°	Fib 1.618 (Actual)
+27th / 9:15p	333.75°	1x2 angle (mirrored)
+28th / 11:00a	340.74°	Fib 78.6% from 270°
+28th / 12:00p	341.25°	1x3 angle (mirrored)
+28th / 7:00p	345°	1x4 angle (mirrored)
+29th / 9:30a	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+1st / 12:00a	0°	Anchor / Reset
+4th / 3:00p	45°	BALANCE POINT (1/8 of Month)
+5th / 11:31a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+6th / 3:15a	63.75°	2x1 angle (After 61.8º Actual)
+8th / 6:00a	90°	MAJOR PIVOT POINT
+11th / 9:00p	135°	BALANCE POINT (3/8 of Month)
+12th / 5:31p	145.62°	Fib 61.8% from 90°
+13th / 5:28a	151.8º	Fib 1.618 (Actual)
+15th / 12:00p	180°	REVERSALS (50% of Month)
+19th / 3:00a	225°	BALANCE POINT (5/8 of Month)
+19th / 11:31p	235.62°	Fib 61.8% from 180°
+20th / 3:15p	243.75°	2x1 angle (After 61.8º Actual)
+22nd / 6:00p	270°	 MAJOR PIVOT (75% of Month)
+26th / 9:00a	315°	BALANCE POINT (7/8 of Month)
+27th / 5:31a	325.62°	Fib 61.8% from 270°
+27th / 5:28p	331.8°	Fib 1.618 (Actual)
+
+###### 30 ######
+1st / 12:00a	0°	Anchor / Reset
+1st / 3:00p	7.5°	1x8 angle
+2nd / 6:00a	15°	1x4 angle
+2nd / 1:30p	18.75°	1x3 angle
+2nd / 6:28p	21.24°	Fib 23.6% from 0°
+3rd / 4:30a	26.25°	1x2 angle
+3rd / 8:45p	34.38°	Fib 38.2% from 0º
+4th / 6:00p	45°	BALANCE POINT (1/8 of Month)
+5th / 3:14p	55.62°	Fib 61.8% from 0º (Golden Ratio)
+6th / 7:30p	63.75°	2x1 angle (After 61.8º Actual)
+6th / 9:28p	70.74º	Fib 78.6% from 90°
+6th / 10:30p	71.25°	3x1 angle
+7th / 6:00a	75°	4x1 angle
+7th / 1:12p	78.6°	Fib 78.6 (Actual)
+7th / 9:00p	82.5°	8x1 angle
+8th / 12:00p	90°	MAJOR PIVOT POINT
+9th / 3:00a	97.5°	8x1 angle (mirrored)
+9th / 6:00p	105°	4x1 angle (mirrored)
+10th / 1:30a	108.75°	3x1 angle (mirrored)
+10th / 4:30p	116.25°	2x1 angle
+10th / 6:24p	117.2°	Fib 1.272 (Actual)
+11th / 8:45a	124.38° 	Fib 38.2% from 90°
+12th / 6:00a	135°	BALANCE POINT (3/8 of Month)
+13th / 3:14a	145.62°	Fib 61.8% from 90°
+13th / 3:36p	151.8º	Fib 1.618 (Actual)
+13th / 7:30p	153.75°	1x2 angle (mirrored)
+14th / 9:25a	160.74°	Fib 78.6% from 90°
+14th / 10:30a	161.25°	1x3 angle (mirrored)
+14th / 6:00p	165°	1x4 angle (mirrored)
+15th / 9:00a	172.5°	1x8 angle (mirrored)
+16th / 12:00a	180°	REVERSALS (50% of Month)
+16th / 3:00p	187.5°	1x8 angle
+17th / 6:00a	195°	1x4 angle
+17th / 1:30p	198.75°	1x3 angle
+17th / 6:28p	201.24°	Fib 23.6% from 180°
+18th / 4:30a	206.25°	1x2 angle
+18th / 8:45p	214.38°	Fib 38.2% from 180°
+19th / 6:00p	225°	BALANCE POINT (5/8 of Month)
+20th / 3:14p	235.62°	Fib 61.8% from 180°
+21st / 7:30a	243.75°	2x1 angle (After 61.8º Actual)
+21st / 9:28p	250.74°	Fib 78.6% from 180°
+21st / 10:30p	251.25°	3x1 angle
+22nd / 6:00a	255°	4x1 angle
+22nd / 1:12p	258.6º	Fib 78.6 (Actual)
+22nd / 9:00p	262.5°	8x1 angle
+23rd / 12:00p	270°	 MAJOR PIVOT (75% of Month)
+24th / 3:00a	277.5°	8x1 angle (mirrored)
+24th / 6:00p	285°	4x1 angle (mirrored)
+25th / 1:30a	288.75°	3x1 angle (mirrored)
+25th / 4:30p	296.25°	2x1 angle
+25th / 6:24p	297.2°	Fib 1.272 (Actual)
+26th / 8:45a	304.38°	Fib 38.2% from 270°
+27th / 6:00a	315°	BALANCE POINT (7/8 of Month)
+28th / 3:14a	325.62°	Fib 61.8% from 270°
+28th / 3:36p	331.8°	Fib 1.618 (Actual)
+28th / 7:30p	333.75°	1x2 angle (mirrored)
+29th / 9:25a	340.74°	Fib 78.6% from 270°
+29th / 10:30a	341.25°	1x3 angle (mirrored)
+29th / 6:00p	345°	1x4 angle (mirrored)
+30th / 9:00a	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+1st / 12:00a	0°	Anchor / Reset
+4th / 6:00p	45°	BALANCE POINT (1/8 of Month)
+5th / 3:14p	55.62°	Fib 61.8% from 0º (Golden Ratio)
+6th / 7:30a	63.75°	2x1 angle (After 61.8º Actual)
+8th / 12:00p	90°	MAJOR PIVOT POINT
+12th / 6:00a	135°	BALANCE POINT (3/8 of Month)
+13th / 3:14a	145.62°	Fib 61.8% from 90°
+13th / 3:36p	151.8º	Fib 1.618 (Actual)
+16th / 12:00a	180°	REVERSALS (50% of Month)
+19th / 6:00p	225°	BALANCE POINT (5/8 of Month)
+20th / 3:14p	235.62°	Fib 61.8% from 180°
+21st / 7:30a	243.75°	2x1 angle (After 61.8º Actual)
+23rd / 12:00p	270°	 MAJOR PIVOT (75% of Month)
+27th / 6:00a	315°	BALANCE POINT (7/8 of Month)
+28th / 3:14a	325.62°	Fib 61.8% from 270°
+28th / 3:36p	331.8°	Fib 1.618 (Actual)
+
+###### 31 ######
+1st / 12:00a	0°	Anchor / Reset
+1st / 3:30p	7.5°	1x8 angle
+2nd / 7:00a	15°	1x4 angle
+2nd / 2:45p	18.75°	1x3 angle
+2nd / 7:53p	21.24°	Fib 23.6% from 0°
+3rd / 6:15a	26.25°	1x2 angle
+3rd / 11:03p	34.38°	Fib 38.2% from 0º
+4th / 9:00p	45°	BALANCE POINT (1/8 of Month)
+5th / 6:56p	55.62°	Fib 61.8% from 0º (Golden Ratio)
+6th / 11:45a	63.75°	2x1 angle (After 61.8º Actual)
+7th / 2:15a	70.74º	Fib 78.6% from 90°
+7th / 3:30a	71.25°	3x1 angle
+7th / 11:00a	75°	4x1 angle
+7th / 6:26p	78.6°	Fib 78.6 (Actual)
+8th / 2:28a	82.5°	8x1 angle
+8th / 6:00p	90°	MAJOR PIVOT POINT
+9th / 9:30a	97.5°	8x1 angle (mirrored)
+10th / 1:00a	105°	4x1 angle (mirrored)
+10th / 8:45a	108.75°	3x1 angle (mirrored)
+11th / 12:15a	116.25°	2x1 angle
+11th / 2:12a	117.2°	Fib 1.272 (Actual)
+11th / 5:03p	124.38° 	Fib 38.2% from 90°
+12th / 3:00p	135°	BALANCE POINT (3/8 of Month)
+13th / 12:56p	145.62°	Fib 61.8% from 90°
+14th / 1:43a	151.8º	Fib 1.618 (Actual)
+14th / 5:45a	153.75°	1x2 angle (mirrored)
+14th / 8:00p	160.74°	Fib 78.6% from 90°
+14th / 9:30p	161.25°	1x3 angle (mirrored)
+15th / 5:00a	165°	1x4 angle (mirrored)
+15th / 8:30p	172.5°	1x8 angle (mirrored)
+16th / 12:00p	180°	REVERSALS (50% of Month)
+17th / 3:30a	187.5°	1x8 angle
+17th / 7:00p	195°	1x4 angle
+18th / 2:45a	198.75°	1x3 angle
+18th / 7:53a	201.24°	Fib 23.6% from 180°
+18th / 6:15p	206.25°	1x2 angle
+19th / 11:03a	214.38°	Fib 38.2% from 180°
+20th / 9:00a	225°	BALANCE POINT (5/8 of Month)
+21st / 6:56a	235.62°	Fib 61.8% from 180°
+21st / 11:45p	243.75°	2x1 angle (After 61.8º Actual)
+22nd / 2:15p	250.74°	Fib 78.6% from 180°
+22nd / 3:30p	251.25°	3x1 angle
+22nd / 11:00p	255°	4x1 angle
+23rd / 6:26a	258.6º	Fib 78.6 (Actual)
+23rd / 2:28p	262.5°	8x1 angle
+24th / 6:00a	270°	 MAJOR PIVOT (75% of Month)
+24th / 9:30p	277.5°	8x1 angle (mirrored)
+25th / 1:00p	285°	4x1 angle (mirrored)
+25th / 8:45p	288.75°	3x1 angle (mirrored)
+26th / 12:15p	296.25°	2x1 angle
+26th / 2:12p	297.2°	Fib 1.272 (Actual)
+27th / 5:03a	304.38°	Fib 38.2% from 270°
+28th / 3:00a	315°	BALANCE POINT (7/8 of Month)
+29th / 12:56a	325.62°	Fib 61.8% from 270°
+29th / 1:43p	331.8°	Fib 1.618 (Actual)
+29th / 5:45p	333.75°	1x2 angle (mirrored)
+29th / 8:00a	340.74°	Fib 78.6% from 270°
+30th / 9:30a	341.25°	1x3 angle (mirrored)
+30th / 5:00p	345°	1x4 angle (mirrored)
+31st / 8:30a	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+1st / 12:00a	0°	Anchor / Reset
+4th / 9:00p	45°	BALANCE POINT (1/8 of Month)
+5th / 6:56p	55.62°	Fib 61.8% from 0º (Golden Ratio)
+6th / 11:45a	63.75°	2x1 angle (After 61.8º Actual)
+8th / 6:00p	90°	MAJOR PIVOT POINT
+12th / 3:00p	135°	BALANCE POINT (3/8 of Month)
+13th / 12:56p	145.62°	Fib 61.8% from 90°
+14th / 1:43a	151.8º	Fib 1.618 (Actual)
+16th / 12:00p	180°	REVERSALS (50% of Month)
+20th / 9:00a	225°	BALANCE POINT (5/8 of Month)
+21st / 6:56a	235.62°	Fib 61.8% from 180°
+21st / 11:45p	243.75°	2x1 angle (After 61.8º Actual)
+24th / 6:00a	270°	 MAJOR PIVOT (75% of Month)
+28th / 3:00a	315°	BALANCE POINT (7/8 of Month)
+29th / 12:56a	325.62°	Fib 61.8% from 270°
+29th / 1:43p	331.8°	Fib 1.618 (Actual)
+
+/////////// Quarterly
+###### Q1 ######
+Mar 21 / 12:00a	0°	Anchor / Reset
+Mar 22 / 9:37p	7.5°	1x8 angle
+Mar 24 / 7:15p	15°	1x4 angle
+Mar 25 / 6:03p	18.75°	1x3 angle
+Mar 26 / 9:12a	21.24°	Fib 23.6% from 0°
+Mar 27 / 3:41p	26.25°	1x2 angle
+Mar 29 / 5:08p	34.38°	Fib 38.2% from 0º
+Apr 1 / 9:45a	45°	BALANCE POINT (1/8 of Quarter)
+Apr 4 / 2:21a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+Apr 6 / 3:48a	63.75°	2x1 angle (After 61.8º Actual)
+Apr 7 / 10:20p	70.74º	Fib 78.6% from 90°
+Apr 8 / 1:30a	71.25°	3x1 angle
+Apr 9 / 12:15a	75°	4x1 angle
+Apr 9 / 10:09p	78.6°	Fib 78.6 (Actual)
+Apr 10 / 9:48p	82.5°	8x1 angle
+Apr 12 / 7:30p	90°	MAJOR PIVOT POINT
+Apr 14 / 5:07p	97.5°	8x1 angle (mirrored)
+Apr 16 / 2:45p	105°	4x1 angle (mirrored)
+Apr 17 / 1:33p	108.75°	3x1 angle (mirrored)
+Apr 19 / 11:11a	116.25°	2x1 angle (mirrored)
+Apr 19 / 4:58p	117.2°	Fib 1.272 (Actual)
+Apr 21 / 12:38p	124.38°	Fib 38.2% from 90° mark
+Apr 24 / 5:15a	135°	BALANCE POINT (3/8 of Quarter)
+Apr 26 / 9:51p	145.62°	Fib 61.8% from 90°
+Apr 28 / 11:27a	151.8º	Fib 1.618 (Actual)
+Apr 28 / 11:18p	153.75°	1x2 angle (mirrored)
+Apr 30 / 5:50p	160.74°	Fib 78.6% from 90°
+Apr 30 / 9:00p	161.25°	1x3 angle (mirrored)
+May 1 / 7:45p	165°	1x4 angle (mirrored)
+May 3 / 5:18p	172.5°	1x8 angle (mirrored)
+May 5 / 3:00p	180°	REVERSALS (50% of Quarter)
+May 7 / 12:37p	187.5°	1x8 angle
+May 9 / 10:15a	195°	1x4 angle
+May 10 / 9:03a	198.75°	1x3 angle
+May 11 / 12:12a	201.24°	Fib 23.6% from 180°
+May 12 / 6:41a	206.25°	1x2 angle
+May 14 / 8:08a	214.38°	Fib 38.2% from 180°
+May 17 / 12:45a	225°	BALANCE POINT (5/8 of Quarter)
+May 19 / 5:21p	235.62°	Fib 61.8% from 180°
+May 21 / 6:48p	243.75°	2x1 angle (After 61.8º Actual)
+May 23 / 1:20p	250.74°	Fib 78.6% from 180°
+May 23 / 4:30p	251.25°	3x1 angle
+May 24 / 3:15p	255°	4x1 angle
+May 25 / 1:09p	258.6º	Fib 78.6 (Actual)
+May 26 / 12:48p	262.5°	8x1 angle
+May 28 / 10:30a	270°	 MAJOR PIVOT (75% of Quarter)
+May 30 / 8:07a	277.5°	8x1 angle (mirrored)
+Jun 1 / 5:45a	285°	4x1 angle (mirrored)
+Jun 2 / 4:33a	288.75°	3x1 angle (mirrored)
+Jun 4 / 2:11a	296.25°	2x1 angle (mirrored)
+Jun 4 / 7:58a	297.2°	Fib 1.272 (Actual)
+Jun 6 / 3:38a	304.38°	Fib 38.2% from 270°
+Jun 8 / 8:15p	315°	BALANCE POINT (7/8 of Quarter)
+Jun 11 / 12:51p	325.62°	Fib 61.8% from 270°
+Jun 13 / 2:27a	331.8°	Fib 1.618 (Actual)
+Jun 13 / 2:18p	333.75°	1x2 angle (mirrored)
+Jun 15 / 8:50a	340.74°	Fib 78.6% from 270°
+Jun 15 / 12:00p	341.25°	1x3 angle (mirrored)
+Jun 16 / 10:45a	345°	1x4 angle (mirrored)
+Jun 18 / 8:18a	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+Mar 21 / 12:00a	0°	Anchor / Reset
+Apr 1 / 9:45a	45°	BALANCE POINT (1/8 of Quarter)
+Apr 4 / 2:21a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+Apr 6 / 3:48a	63.75°	2x1 angle (After 61.8º Actual)
+Apr 12 / 7:30p	90°	MAJOR PIVOT POINT
+Apr 24 / 5:15a	135°	BALANCE POINT (3/8 of Quarter)
+Apr 26 / 9:51p	145.62°	Fib 61.8% from 90°
+Apr 28 / 11:27a	151.8º	Fib 1.618 (Actual)
+May 5 / 3:00p	180°	REVERSALS (50% of Quarter)
+May 17 / 12:45a	225°	BALANCE POINT (5/8 of Quarter)
+May 19 / 5:21p	235.62°	Fib 61.8% from 180°
+May 21 / 6:48p	243.75°	2x1 angle (After 61.8º Actual)
+May 28 / 10:30a	270°	 MAJOR PIVOT (75% of Quarter)
+Jun 8 / 8:15p	315°	BALANCE POINT (7/8 of Quarter)
+Jun 11 / 12:51p	325.62°	Fib 61.8% from 270°
+Jun 13 / 2:27a	331.8°	Fib 1.618 (Actual)
+
+###### Q2 ######
+Jun 21 / 12:00a	0°	Anchor / Reset
+Jun 22 / 9:37p	7.5°	1x8 angle
+Jun 24 / 7:15p	15°	1x4 angle
+Jun 25 / 6:03p	18.75°	1x3 angle
+Jun 26 / 9:12a	21.24°	Fib 23.6% from 0°
+Jun 27 / 3:41p	26.25°	1x2 angle
+Jun 29 / 5:08p	34.38°	Fib 38.2% from 0º
+Jul 2 / 9:45a	45°	BALANCE POINT (1/8 of Quarter)
+Jul 5 / 2:21a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+Jul 7 / 3:48a	63.75°	2x1 angle (After 61.8º Actual)
+Jul 8 / 10:20p	70.74º	Fib 78.6% from 90°
+Jul 9 / 1:30a	71.25°	3x1 angle
+Jul 10 / 12:15a	75°	4x1 angle
+Jul 10 / 10:09p	78.6°	Fib 78.6 (Actual)
+Jul 11 / 9:48p	82.5°	8x1 angle
+Jul 13 / 7:30p	90°	MAJOR PIVOT POINT
+Jul 15 / 5:07p	97.5°	8x1 angle (mirrored)
+Jul 17 / 2:45p	105°	4x1 angle (mirrored)
+Jul 18 / 1:33p	108.75°	3x1 angle (mirrored)
+Jul 20 / 11:11a	116.25°	2x1 angle (mirrored)
+Jul 20 / 4:58p	117.2°	Fib 1.272 (Actual)
+Jul 22 / 12:38p	124.38°	Fib 38.2% from 90° mark
+Jul 25 / 5:15a	135°	BALANCE POINT (3/8 of Quarter)
+Jul 27 / 9:51p	145.62°	Fib 61.8% from 90°
+Jul 29 / 11:27a	151.8º	Fib 1.618 (Actual)
+Jul 29 / 11:18p	153.75°	1x2 angle (mirrored)
+Jul 31 / 5:50p	160.74°	Fib 78.6% from 90°
+Jul 31 / 9:00p	161.25°	1x3 angle (mirrored)
+Aug 1 / 7:45p	165°	1x4 angle (mirrored)
+Aug 3 / 5:18p	172.5°	1x8 angle (mirrored)
+Aug 5 / 3:00p	180°	REVERSALS (50% of Quarter)
+Aug 7 / 12:37p	187.5°	1x8 angle
+Aug 9 / 10:15a	195°	1x4 angle
+Aug 10 / 9:03a	198.75°	1x3 angle
+Aug 11 / 12:12a	201.24°	Fib 23.6% from 180°
+Aug 12 / 6:41a	206.25°	1x2 angle
+Aug 14 / 8:08a	214.38°	Fib 38.2% from 180°
+Aug 17 / 12:45a	225°	BALANCE POINT (5/8 of Quarter)
+Aug 19 / 5:21p	235.62°	Fib 61.8% from 180°
+Aug 21 / 6:48p	243.75°	2x1 angle (After 61.8º Actual)
+Aug 23 / 1:20p	250.74°	Fib 78.6% from 180°
+Aug 23 / 4:22p	251.25°	3x1 angle
+Aug 24 / 3:15p	255°	4x1 angle
+Aug 25 / 1:09p	258.6º	Fib 78.6 (Actual)
+Aug 26 / 12:48p	262.5°	8x1 angle
+Aug 28 / 10:30a	270°	 MAJOR PIVOT (75% of Quarter)
+Aug 30 / 8:07a	277.5°	8x1 angle (mirrored)
+Sep 1 / 5:45a	285°	4x1 angle (mirrored)
+Sep 2 / 4:33a	288.75°	3x1 angle (mirrored)
+Sep 4 / 2:11a	296.25°	2x1 angle (mirrored)
+Sep 4 / 7:58a	297.2°	Fib 1.272 (Actual)
+Sep 6 / 3:38a	304.38°	Fib 38.2% from 270°
+Sep 8 / 8:15p	315°	BALANCE POINT (7/8 of Quarter)
+Sep 11 / 12:51p	325.62°	Fib 61.8% from 270°
+Sep 13 / 2:27a	331.8°	Fib 1.618 (Actual)
+Sep 13 / 2:18p	333.75°	1x2 angle (mirrored)
+Sep 15 / 8:50a	340.74°	Fib 78.6% from 270°
+Sep 15 / 12:00p	341.25°	1x3 angle (mirrored)
+Sep 16 / 10:45a	345°	1x4 angle (mirrored)
+Sep 18 / 8:18a	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+Jun 21 / 12:00a	0°	Anchor / Reset
+Jul 2 / 9:45a	45°	BALANCE POINT (1/8 of Quarter)
+Jul 5 / 2:21a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+Jul 7 / 3:48a	63.75°	2x1 angle (After 61.8º Actual)
+Jul 13 / 7:30p	90°	MAJOR PIVOT POINT
+Jul 25 / 5:15a	135°	BALANCE POINT (3/8 of Quarter)
+Jul 27 / 9:51p	145.62°	Fib 61.8% from 90°
+Jul 29 / 11:27a	151.8º	Fib 1.618 (Actual)
+Aug 5 / 3:00p	180°	REVERSALS (50% of Quarter)
+Aug 17 / 12:45a	225°	BALANCE POINT (5/8 of Quarter)
+Aug 19 / 5:21p	235.62°	Fib 61.8% from 180°
+Aug 21 / 6:48p	243.75°	2x1 angle (After 61.8º Actual)
+Aug 28 / 10:30a	270°	 MAJOR PIVOT (75% of Quarter)
+Sep 8 / 8:15p	315°	BALANCE POINT (7/8 of Quarter)
+Sep 11 / 12:51p	325.62°	Fib 61.8% from 270°
+Sep 13 / 2:27a	331.8°	Fib 1.618 (Actual)
+
+###### Q3 ######
+Sep 23 / 12:00a	0°	Anchor / Reset
+Sep 24 / 9:37p	7.5°	1x8 angle
+Sep 26 / 7:15p	15°	1x4 angle
+Sep 27 / 6:03p	18.75°	1x3 angle
+Sep 28 / 9:12a	21.24°	Fib 23.6% from 0°
+Sep 29 / 3:41p	26.25°	1x2 angle
+Oct 1 / 5:08p	34.38°	Fib 38.2% from 0º
+Oct 4 / 9:45a	45°	BALANCE POINT (1/8 of Quarter)
+Oct 7 / 2:21a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+Oct 9 / 3:48a	63.75°	2x1 angle (After 61.8º Actual)
+Oct 10 / 10:20p	70.74º	Fib 78.6% from 90°
+Oct 11 / 1:30a	71.25°	3x1 angle
+Oct 12 / 12:15a	75°	4x1 angle
+Oct 12 / 10:09p	78.6°	Fib 78.6 (Actual)
+Oct 13 / 9:48p	82.5°	8x1 angle
+Oct 15 / 7:30p	90°	MAJOR PIVOT POINT
+Oct 17 / 5:07p	97.5°	8x1 angle (mirrored)
+Oct 19 / 2:45p	105°	4x1 angle (mirrored)
+Oct 20 / 1:33p	108.75°	3x1 angle (mirrored)
+Oct 22 / 11:11a	116.25°	2x1 angle (mirrored)
+Oct 22 / 4:58p	117.2°	Fib 1.272 (Actual)
+Oct 24 / 12:38p	124.38°	Fib 38.2% from 90° mark
+Oct 27 / 5:15a	135°	BALANCE POINT (3/8 of Quarter)
+Oct 29 / 9:51p	145.62°	Fib 61.8% from 90°
+Oct 31 / 11:27a	151.8º	Fib 1.618 (Actual)
+Oct 31 / 11:18p	153.75°	1x2 angle (mirrored)
+Nov 2 / 8:56p	160.74°	Fib 78.6% from 90°
+Nov 2 / 9:00p	161.25°	1x3 angle (mirrored)
+Nov 3 / 7:45p	165°	1x4 angle (mirrored)
+Nov 5 / 5:18p	172.5°	1x8 angle (mirrored)
+Nov 7 / 3:00p	180°	REVERSALS (50% of Quarter)
+Nov 9 / 12:37p	187.5°	1x8 angle
+Nov 11 / 10:15a	195°	1x4 angle
+Nov 12 / 9:03a	198.75°	1x3 angle
+Nov 13 / 12:12a	201.24°	Fib 23.6% from 180°
+Nov 14 / 6:41a	206.25°	1x2 angle
+Nov 16 / 8:08a	214.38°	Fib 38.2% from 180°
+Nov 19 / 12:45a	225°	BALANCE POINT (5/8 of Quarter)
+Nov 21 / 5:21p	235.62°	Fib 61.8% from 180°
+Nov 23 / 6:48p	243.75°	2x1 angle (After 61.8º Actual)
+Nov 25 / 1:20p	250.74°	Fib 78.6% from 180°
+Nov 25 / 4:30p	251.25°	3x1 angle
+Nov 26 / 3:15p	255°	4x1 angle
+Nov 27 / 1:09p	258.6º	Fib 78.6 (Actual)
+Nov 28 / 12:48p	262.5°	8x1 angle
+Nov 30 / 10:30a	270°	 MAJOR PIVOT (75% of Quarter)
+Dec 2 / 8:07a	277.5°	8x1 angle (mirrored)
+Dec 4 / 5:45a	285°	4x1 angle (mirrored)
+Dec 5 / 4:33a	288.75°	3x1 angle (mirrored)
+Dec 7 / 2:11a	296.25°	2x1 angle (mirrored)
+Dec 7 / 7:58a	297.2°	Fib 1.272 (Actual)
+Dec 9 / 3:38a	304.38°	Fib 38.2% from 270°
+Dec 11 / 8:15p	315°	BALANCE POINT (7/8 of Quarter)
+Dec 14 / 12:51p	325.62°	Fib 61.8% from 270°
+Dec 16 / 2:27a	331.8°	Fib 1.618 (Actual)
+Dec 16 / 2:18p	333.75°	1x2 angle (mirrored)
+Dec 18 / 8:50a	340.74°	Fib 78.6% from 270°
+Dec 18 / 12:00p	341.25°	1x3 angle (mirrored)
+Dec 19 / 10:45a	345°	1x4 angle (mirrored)
+Dec 21 / 8:18a	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+Sep 23 / 12:00a	0°	Anchor / Reset
+Oct 4 / 9:45a	45°	BALANCE POINT (1/8 of Quarter)
+Oct 7 / 2:21a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+Oct 9 / 3:48a	63.75°	2x1 angle (After 61.8º Actual)
+Oct 15 / 7:30p	90°	MAJOR PIVOT POINT
+Oct 27 / 5:15a	135°	BALANCE POINT (3/8 of Quarter)
+Oct 29 / 9:51p	145.62°	Fib 61.8% from 90°
+Oct 31 / 11:27a	151.8º	Fib 1.618 (Actual)
+Nov 7 / 3:00p	180°	REVERSALS (50% of Quarter)
+Nov 19 / 12:45a	225°	BALANCE POINT (5/8 of Quarter)
+Nov 21 / 5:21p	235.62°	Fib 61.8% from 180°
+Nov 23 / 6:48p	243.75°	2x1 angle (After 61.8º Actual)
+Nov 30 / 10:30a	270°	 MAJOR PIVOT (75% of Quarter)
+Dec 11 / 8:15p	315°	BALANCE POINT (7/8 of Quarter)
+Dec 14 / 12:51p	325.62°	Fib 61.8% from 270°
+Dec 16 / 2:27a	331.8°	Fib 1.618 (Actual)
+
+###### Q4 ######
+Dec 21 / 12:00a	0°	Anchor / Reset
+Dec 22 / 9:37p	7.5°	1x8 angle
+Dec 24 / 7:15p	15°	1x4 angle
+Dec 25 / 6:03p	18.75°	1x3 angle
+Dec 26 / 9:12a	21.24°	Fib 23.6% from 0°
+Dec 27 / 3:41p	26.25°	1x2 angle
+Dec 29 / 5:08p	34.38°	Fib 38.2% from 0º
+Jan 1 / 9:45a	45°	BALANCE POINT (1/8 of Quarter)
+Jan 4 / 2:21a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+Jan 6 / 3:48a	63.75°	2x1 angle (After 61.8º Actual)
+Jan 7 / 10:20p	70.74º	Fib 78.6% from 90°
+Jan 8 / 1:30a	71.25°	3x1 angle
+Jan 9 / 12:15a	75°	4x1 angle
+Jan 9 / 10:09p	78.6°	Fib 78.6 (Actual)
+Jan 10 / 9:48p	82.5°	8x1 angle
+Jan 12 / 7:30p	90°	MAJOR PIVOT POINT
+Jan 14 / 5:07p	97.5°	8x1 angle (mirrored)
+Jan 16 / 2:45p	105°	4x1 angle (mirrored)
+Jan 17 / 1:33p	108.75°	3x1 angle (mirrored)
+Jan 19 / 11:11a	116.25°	2x1 angle (mirrored)
+Jan 19 / 4:58p	117.2°	Fib 1.272 (Actual)
+Jan 21 / 12:38p	124.38°	Fib 38.2% from 90° mark
+Jan 24 / 5:15a	135°	BALANCE POINT (3/8 of Quarter)
+Jan 26 / 9:51p	145.62°	Fib 61.8% from 90°
+Jan 28 / 11:27a	151.8º	Fib 1.618 (Actual)
+Jan 28 / 11:18p	153.75°	1x2 angle (mirrored)
+Jan 30 / 5:50p	160.74°	Fib 78.6% from 90°
+Jan 30 / 9:00p	161.25°	1x3 angle (mirrored)
+Jan 31 / 7:45p	165°	1x4 angle (mirrored)
+Feb 2 / 5:18p	172.5°	1x8 angle (mirrored)
+Feb 4 / 3:00p	180°	REVERSALS (50% of Quarter)
+Feb 6 / 12:37p	187.5°	1x8 angle
+Feb 8 / 10:15a	195°	1x4 angle
+Feb 9 / 9:03a	198.75°	1x3 angle
+Feb 10 / 12:12a	201.24°	Fib 23.6% from 180°
+Feb 11 / 6:41a	206.25°	1x2 angle
+Feb 13 / 8:08a	214.38°	Fib 38.2% from 180°
+Feb 16 / 12:45a	225°	BALANCE POINT (5/8 of Quarter)
+Feb 18 / 5:21p	235.62°	Fib 61.8% from 180°
+Feb 20 / 6:48p	243.75°	2x1 angle (After 61.8º Actual)
+Feb 22 / 1:20p	250.74°	Fib 78.6% from 180°
+Feb 22 / 4:30p	251.25°	3x1 angle
+Feb 23 / 3:15p	255°	4x1 angle
+Feb 24 / 1:09p	258.6º	Fib 78.6 (Actual)
+Feb 25 / 12:48p	262.5°	8x1 angle
+Feb 27 / 10:30a	270°	 MAJOR PIVOT (75% of Quarter)
+Mar 1 / 8:07a	277.5°	8x1 angle (mirrored)
+Mar 3 / 5:45a	285°	4x1 angle (mirrored)
+Mar 4 / 4:33a	288.75°	3x1 angle (mirrored)
+Mar 6 / 2:11a	296.25°	2x1 angle (mirrored)
+Mar 6 / 7:58a	297.2°	Fib 1.272 (Actual)
+Mar 8 / 3:38a	304.38°	Fib 38.2% from 270°
+Mar 10 / 8:15p	315°	BALANCE POINT (7/8 of Quarter)
+Mar 13 / 12:51p	325.62°	Fib 61.8% from 270°
+Mar 15 / 2:27a	331.8°	Fib 1.618 (Actual)
+Mar 15 / 2:18p	333.75°	1x2 angle (mirrored)
+Mar 16 / 8:50a	340.74°	Fib 78.6% from 270°
+Mar 17 / 12:00p	341.25°	1x3 angle (mirrored)
+Mar 18 / 10:45a	345°	1x4 angle (mirrored)
+Mar 20 / 8:18a	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+Dec 21 / 12:00a	0°	Anchor / Reset
+Jan 1 / 9:45a	45°	BALANCE POINT (1/8 of Quarter)
+Jan 4 / 2:21a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+Jan 6 / 3:48a	63.75°	2x1 angle (After 61.8º Actual)
+Jan 12 / 7:30p	90°	MAJOR PIVOT POINT
+Jan 24 / 5:15a	135°	BALANCE POINT (3/8 of Quarter)
+Jan 26 / 9:51p	145.62°	Fib 61.8% from 90°
+Jan 28 / 11:27a	151.8º	Fib 1.618 (Actual)
+Feb 4 / 3:00p	180°	REVERSALS (50% of Quarter)
+Feb 16 / 12:45a	225°	BALANCE POINT (5/8 of Quarter)
+Feb 18 / 5:21p	235.62°	Fib 61.8% from 180°
+Feb 20 / 6:48p	243.75°	2x1 angle (After 61.8º Actual)
+Feb 27 / 10:30a	270°	 MAJOR PIVOT (75% of Quarter)
+Mar 10 / 8:15p	315°	BALANCE POINT (7/8 of Quarter)
+Mar 13 / 12:51p	325.62°	Fib 61.8% from 270°
+Mar 15 / 2:27a	331.8°	Fib 1.618 (Actual)
+
+/////////// Yearly ///////////
+###### 365 ######
+Mar 21 / 12:00a	0°	Anchor / Reset
+Mar 28 / 2:30p	7.5°	1x8 angle
+Apr 5 / 5:00a	15°	1x4 angle
+Apr 9 / 12:15a	18.75°	1x3 angle
+Apr 11 / 12:50p	21.24°	Fib 23.6% from 0°
+Apr 16 / 2:45p	26.25°	1x2 angle
+Apr 24 / 8:34p	34.38°	Fib 38.2% from 0º
+May 5 / 3:00p	45°	BALANCE POINT (1/8 of Year)
+May 16 / 9:25a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+May 24 / 3:15p	63.75°	2x1 angle (After 61.8º Actual)
+May 31 / 5:20p	70.74º	Fib 78.6% from 90°
+Jun 1 / 5:45a	71.25°	3x1 angle
+Jun 5 / 1:00a	75°	4x1 angle
+Jun 8 / 4:36p	78.6°	Fib 78.6 (Actual)
+Jun 12 / 3:15p	82.5°	8x1 angle
+Jun 20 / 6:00a	90°	MAJOR PIVOT POINT
+Jun 27 / 8:30p	97.5°	8x1 angle (mirrored)
+Jul 5 / 11:00a	105°	4x1 angle (mirrored)
+Jul 9 / 6:15a	108.75°	3x1 angle (mirrored)
+Jul 16 / 8:45p	116.25°	2x1 angle
+Jul 17 / 7:52p	117.2°	Fib 1.272 (Actual)
+Jul 25 / 2:34a	124.38°	Fib 38.2% from 90° mark
+Aug 4 / 9:00p	135°	BALANCE POINT (3/8 of Year)
+Aug 15 / 3:25p	145.62°	Fib 61.8% from 90°
+Aug 21 / 9:48p	151.8º	Fib 1.618 (Actual)
+Aug 23 / 9:15p	153.75°	1x2 angle (mirrored)
+Aug 30 / 11:20p	160.74°	Fib 78.6% from 90°
+Aug 31 / 11:45a	161.25°	1x3 angle (mirrored)
+Sep 4 / 7:00a	165°	1x4 angle (mirrored)
+Sep 11 / 9:15p	172.5°	1x8 angle (mirrored)
+Sep 19 / 12:00p	180°	REVERSALS (50% of Year)
+Sep 27 / 2:30a	187.5°	1x8 angle
+Oct 4 / 5:00p	195°	1x4 angle
+Oct 8 / 12:15p	198.75°	1x3 angle
+Oct 11 / 12:50a	201.24°	Fib 23.6% from 180°
+Oct 16 / 2:45a	206.25°	1x2 angle
+Oct 24 / 8:34a	214.38°	Fib 38.2% from 180°
+Nov 4 / 3:00a	225°	BALANCE POINT (5/8 of Year)
+Nov 14 / 9:25p	235.62°	Fib 61.8% from 180°
+Nov 23 / 3:15a	243.75°	2x1 angle (After 61.8º Actual)
+Nov 30 / 5:20a	250.74°	Fib 78.6% from 180°
+Nov 30 / 5:45p	251.25°	3x1 angle
+Dec 4 / 1:00p	255°	4x1 angle
+Dec 8 / 4:36a	258.6º	Fib 78.6 (Actual)
+Dec 12 / 3:15a	262.5°	8x1 angle
+Dec 19 / 6:00p	270°	 MAJOR PIVOT (75% of Year)
+Dec 27 / 8:30a	277.5°	8x1 angle (mirrored)
+Jan 3 / 11:00p	285°	4x1 angle (mirrored)
+Jan 7 / 6:15p	288.75°	3x1 angle (mirrored)
+Jan 15 / 8:45a	296.25°	2x1 angle
+Jan 16 / 7:52a	297.2°	Fib 1.272 (Actual)
+Jan 23 / 2:34p	304.38°	Fib 38.2% from 270°
+Feb 3 / 9:00a	315°	BALANCE POINT (7/8 of Year)
+Feb 14 / 3:25a	325.62°	Fib 61.8% from 270°
+Feb 20 / 9:48a	331.8°	Fib 1.618 (Actual)
+Feb 22 / 9:15a	333.75°	1x2 angle (mirrored)
+Mar 1 / 11:20a	340.74°	Fib 78.6% from 270°
+Mar 1 / 11:45p	341.25°	1x3 angle (mirrored)
+Mar 5 / 7:00p	345°	1x4 angle (mirrored)
+Mar 13 / 9:15a	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+Mar 21 / 12:00a	0°	Anchor / Reset
+May 5 / 3:00p	45°	BALANCE POINT (1/8 of Year)
+May 16 / 9:25a	55.62°	Fib 61.8% from 0º (Golden Ratio)
+May 24 / 3:15p	63.75°	2x1 angle (After 61.8º Actual)
+Jun 20 / 6:00a	90°	MAJOR PIVOT POINT
+Aug 4 / 9:00p	135°	BALANCE POINT (3/8 of Year)
+Aug 15 / 3:25p	145.62°	Fib 61.8% from 90°
+Aug 21 / 9:48p	151.8º	Fib 1.618 (Actual)
+Sep 19 / 12:00p	180° 	REVERSALS (50% of Year)
+Nov 4 / 3:00a	225°	BALANCE POINT (5/8 of Year)
+Nov 14 / 9:25p	235.62°	Fib 61.8% from 180°
+Nov 23 / 3:15a	243.75°	2x1 angle (After 61.8º Actual)
+Dec 19 / 6:00p	270°	 MAJOR PIVOT (75% of Year)
+Feb 3 / 9:00a	315°	BALANCE POINT (7/8 of Year)
+Feb 14 / 3:25a	325.62°	Fib 61.8% from 270°
+Feb 20 / 9:48a	331.8°	Fib 1.618 (Actual)
+
+###### 366 ######
+Mar 21 / 12:00a	0°	Anchor / Reset
+Mar 28 / 3:00p	7.5°	1x8 angle
+Apr 5 / 6:00a	15°	1x4 angle
+Apr 9 / 1:30a	18.75°	1x3 angle
+Apr 11 / 2:15p	21.24°	Fib 23.6% from 0°
+Apr 16 / 4:30p	26.25°	1x2 angle
+Apr 24 / 10:52p	34.38°	Fib 38.2% from 0º
+May 5 / 6:00p	45°	BALANCE POINT (1/8 of Year)
+May 16 / 1:07p	55.62°	Fib 61.8% from 0º (Golden Ratio)
+May 24 / 7:30p	63.75°	2x1 angle (After 61.8º Actual)
+May 31 / 10:03p	70.74º	Fib 78.6% from 90°
+Jun 1 / 10:15a	71.25°	3x1 angle
+Jun 5 / 6:00a	75°	4x1 angle
+Jun 8 / 9:50p	78.6°	Fib 78.6 (Actual)
+Jun 12 / 8:45p	82.5°	8x1 angle
+Jun 20 / 12:00p	90°	MAJOR PIVOT POINT
+Jun 28 / 3:00a	97.5°	8x1 angle (mirrored)
+Jul 5 / 6:00p	105°	4x1 angle (mirrored)
+Jul 9 / 1:30p	108.75°	3x1 angle (mirrored)
+Jul 17 / 4:30a	116.25°	2x1 angle
+Jul 18 / 3:40a	117.2°	Fib 1.272 (Actual)
+Jul 25 / 10:52a	124.38°	Fib 38.2% from 90° mark
+Aug 5 / 6:00a	135°	BALANCE POINT (3/8 of Year)
+Aug 16 / 1:07a	145.62°	Fib 61.8% from 90°
+Aug 22 / 7:55a	151.8º	Fib 1.618 (Actual)
+Aug 24 / 7:30a	153.75°	1x2 angle (mirrored)
+Aug 31 / 9:48a	160.74°	Fib 78.6% from 90°
+Aug 31 / 10:15p	161.25°	1x3 angle (mirrored)
+Sep 4 / 6:00p	165°	1x4 angle (mirrored)
+Sep 12 / 8:45a	172.5°	1x8 angle (mirrored)
+Sep 20 / 12:00a	180°	REVERSALS (50% of Year)
+Sep 27 / 3:00p	187.5°	1x8 angle
+Oct 5 / 6:00a	195°	1x4 angle
+Oct 9 / 1:30a	198.75°	1x3 angle
+Oct 11 / 2:15p	201.24°	Fib 23.6% from 180°
+Oct 16 / 4:30p	206.25°	1x2 angle
+Oct 24 / 10:52p	214.38°	Fib 38.2% from 180°
+Nov 4 / 6:00p	225°	BALANCE POINT (5/8 of Year)
+Nov 15 / 1:07p	235.62°	Fib 61.8% from 180°
+Nov 23 / 7:30p	243.75°	2x1 angle (After 61.8º Actual)
+Nov 30 / 10:03p	250.74°	Fib 78.6% from 180°
+Dec 1 / 10:15a	251.25°	3x1 angle
+Dec 5 / 6:00a	255°	4x1 angle
+Dec 8 / 9:50p	258.6º	Fib 78.6 (Actual)
+Dec 12 / 8:45p	262.5°	8x1 angle
+Dec 20 / 12:00p	270°	 MAJOR PIVOT (75% of Year)
+Dec 28 / 3:00a	277.5°	8x1 angle (mirrored)
+Jan 4 / 6:00p	285°	4x1 angle (mirrored)
+Jan 8 / 1:30p	288.75°	3x1 angle (mirrored)
+Jan 16 / 4:30a	296.25°	2x1 angle
+Jan 17 / 3:40a	297.2°	Fib 1.272 (Actual)
+Jan 24 / 10:52a	304.38°	Fib 38.2% from 270°
+Feb 4 / 6:00a	315°	BALANCE POINT (7/8 of Year)
+Feb 15 / 1:07a	325.62°	Fib 61.8% from 270°
+Feb 21 / 7:55a	331.8°	Fib 1.618 (Actual)
+Feb 23 / 7:30a	333.75°	1x2 angle (mirrored)
+Mar 1 / 9:48a	340.74°	Fib 78.6% from 270°
+Mar 1 / 10:15p	341.25°	1x3 angle (mirrored)
+Mar 5 / 6:00p	345°	1x4 angle (mirrored)
+Mar 13 / 8:45a	352.5°	1x8 angle (mirrored)
+
+# Key Moments
+Mar 21 / 12:00a	0°	Anchor / Reset
+May 5 / 6:00p	45°	BALANCE POINT (1/8 of Year)
+May 16 / 1:07p	55.62°	Fib 61.8% from 0º (Golden Ratio)
+May 24 / 7:30p	63.75°	2x1 angle (After 61.8º Actual)
+Jun 20 / 12:00p	90°	MAJOR PIVOT POINT
+Aug 5 / 6:00a	135°	BALANCE POINT (3/8 of Year)
+Aug 16 / 1:07a	145.62°	Fib 61.8% from 90°
+Aug 22 / 7:55a	151.8º	Fib 1.618 (Actual)
+Sep 20 / 12:00a	180° 	REVERSALS (50% of Year)
+Nov 4 / 6:00p	225°	BALANCE POINT (5/8 of Year)
+Nov 15 / 1:07p	235.62°	Fib 61.8% from 180°
+Nov 23 / 7:30p	243.75°	2x1 angle (After 61.8º Actual)
+Dec 20 / 12:00p	270°	 MAJOR PIVOT (75% of Year)
+Feb 4 / 6:00a	315°	BALANCE POINT (7/8 of Year)
+Feb 15 / 1:07a	325.62°	Fib 61.8% from 270°
+Feb 21 / 7:55a	331.8°	Fib 1.618 (Actual)

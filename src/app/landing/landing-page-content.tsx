@@ -14,7 +14,6 @@ import { CTASection } from './components/cta-section'
 import { ContactSection } from './components/contact-section'
 import { FaqSection } from './components/faq-section'
 import { LandingFooter } from './components/footer'
-import { LandingThemeCustomizer, LandingThemeCustomizerTrigger } from './components/landing-theme-customizer'
 import { AboutSection } from './components/about-section'
 
 export function LandingPageContent() {
@@ -44,9 +43,6 @@ export function LandingPageContent() {
       {/* Footer */}
       <LandingFooter />
 
-      {/* Theme Customizer */}
-      <LandingThemeCustomizerTrigger onClick={() => setThemeCustomizerOpen(true)} />
-      <LandingThemeCustomizer open={themeCustomizerOpen} onOpenChange={setThemeCustomizerOpen} />
     </div>
   )
 }
