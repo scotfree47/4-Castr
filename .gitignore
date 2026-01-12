@@ -40,3 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .aider*
+node_modules/
+csv-pull/market-data/node_modules/
