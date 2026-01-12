@@ -5,11 +5,6 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
   },
   
-  // Turbopack configuration
-  turbopack: {
-    root: '/Users/jamalcarr/Dev/Workspaces/Dec-2025/4castr',
-  },
-  
   // Image optimization with remotePatterns instead of domains
   images: {
     remotePatterns: [
@@ -26,7 +21,7 @@ const nextConfig: NextConfig = {
   },
   
   // Webpack configuration
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+  webpack: (config) => {
     // Add custom webpack rules if needed
     return config;
   },
