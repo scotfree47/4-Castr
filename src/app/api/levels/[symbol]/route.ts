@@ -1,6 +1,4 @@
 // app/api/levels/[symbol]/route.ts
-// Comprehensive key levels calculation endpoint
-
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { 
@@ -29,13 +27,12 @@ interface LevelsResponse {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ symbol: string }> }
+  { params }: { params: { symbol: string } }
 ): Promise<NextResponse<LevelsResponse>> {
   try {
-    const { symbol } = await params;
+    const { symbol } = params;
     const { searchParams } = new URL(request.url);
     
-    // Parameters
     const startDate = searchParams.get('startDate') || 
       new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const endDate = searchParams.get('endDate') || 
@@ -47,7 +44,6 @@ export async function GET(
 
     console.log(`→ Calculating levels for ${symbol}...`);
 
-    // Get price data from Supabase
     const { data: priceData, error: priceError } = await supabaseAdmin
       .from('financial_data')
       .select('date, open, high, low, close, volume')
@@ -63,7 +59,6 @@ export async function GET(
       }, { status: 404 });
     }
 
-    // Convert to OHLCVBar format
     const bars: OHLCVBar[] = priceData.map(bar => ({
       time: new Date(bar.date).getTime(),
       open: parseFloat(bar.open) || 0,
@@ -75,7 +70,6 @@ export async function GET(
 
     console.log(`✓ Loaded ${bars.length} bars`);
 
-    // Calculate comprehensive levels
     const currentTime = new Date().getTime();
     const levels = calculateComprehensiveLevels(bars, {
       currentTime,
@@ -87,13 +81,12 @@ export async function GET(
 
     console.log(`✓ Calculated current levels`);
 
-    // Calculate future projections if requested
     let futureLevels: FutureLevelProjection[] | undefined;
     if (includeFuture) {
       futureLevels = getAllFutureLevels(bars, {
         barsToProject,
-        barInterval: 86400000, // 1 day in milliseconds
-        includeGannFan: false, // Requires manual anchor
+        barInterval: 86400000,
+        includeGannFan: false,
         includeTrendLevels: true,
         includeValueArea: true,
         includeGannOctaves: true,
@@ -115,7 +108,6 @@ export async function GET(
         },
       },
     });
-
   } catch (error) {
     console.error('Levels API error:', error);
     return NextResponse.json({

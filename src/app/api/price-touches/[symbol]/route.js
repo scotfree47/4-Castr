@@ -1,14 +1,8 @@
 // app/api/price-touches/[symbol]/route.js
-// DYNAMIC VERSION - Matches your existing pattern
-
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import { readPriceTouchCSV, readFibonacciCSV } from '@/lib/csvAdapter';
 
-/**
- * Detect when price touches Fibonacci levels
- * Tolerance: within 0.5% of level
- */
 function detectTouches(priceData, fibLevels, tolerance = 0.005) {
   const touches = [];
   
@@ -63,7 +57,7 @@ function detectTouches(priceData, fibLevels, tolerance = 0.005) {
 
 export async function GET(request, { params }) {
   try {
-    const { symbol } = await params;
+    const { symbol } = params;
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate') || 
       new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -73,7 +67,6 @@ export async function GET(request, { params }) {
 
     console.log(`→ Checking price touches for ${symbol}...`);
 
-    // 1. Check CSV for pre-calculated touches
     const csvTouches = await readPriceTouchCSV(symbol, startDate, endDate);
     
     if (csvTouches && csvTouches.length > 0) {
@@ -92,7 +85,6 @@ export async function GET(request, { params }) {
       });
     }
 
-    // 2. Get price data from Supabase (which already has data from equity API)
     console.log(`→ Fetching price data for ${symbol}...`);
 
     const { data: priceData, error: priceError } = await supabaseAdmin
@@ -117,14 +109,12 @@ export async function GET(request, { params }) {
 
     console.log(`✓ Found ${priceData.length} price records`);
 
-    // Get Fibonacci levels (from CSV or calculate)
     let fibLevels;
     const csvFib = await readFibonacciCSV(symbol, startDate, endDate);
     
     if (csvFib && csvFib.length > 0) {
       const latest = csvFib[csvFib.length - 1];
       fibLevels = {
-        // Standard retracement levels
         level_0: latest.level_0,
         level_236: latest.level_236,
         level_382: latest.level_382,
@@ -133,7 +123,6 @@ export async function GET(request, { params }) {
         level_786: latest.level_786,
         level_886: latest.level_886,
         level_1000: latest.level_1000,
-        // Extension levels above high
         level_1272: latest.level_1272,
         level_1414: latest.level_1414,
         level_1618: latest.level_1618,
@@ -141,7 +130,6 @@ export async function GET(request, { params }) {
         level_3618: latest.level_3618,
         level_4236: latest.level_4236,
         level_4618: latest.level_4618,
-        // Extension levels below low
         level_n027: latest.level_n027,
         level_n0618: latest.level_n0618,
         level_n1000: latest.level_n1000,
@@ -159,7 +147,6 @@ export async function GET(request, { params }) {
       const diff = high - low;
       
       fibLevels = {
-        // Standard retracement levels (0% to 100%)
         level_0: low,
         level_236: low + diff * 0.236,
         level_382: low + diff * 0.382,
@@ -168,7 +155,6 @@ export async function GET(request, { params }) {
         level_786: low + diff * 0.786,
         level_886: low + diff * 0.886,
         level_1000: high,
-        // Extension levels above high (100%+)
         level_1272: high + diff * 0.272,
         level_1414: high + diff * 0.414,
         level_1618: high + diff * 0.618,
@@ -176,7 +162,6 @@ export async function GET(request, { params }) {
         level_3618: high + diff * 2.618,
         level_4236: high + diff * 3.236,
         level_4618: high + diff * 3.618,
-        // Extension levels below low (negative)
         level_n027: low - diff * 0.27,
         level_n0618: low - diff * 0.618,
         level_n1000: low - diff * 1.000,
@@ -190,10 +175,8 @@ export async function GET(request, { params }) {
       };
     }
 
-    // Detect touches
     const touches = detectTouches(priceData, fibLevels, tolerance);
 
-    // Group by level
     const touchesByLevel = touches.reduce((acc, touch) => {
       if (!acc[touch.level]) {
         acc[touch.level] = {

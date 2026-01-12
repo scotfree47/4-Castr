@@ -22,10 +22,9 @@ const ANCHOR_DATES = {
 
 export async function GET(request, { params }) {
   try {
-    const { symbol } = await params;
+    const { symbol } = params;
     const today = new Date().toISOString().split('T')[0];
     
-    // Check cache (within last 24 hours)
     const { data: cached } = await supabaseAdmin
       .from('fibonacci_levels')
       .select('*')
@@ -40,7 +39,6 @@ export async function GET(request, { params }) {
     
     console.log(`→ Calculating fib levels for ${symbol}...`);
     
-    // Fetch historical price data from financial_data table
     const { data: priceData, error: priceError } = await supabaseAdmin
       .from('financial_data')
       .select('date, open, high, low, close')
@@ -52,14 +50,12 @@ export async function GET(request, { params }) {
       throw new Error(`No price data found for ${symbol}`);
     }
     
-    // Calculate aggregate Fibonacci levels from all anchor points
     const fibLevels = calculateAggregateFibLevels(priceData);
     
     if (!fibLevels) {
       throw new Error('Unable to calculate Fibonacci levels');
     }
     
-    // Store in database
     const { data: stored, error: storeError } = await supabaseAdmin
       .from('fibonacci_levels')
       .insert({
@@ -112,7 +108,6 @@ function calculateAggregateFibLevels(priceData) {
   let overallHigh = 0;
   let overallLow = Infinity;
   
-  // Calculate from solstice pairs (using high prices as anchors)
   ANCHOR_DATES.solstices.forEach(pair => {
     const summerData = priceData.find(d => d.date === pair.summer);
     const winterData = priceData.find(d => d.date === pair.winter);
@@ -135,7 +130,6 @@ function calculateAggregateFibLevels(priceData) {
     }
   });
   
-  // Calculate from equinox pairs (using low prices as anchors)
   ANCHOR_DATES.equinoxes.forEach(pair => {
     const springData = priceData.find(d => d.date === pair.spring);
     const fallData = priceData.find(d => d.date === pair.fall);
@@ -158,7 +152,6 @@ function calculateAggregateFibLevels(priceData) {
     }
   });
   
-  // Average all calculated levels
   const avgLevels = {};
   for (const [key, values] of Object.entries(allLevels)) {
     if (values.length > 0) {

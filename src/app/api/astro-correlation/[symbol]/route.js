@@ -1,14 +1,8 @@
 // app/api/astro-correlation/[symbol]/route.js
-// DYNAMIC VERSION - Matches your existing pattern
-
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import { readAstroAlignmentCSV, readFibonacciCSV } from '@/lib/csvAdapter';
 
-/**
- * Calculate correlation between astro events and price touches
- * Window: ±3 days around astro event
- */
 function correlateAstroWithTouches(astroEvents, priceTouches, windowDays = 3) {
   const correlations = [];
   const windowMs = windowDays * 24 * 60 * 60 * 1000;
@@ -51,7 +45,7 @@ function correlateAstroWithTouches(astroEvents, priceTouches, windowDays = 3) {
 
 export async function GET(request, { params }) {
   try {
-    const { symbol } = await params;
+    const { symbol } = params;
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate') || 
       new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -62,7 +56,6 @@ export async function GET(request, { params }) {
 
     console.log(`→ Analyzing astro correlation for ${symbol}...`);
 
-    // 1. Get astro events from CSV
     const astroEvents = await readAstroAlignmentCSV(startDate, endDate, eventType);
     if (!astroEvents || astroEvents.length === 0) {
       return NextResponse.json(
@@ -74,9 +67,6 @@ export async function GET(request, { params }) {
       );
     }
 
-    console.log(`✓ Found ${astroEvents.length} astro events`);
-
-    // 2. Get price data from Supabase
     console.log(`✓ Found ${astroEvents.length} astro events`);
     
     const { data: priceData, error: priceError } = await supabaseAdmin
@@ -101,14 +91,12 @@ export async function GET(request, { params }) {
 
     console.log(`✓ Found ${priceData.length} price records`);
 
-    // 3. Get or calculate Fibonacci levels
     let fibLevels;
     const csvFib = await readFibonacciCSV(symbol, startDate, endDate);
     
     if (csvFib && csvFib.length > 0) {
       const latest = csvFib[csvFib.length - 1];
       fibLevels = {
-        // Standard retracement levels
         level_0: latest.level_0,
         level_236: latest.level_236,
         level_382: latest.level_382,
@@ -117,7 +105,6 @@ export async function GET(request, { params }) {
         level_786: latest.level_786,
         level_886: latest.level_886,
         level_1000: latest.level_1000,
-        // Extension levels above high
         level_1272: latest.level_1272,
         level_1414: latest.level_1414,
         level_1618: latest.level_1618,
@@ -125,7 +112,6 @@ export async function GET(request, { params }) {
         level_3618: latest.level_3618,
         level_4236: latest.level_4236,
         level_4618: latest.level_4618,
-        // Extension levels below low
         level_n027: latest.level_n027,
         level_n0618: latest.level_n0618,
         level_n1000: latest.level_n1000,
@@ -143,7 +129,6 @@ export async function GET(request, { params }) {
       const diff = high - low;
       
       fibLevels = {
-        // Standard retracement levels (0% to 100%)
         level_0: low,
         level_236: low + diff * 0.236,
         level_382: low + diff * 0.382,
@@ -152,7 +137,6 @@ export async function GET(request, { params }) {
         level_786: low + diff * 0.786,
         level_886: low + diff * 0.886,
         level_1000: high,
-        // Extension levels above high (100%+)
         level_1272: high + diff * 0.272,
         level_1414: high + diff * 0.414,
         level_1618: high + diff * 0.618,
@@ -160,7 +144,6 @@ export async function GET(request, { params }) {
         level_3618: high + diff * 2.618,
         level_4236: high + diff * 3.236,
         level_4618: high + diff * 3.618,
-        // Extension levels below low (negative)
         level_n027: low - diff * 0.27,
         level_n0618: low - diff * 0.618,
         level_n1000: low - diff * 1.000,
@@ -174,7 +157,6 @@ export async function GET(request, { params }) {
       };
     }
 
-    // 4. Detect price touches (inline)
     const touches = [];
     const tolerance = 0.005;
     
@@ -213,10 +195,8 @@ export async function GET(request, { params }) {
 
     console.log(`✓ Found ${touches.length} price touches`);
 
-    // 5. Correlate astro events with price touches
     const correlations = correlateAstroWithTouches(astroEvents, touches, windowDays);
 
-    // 6. Calculate statistics
     const stats = {
       total_astro_events: astroEvents.length,
       total_price_touches: touches.length,
@@ -230,7 +210,6 @@ export async function GET(request, { params }) {
         : null
     };
 
-    // 7. Group by astro event type
     const byEventType = correlations.reduce((acc, corr) => {
       const type = corr.astro_event.type;
       if (!acc[type]) {
