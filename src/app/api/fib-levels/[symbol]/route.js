@@ -22,7 +22,7 @@ const ANCHOR_DATES = {
 
 export async function GET(request, { params }) {
   try {
-    const { symbol } = await params;  // ← Add 'await' here
+    const { symbol } = await params;
     const today = new Date().toISOString().split('T')[0];
     
     // Check cache (within last 24 hours)

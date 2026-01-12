@@ -51,7 +51,7 @@ function correlateAstroWithTouches(astroEvents, priceTouches, windowDays = 3) {
 
 export async function GET(request, { params }) {
   try {
-    const symbol = params.symbol; // Get symbol from URL path
+    const { symbol } = await params;
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate') || 
       new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];

@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
   },
   
+  // Turbopack configuration (Next.js 16 requirement)
+  turbopack: {},
+  
   // Webpack configuration
   webpack: (config) => {
     // Add custom webpack rules if needed

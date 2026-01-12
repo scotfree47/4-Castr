@@ -1,6 +1,7 @@
 // /lib/services/confluenceEngine.ts
 // Automated featured symbol selection based on confluence + proximity
 
+import { supabaseAdmin } from '@/lib/supabase';
 import { 
   calculateEnhancedLevels,
   rankSymbolsBySetup,
@@ -18,7 +19,7 @@ export interface FeaturedTickerResult {
     price: number;
     type: 'support' | 'resistance';
     distancePercent: number;
-    daysUntil?: number; // estimated based on avg daily movement
+    daysUntil?: number;
   };
   confluenceScore: number;
   tradeabilityScore: number;
@@ -47,26 +48,30 @@ export async function calculateFeaturedTickers(
     levels: any[];
   }> = [];
 
+  // Calculate date range
+  const endDate = new Date().toISOString().split('T')[0];
+  const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split('T')[0];
+
   // Fetch data and calculate levels for each symbol
   for (const symbol of symbols) {
     try {
-      // Fetch price data from your API
-      const endDate = new Date().toISOString().split('T')[0];
-      const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split('T')[0];
+      // Direct DB access instead of fetch
+      const { data: priceRecords, error } = await supabaseAdmin
+        .from('financial_data')
+        .select('*')
+        .eq('symbol', symbol)
+        .gte('date', startDate)
+        .lte('date', endDate)
+        .order('date', { ascending: true });
 
-      const response = await fetch(
-        `/api/${category}?startDate=${startDate}&endDate=${endDate}`
-      );
-      const data = await response.json();
-
-      if (!data.success || !data.data[symbol]) {
-        console.warn(`No data for ${symbol}`);
+      if (error || !priceRecords || priceRecords.length === 0) {
+        console.warn(`No data for ${symbol}:`, error?.message);
         continue;
       }
 
-      const priceData: OHLCVBar[] = data.data[symbol].map((d: any) => ({
+      const priceData: OHLCVBar[] = priceRecords.map((d: any) => ({
         time: new Date(d.date).getTime(),
         open: d.open || d.close,
         high: d.high || d.close,
@@ -74,8 +79,6 @@ export async function calculateFeaturedTickers(
         close: d.close,
         volume: d.volume || 0
       }));
-
-      if (priceData.length === 0) continue;
 
       const currentPrice = priceData[priceData.length - 1].close;
 
@@ -127,13 +130,12 @@ export async function calculateFeaturedTickers(
     .filter(r => r.score >= minScore)
     .slice(0, maxResults)
     .map((ranking, index) => {
-      // Determine sector based on symbol (you can enhance this)
       const sector = determineSector(ranking.symbol, category);
 
       // Calculate estimated days until next level
       let daysUntil: number | undefined;
       if (ranking.nextLevel) {
-        const avgDailyMove = 1.5; // You can calculate this from historical data
+        const avgDailyMove = 1.5;
         daysUntil = Math.ceil(
           ranking.nextLevel.distancePercent / avgDailyMove
         );
@@ -175,7 +177,6 @@ export async function calculateAllFeaturedTickers(): Promise<{
   'rates-macro': FeaturedTickerResult[];
   stress: FeaturedTickerResult[];
 }> {
-  // Define symbols for each category
   const categories = {
     equity: ['SPY', 'QQQ', 'XLY', 'AAPL', 'MSFT', 'NVDA', 'TSLA', 'AMZN'],
     commodity: ['GLD', 'USO', 'HG1!', 'GC1!', 'CL1!'],
@@ -234,7 +235,7 @@ function determineSector(symbol: string, category: string): string {
   
   // Commodities
   if (category === 'commodity') {
-    return 'real_estate'; // Using your existing sector name
+    return 'real_estate';
   }
   
   // Crypto
@@ -242,31 +243,47 @@ function determineSector(symbol: string, category: string): string {
     return 'cryptocurrency';
   }
   
-  // Default
   return 'unknown';
 }
 
 /**
  * Store featured tickers to database/cache
- * (You can implement Supabase storage here)
  */
 export async function storeFeaturedTickers(
   featured: FeaturedTickerResult[]
 ): Promise<void> {
-  // TODO: Store to Supabase or your preferred storage
-  console.log('Storing featured tickers:', featured.length);
-  
-  // Example Supabase implementation:
-  // const { error } = await supabaseAdmin
-  //   .from('featured_tickers')
-  //   .upsert(featured.map(f => ({
-  //     symbol: f.symbol,
-  //     category: f.category,
-  //     data: f,
-  //     updated_at: new Date().toISOString()
-  //   })));
-  
-  // if (error) throw error;
+  try {
+    const { error } = await supabaseAdmin
+      .from('featured_tickers')
+      .upsert(
+        featured.map(f => ({
+          symbol: f.symbol,
+          category: f.category,
+          sector: f.sector,
+          current_price: f.currentPrice,
+          next_key_level_price: f.nextKeyLevel.price,
+          next_key_level_type: f.nextKeyLevel.type,
+          distance_percent: f.nextKeyLevel.distancePercent,
+          days_until: f.nextKeyLevel.daysUntil,
+          confluence_score: f.confluenceScore,
+          tradeability_score: f.tradeabilityScore,
+          reason: f.reason,
+          rank: f.rank,
+          updated_at: new Date().toISOString()
+        })),
+        { onConflict: 'symbol,category' }
+      );
+    
+    if (error) {
+      console.error('Error storing featured tickers:', error);
+      throw error;
+    }
+    
+    console.log(`✓ Stored ${featured.length} featured tickers`);
+  } catch (error) {
+    console.error('Failed to store featured tickers:', error);
+    throw error;
+  }
 }
 
 /**
@@ -278,17 +295,25 @@ export async function shouldRefreshFeatured(): Promise<{
   reason: string;
 }> {
   try {
-    // Check current solar ingress
-    const ingressRes = await fetch('/api/ingress');
-    const ingressData = await ingressRes.json();
+    const today = new Date().toISOString().split('T')[0];
     
-    if (!ingressData.success) {
+    // Direct DB access for ingress data
+    const { data: ingressData, error } = await supabaseAdmin
+      .from('astro_events')
+      .select('*')
+      .eq('event_type', 'solar_ingress')
+      .lte('event_date', today)
+      .order('event_date', { ascending: false })
+      .limit(2);
+    
+    if (error || !ingressData || ingressData.length === 0) {
+      console.error('Error fetching ingress:', error);
       return { shouldRefresh: false, reason: 'No ingress data' };
     }
     
-    const { currentStart, currentEnd } = ingressData.data;
+    const currentIngress = ingressData[0];
     const now = new Date();
-    const periodStart = new Date(currentStart);
+    const periodStart = new Date(currentIngress.event_date);
     const daysSincePeriodStart = Math.floor(
       (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -304,10 +329,79 @@ export async function shouldRefreshFeatured(): Promise<{
       return { shouldRefresh: true, reason: 'Weekly refresh' };
     }
     
+    // 3. Check last update from featured_tickers table
+    const { data: lastUpdate } = await supabaseAdmin
+      .from('featured_tickers')
+      .select('updated_at')
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single();
+    
+    if (!lastUpdate) {
+      return { shouldRefresh: true, reason: 'No existing featured data' };
+    }
+    
+    const lastUpdateDate = new Date(lastUpdate.updated_at);
+    const hoursSinceUpdate = Math.floor(
+      (now.getTime() - lastUpdateDate.getTime()) / (1000 * 60 * 60)
+    );
+    
+    // 4. Force refresh if data is older than 24 hours
+    if (hoursSinceUpdate >= 24) {
+      return { shouldRefresh: true, reason: 'Data older than 24 hours' };
+    }
+    
     return { shouldRefresh: false, reason: 'No refresh needed' };
     
   } catch (error) {
     console.error('Error checking refresh need:', error);
     return { shouldRefresh: false, reason: 'Error checking' };
+  }
+}
+
+/**
+ * Get current featured tickers from storage
+ */
+export async function getFeaturedTickers(
+  category?: string
+): Promise<FeaturedTickerResult[]> {
+  try {
+    let query = supabaseAdmin
+      .from('featured_tickers')
+      .select('*')
+      .order('rank', { ascending: true });
+    
+    if (category) {
+      query = query.eq('category', category);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    return data.map(d => ({
+      symbol: d.symbol,
+      category: d.category,
+      sector: d.sector,
+      currentPrice: d.current_price,
+      nextKeyLevel: {
+        price: d.next_key_level_price,
+        type: d.next_key_level_type,
+        distancePercent: d.distance_percent,
+        daysUntil: d.days_until
+      },
+      confluenceScore: d.confluence_score,
+      tradeabilityScore: d.tradeability_score,
+      reason: d.reason,
+      rank: d.rank
+    }));
+    
+  } catch (error) {
+    console.error('Error fetching featured tickers:', error);
+    return [];
   }
 }

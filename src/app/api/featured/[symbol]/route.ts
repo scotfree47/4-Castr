@@ -19,10 +19,10 @@ const CATEGORY_SYMBOLS: Record<string, string[]> = {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { category: string } }
+  { params }: { params: Promise<{ symbol: string }> }
 ) {
   try {
-    const { category } = params;
+    const { symbol: category } = await params;
 
     // Validate category
     if (!CATEGORY_SYMBOLS[category]) {
@@ -71,10 +71,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { category: string } }
+  { params }: { params: Promise<{ symbol: string }> }
 ) {
   try {
-    const { category } = params;
+    const { symbol: category } = await params;
 
     if (!CATEGORY_SYMBOLS[category]) {
       return NextResponse.json(

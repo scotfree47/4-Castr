@@ -29,10 +29,10 @@ interface LevelsResponse {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { symbol: string } }
+  { params }: { params: Promise<{ symbol: string }> }
 ): Promise<NextResponse<LevelsResponse>> {
   try {
-    const { symbol } = params;
+    const { symbol } = await params;
     const { searchParams } = new URL(request.url);
     
     // Parameters
