@@ -2,17 +2,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { 
-  calculateComprehensiveLevels,
+  calculateEnhancedLevels,  // ✅ Changed from calculateComprehensiveLevels
   getAllFutureLevels,
   type OHLCVBar,
-  type ComprehensiveLevels,
+  type EnhancedComprehensiveLevels,  // ✅ Changed from ComprehensiveLevels
   type FutureLevelProjection
 } from '@/lib/indicators/keyLevels';
 
 interface LevelsResponse {
   success: boolean;
   data?: {
-    current: ComprehensiveLevels;
+    current: EnhancedComprehensiveLevels;  // ✅ Updated type
     future?: FutureLevelProjection[];
     metadata: {
       symbol: string;
@@ -27,10 +27,10 @@ interface LevelsResponse {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { symbol: string } }
+  { params }: { params: Promise<{ symbol: string }> }  // ✅ Added Promise wrapper
 ): Promise<NextResponse<LevelsResponse>> {
   try {
-    const { symbol } = params;
+    const { symbol } = await params;  // ✅ Added await
     const { searchParams } = new URL(request.url);
     
     const startDate = searchParams.get('startDate') || 
@@ -70,9 +70,12 @@ export async function GET(
 
     console.log(`✓ Loaded ${bars.length} bars`);
 
-    const currentTime = new Date().getTime();
-    const levels = calculateComprehensiveLevels(bars, {
-      currentTime,
+    // ✅ Get current price for enhanced levels
+    const currentPrice = bars[bars.length - 1].close;
+
+    // ✅ Changed function call
+    const levels = calculateEnhancedLevels(bars, currentPrice, {
+      currentTime: Date.now(),
       includeGannSquare144: true,
       includeSeasonalDates: true,
       swingLength,
