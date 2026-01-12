@@ -36,7 +36,24 @@ import {
   DialogTitle
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import { type CalendarEvent } from "../types"
+
+// Updated CalendarEvent interface with optional fields
+interface CalendarEvent {
+  id: string;
+  name: string;
+  date: Date;
+  type: "gann" | "fibonacci" | "fiscal" | "secondary fib" | "secondary gann";
+  color: string;
+  visible: boolean;
+  
+  // Optional fields
+  title?: string;
+  time?: string;
+  duration?: string;
+  attendees?: string[];
+  location?: string;
+  description?: string;
+}
 
 // Import data
 import eventsData from "../data/events.json"
@@ -159,7 +176,8 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
                         handleEventClick(event)
                       }}
                     >
-                      {event.time} {event.title}
+                      {/* Display time if available, otherwise just the title/name */}
+                      {event.time ? `${event.time} ` : ''}{event.title || event.name}
                     </div>
                   ))}
                   {dayEvents.length > 3 && (
@@ -327,18 +345,25 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
       <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{selectedEvent?.title}</DialogTitle>
+            <DialogTitle>{selectedEvent?.title || selectedEvent?.name}</DialogTitle>
             <DialogDescription>
               Event details and information
             </DialogDescription>
           </DialogHeader>
           {selectedEvent && (
             <div className="space-y-4 pt-4">
-              <div className="flex items-center space-x-2 text-sm">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span>{selectedEvent.time} • {selectedEvent.duration}</span>
-              </div>
+              {/* Only show time/duration if they exist */}
+              {(selectedEvent.time || selectedEvent.duration) && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span>
+                    {selectedEvent.time}
+                    {selectedEvent.duration && ` • ${selectedEvent.duration}`}
+                  </span>
+                </div>
+              )}
               
+              {/* Only show location if it exists */}
               {selectedEvent.location && (
                 <div className="flex items-center space-x-2 text-sm">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -346,7 +371,8 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
                 </div>
               )}
               
-              {selectedEvent.attendees.length > 0 && (
+              {/* Only show attendees if they exist */}
+              {selectedEvent.attendees && selectedEvent.attendees.length > 0 && (
                 <div className="flex items-center space-x-2 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <div className="flex space-x-1">
