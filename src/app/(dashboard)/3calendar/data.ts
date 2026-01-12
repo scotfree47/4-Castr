@@ -1,15 +1,25 @@
-import { type CalendarEvent } from "./types"
-import eventsData from "./data/events.json"
+import { type CalendarEvent, type Calendar } from "./types"
+import calendarsData from "./data/calendars.json"
 
-// Regular calendar events (meetings, appointments, etc.)
-export const events: CalendarEvent[] = eventsData.map(event => ({
-  ...event,
-  date: new Date(event.date),
-  type: event.type as CalendarEvent["type"]
+// Import calendars (Gann, Fibonacci, Fiscal categories)
+export const calendars: Calendar[] = calendarsData.map(calendar => ({
+  ...calendar,
+  type: calendar.type as Calendar["type"]
 }))
 
-// Note: Gann moments are now generated dynamically in calendar-main.tsx
-// using the getGannMomentsForRange() function from gann-calculator.ts
-// This avoids storing 250,000+ pre-generated events
+// Empty events array since we're generating Gann/Fib moments dynamically
+// or fetching them from APIs/calculations
+export const events: CalendarEvent[] = []
 
-export const allEvents = events
+// Export all calendars for use in components
+export const allCalendars = calendars
+
+// Helper to get calendar by ID
+export const getCalendarById = (id: string) => {
+  return calendars.find(cal => cal.id === id)
+}
+
+// Helper to get visible calendars only
+export const getVisibleCalendars = () => {
+  return calendars.filter(cal => cal.visible)
+}
