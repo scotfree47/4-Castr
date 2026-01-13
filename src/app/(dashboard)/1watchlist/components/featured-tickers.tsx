@@ -1,6 +1,3 @@
-// /app/(dashboard)/1watchlist/components/featured-tickers.tsx
-// Integration with confluence engine and dynamic featured calculation
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -37,18 +34,19 @@ export function FeaturedTickers() {
       try {
         setLoading(true);
         
-        // Fetch featured tickers from API
-        const response = await fetch('/api/featured/equity');
+        // ✅ Fixed: Use query param instead of path segment
+        const response = await fetch('/api/featured?category=equity');
         const data = await response.json();
         
         if (!data.success) {
           throw new Error(data.error || 'Failed to load featured tickers');
         }
         
+        console.log('✅ Featured tickers loaded:', data.data.length);
         setTickers(data.data);
         
       } catch (err: any) {
-        console.error('Error loading featured tickers:', err);
+        console.error('❌ Error loading featured tickers:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -71,6 +69,23 @@ export function FeaturedTickers() {
       <Card className="border-destructive">
         <CardContent className="pt-6">
           <p className="text-destructive">Error: {error}</p>
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.reload()}
+            className="mt-4"
+          >
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (tickers.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-muted-foreground">No featured tickers available</p>
         </CardContent>
       </Card>
     )
