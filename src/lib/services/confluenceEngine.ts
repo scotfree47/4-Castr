@@ -248,40 +248,62 @@ function determineSector(symbol: string, category: string): string {
 
 /**
  * Store featured tickers to database/cache
+ * Uses delete + insert to bypass PostgREST schema cache issues
  */
 export async function storeFeaturedTickers(
   featured: FeaturedTickerResult[]
 ): Promise<void> {
+  if (!featured || featured.length === 0) {
+    console.log('No featured tickers to store');
+    return;
+  }
+  
   try {
-    const { error } = await supabaseAdmin
-      .from('featured_tickers')
-      .upsert(
-        featured.map(f => ({
-          symbol: f.symbol,
-          category: f.category,
-          sector: f.sector,
-          current_price: f.currentPrice,
-          next_key_level_price: f.nextKeyLevel.price,
-          next_key_level_type: f.nextKeyLevel.type,
-          distance_percent: f.nextKeyLevel.distancePercent,
-          days_until: f.nextKeyLevel.daysUntil,
-          confluence_score: f.confluenceScore,
-          tradeability_score: f.tradeabilityScore,
-          reason: f.reason,
-          rank: f.rank,
-          updated_at: new Date().toISOString()
-        })),
-        { onConflict: 'symbol,category' }
-      );
+    // Build rows for bulk insert
+    const rows = featured.map((f) => ({
+      symbol: f.symbol,
+      category: f.category,
+      sector: f.sector || null,
+      current_price: f.currentPrice,
+      next_key_level_price: f.nextKeyLevel.price,
+      next_key_level_type: f.nextKeyLevel.type,
+      distance_percent: f.nextKeyLevel.distancePercent,
+      days_until: f.nextKeyLevel.daysUntil,
+      confluence_score: f.confluenceScore,
+      tradeability_score: f.tradeabilityScore,
+      reason: f.reason,
+      rank: f.rank,
+      updated_at: new Date().toISOString()
+    }));
     
-    if (error) {
-      console.error('Error storing featured tickers:', error);
-      throw error;
+    // Delete existing entries for these categories first
+    const categories = [...new Set(featured.map(f => f.category))];
+    
+    for (const category of categories) {
+      const { error: deleteError } = await supabaseAdmin
+        .from('featured_tickers')
+        .delete()
+        .eq('category', category);
+      
+      if (deleteError) {
+        console.error(`Error deleting old ${category} entries:`, deleteError);
+      }
     }
     
-    console.log(`✓ Stored ${featured.length} featured tickers`);
+    // Insert new rows one by one (slower but bypasses cache issues)
+    for (const row of rows) {
+      const { error: insertError } = await supabaseAdmin
+        .from('featured_tickers')
+        .insert([row]);
+      
+      if (insertError) {
+        console.error(`Error inserting ${row.symbol}:`, insertError);
+      }
+    }
+    
+    console.log(`✅ Stored ${rows.length} featured tickers`);
   } catch (error) {
-    console.error('Failed to store featured tickers:', error);
+    console.error('Error in storeFeaturedTickers:', error);
     throw error;
   }
 }
