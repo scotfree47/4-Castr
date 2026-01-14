@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Separator } from "@/components/ui/separator"
 
 interface FeaturedTicker {
   symbol: string;
@@ -34,8 +35,8 @@ export function FeaturedTickers() {
       try {
         setLoading(true);
         
-        // ✅ Fixed: Use query param instead of path segment
-        const response = await fetch('/api/featured?category=equity');
+        // ✅ FIXED: Use path segment instead of query param
+        const response = await fetch('/api/featured/equity');
         const data = await response.json();
         
         if (!data.success) {
@@ -95,8 +96,8 @@ export function FeaturedTickers() {
     <Card className="cursor-pointer hover:border-primary/50 hover:shadow-[0_0_20px_rgba(51,255,51,0.3)] transition-all">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div>
-          <CardTitle>Currently Featured</CardTitle>
-          <CardDescription>Best Setups with Key Levels</CardDescription>
+          <CardTitle>Featured Tickers</CardTitle>
+          <CardDescription>Top Performers</CardDescription>
         </div>
         <Button variant="outline" asChild size="sm" className="sm:flex">
           <a href="/h1-tickers" className="dark:text-foreground">
@@ -105,6 +106,10 @@ export function FeaturedTickers() {
           </a>
         </Button>
       </CardHeader>
+      <Separator
+            orientation="horizontal"
+            className="mx-8 min-w-48 max-w-156 hidden:lg-92 data-[orientation=horizontal]:h-[1]"
+      />
       
       <CardContent className="space-y-4">
         {tickers.map((ticker) => (
@@ -144,13 +149,19 @@ export function FeaturedTickers() {
                     </span>
                   </div>
                   
+                  {/*
                   <span className="text-xs text-muted-foreground">•</span>
+
+                  {/* Change to visually display current price; hide reasoning as background process */}
+                  {/*
                   <span className="text-xs text-muted-foreground">{ticker.reason}</span>
-                  
+                  */}
+
+                  {/*                  {ticker.nextKeyLevel && (  
                   {ticker.nextKeyLevel && (
                     <>
                       <span className="text-xs text-muted-foreground">•</span>
-                      <span className={`text-xs ${
+                      <span className={`text-xs ${ // hide 
                         ticker.nextKeyLevel.type === 'support' 
                           ? 'text-green-600' 
                           : 'text-red-600'
@@ -159,6 +170,8 @@ export function FeaturedTickers() {
                       </span>
                     </>
                   )}
+                  */}
+                  
                 </div>
               </div>
               

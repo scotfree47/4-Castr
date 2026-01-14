@@ -1,4 +1,3 @@
-// /app/api/featured/[category]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateFeaturedTickers } from '@/lib/services/confluenceEngine';
 
@@ -16,12 +15,11 @@ const CATEGORY_SYMBOLS: Record<string, string[]> = {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { category: string } }
+  { params }: { params: Promise<{ category: string }> }
 ) {
   try {
-    const { category } = params;
+    const { category } = await params;
     
-    // Validate category
     if (!CATEGORY_SYMBOLS[category]) {
       return NextResponse.json(
         { success: false, error: 'Invalid category' },
@@ -54,41 +52,6 @@ export async function GET(
         success: false, 
         error: error.message || 'Failed to fetch featured tickers' 
       },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { category: string } }
-) {
-  try {
-    const { category } = params;
-    
-    if (!CATEGORY_SYMBOLS[category]) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid category' },
-        { status: 400 }
-      );
-    }
-
-    const symbols = CATEGORY_SYMBOLS[category];
-    const featured = await calculateFeaturedTickers(category, symbols, {
-      maxResults: 5,
-      minScore: 40,
-      useMultiTimeframe: false
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Featured tickers refreshed',
-      data: featured
-    });
-  } catch (error: any) {
-    console.error('Error refreshing featured tickers:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
       { status: 500 }
     );
   }

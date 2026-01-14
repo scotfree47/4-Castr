@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "precompute": "node scripts/precompute-astro.js"
+    "precompute": "node scripts/precompute-astro.js",
+    "share": "npx cloudflared tunnel --url http://localhost:3000 --protocol http2 --edge-ip-version 4"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
