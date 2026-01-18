@@ -3,12 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "precompute": "node scripts/precompute-astro.js",
-    "share": "npx cloudflared tunnel --url http://localhost:3000 --protocol http2 --edge-ip-version 4"
+    "data": "tsx scripts/data-manager.ts",
+    "data:load": "tsx scripts/data-manager.ts load-all",
+    "data:prices": "tsx scripts/data-manager.ts update-prices",
+    "data:featured": "tsx scripts/data-manager.ts populate-featured",
+    "data:check": "tsx scripts/data-manager.ts check-freshness",
+    "data:ingress": "tsx scripts/data-manager.ts check-ingress",
+    "cron:prices": "tsx scripts/data-manager.ts cron-update-prices",
+    "cron:featured": "tsx scripts/data-manager.ts cron-refresh-featured"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -45,6 +52,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "csv-parse": "^6.1.0",
     "csv-writer": "^1.6.0",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
@@ -76,7 +84,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.7",
+    "prettier": "^3.8.0",
     "tailwindcss": "^4.1.11",
+    "tsx": "^4.21.0",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5"
   }

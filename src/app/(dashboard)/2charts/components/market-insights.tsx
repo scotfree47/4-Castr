@@ -6,16 +6,28 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { ArrowUpIcon, BanknoteArrowUp, AlignHorizontalDistributeCenter, Landmark } from "lucide-react"
-import { 
+import {
+  ArrowUpIcon,
+  BanknoteArrowUp,
+  AlignHorizontalDistributeCenter,
+  Landmark,
+} from "lucide-react"
+import {
   getFeaturedByCategory,
   calculateGrowthMetrics,
   getAllCategories,
   formatCategoryName,
   FEATURED_COLORS,
-  type CategoryType 
+  type CategoryType,
 } from "../../data"
 
 const chartConfig = {
@@ -26,7 +38,7 @@ const chartConfig = {
 
 export function MarketInsights() {
   const searchParams = useSearchParams()
-  const category = (searchParams?.get('category') as CategoryType) || 'equity'
+  const category = (searchParams?.get("category") as CategoryType) || "equity"
   const [activeTab, setActiveTab] = useState("growth")
 
   // Get featured tickers for current category
@@ -41,7 +53,7 @@ export function MarketInsights() {
 
   // Generate mock monthly growth data for bar chart
   const monthlyGrowthData = useMemo(() => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
     return months.map((month, index) => {
       // Mock data - replace with real data later
       const topTickers = featuredTickers.slice(0, 3)
@@ -59,13 +71,13 @@ export function MarketInsights() {
       const ticker = featuredTickers[index]
       const totalMarketCap = growthMetrics.reduce((sum, m) => sum + Math.abs(m.currentPrice), 0)
       const percentage = ((Math.abs(metric.currentPrice) / totalMarketCap) * 100).toFixed(1)
-      
+
       return {
         ticker: metric.ticker,
         price: `$${metric.currentPrice.toFixed(2)}`,
         percentage: `${percentage}%`,
-        growth: `${metric.percentChange >= 0 ? '+' : ''}${metric.percentChange.toFixed(2)}%`,
-        growthColor: metric.percentChange >= 0 ? "text-green-600" : "text-red-600"
+        growth: `${metric.percentChange >= 0 ? "+" : ""}${metric.percentChange.toFixed(2)}%`,
+        growthColor: metric.percentChange >= 0 ? "text-green-600" : "text-red-600",
       }
     })
   }, [growthMetrics, featuredTickers])
@@ -73,20 +85,21 @@ export function MarketInsights() {
   // Regions tab - sectors breakdown
   const sectorData = useMemo(() => {
     const categories = getAllCategories()
-    return categories.map(cat => {
+    return categories.map((cat) => {
       const tickers = getFeaturedByCategory(cat, 10)
       const metrics = calculateGrowthMetrics(cat, 1)
       const totalValue = metrics.reduce((sum, m) => sum + m.currentPrice, 0)
-      const avgGrowth = metrics.length > 0 
-        ? metrics.reduce((sum, m) => sum + m.percentChange, 0) / metrics.length 
-        : 0
-      
+      const avgGrowth =
+        metrics.length > 0
+          ? metrics.reduce((sum, m) => sum + m.percentChange, 0) / metrics.length
+          : 0
+
       return {
         sector: formatCategoryName(cat),
         tickerCount: tickers.length,
         totalValue: `$${totalValue.toFixed(0)}`,
-        growth: `${avgGrowth >= 0 ? '+' : ''}${avgGrowth.toFixed(1)}%`,
-        growthColor: avgGrowth >= 0 ? "text-green-600" : "text-red-600"
+        growth: `${avgGrowth >= 0 ? "+" : ""}${avgGrowth.toFixed(1)}%`,
+        growthColor: avgGrowth >= 0 ? "text-green-600" : "text-red-600",
       }
     })
   }, [])
@@ -94,20 +107,22 @@ export function MarketInsights() {
   // Calculate key metrics
   const keyMetrics = useMemo(() => {
     const totalTickers = featuredTickers.length
-    const avgGrowth = growthMetrics.length > 0
-      ? growthMetrics.reduce((sum, m) => sum + m.percentChange, 0) / growthMetrics.length
-      : 0
-    const positiveTickers = growthMetrics.filter(m => m.percentChange > 0).length
+    const avgGrowth =
+      growthMetrics.length > 0
+        ? growthMetrics.reduce((sum, m) => sum + m.percentChange, 0) / growthMetrics.length
+        : 0
+    const positiveTickers = growthMetrics.filter((m) => m.percentChange > 0).length
     const retentionRate = totalTickers > 0 ? (positiveTickers / totalTickers) * 100 : 0
-    const avgPrice = growthMetrics.length > 0
-      ? growthMetrics.reduce((sum, m) => sum + m.currentPrice, 0) / growthMetrics.length
-      : 0
+    const avgPrice =
+      growthMetrics.length > 0
+        ? growthMetrics.reduce((sum, m) => sum + m.currentPrice, 0) / growthMetrics.length
+        : 0
 
     return {
       totalTickers,
       avgGrowth,
       retentionRate,
-      avgPrice
+      avgPrice,
     }
   }, [featuredTickers, growthMetrics])
 
@@ -117,7 +132,7 @@ export function MarketInsights() {
     featuredTickers.slice(0, 3).forEach((ticker, index) => {
       config[ticker.ticker] = {
         label: ticker.ticker,
-        color: FEATURED_COLORS[index]
+        color: FEATURED_COLORS[index],
       }
     })
     return config
@@ -161,31 +176,36 @@ export function MarketInsights() {
               <div className="grid grid-cols-10 gap-6">
                 {/* Chart Area */}
                 <div className="col-span-10 xl:col-span-7">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-6">Monthly Price Trends</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-6">
+                    Monthly Price Trends
+                  </h3>
                   <ChartContainer config={barChartConfig} className="h-[375px] w-full">
-                    <BarChart data={monthlyGrowthData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                    <BarChart
+                      data={monthlyGrowthData}
+                      margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis
                         dataKey="month"
                         className="text-xs"
                         tick={{ fontSize: 12 }}
-                        tickLine={{ stroke: 'var(--border)' }}
-                        axisLine={{ stroke: 'var(--border)' }}
+                        tickLine={{ stroke: "var(--border)" }}
+                        axisLine={{ stroke: "var(--border)" }}
                       />
                       <YAxis
                         className="text-xs"
                         tick={{ fontSize: 12 }}
-                        tickLine={{ stroke: 'var(--border)' }}
-                        axisLine={{ stroke: 'var(--border)' }}
+                        tickLine={{ stroke: "var(--border)" }}
+                        axisLine={{ stroke: "var(--border)" }}
                         tickFormatter={(value) => `$${value}`}
                       />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       {featuredTickers.slice(0, 3).map((ticker, index) => (
-                        <Bar 
+                        <Bar
                           key={ticker.ticker}
-                          dataKey={ticker.ticker} 
-                          fill={FEATURED_COLORS[index]} 
-                          radius={[2, 2, 0, 0]} 
+                          dataKey={ticker.ticker}
+                          fill={FEATURED_COLORS[index]}
+                          radius={[2, 2, 0, 0]}
                         />
                       ))}
                     </BarChart>
@@ -201,10 +221,16 @@ export function MarketInsights() {
                         <BanknoteArrowUp className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium">Featured Tickers</span>
                       </div>
-                      <div className="text-2xl font-bold">{keyMetrics.totalTickers}</div>
-                      <div className={`text-xs flex items-center gap-1 mt-1 ${keyMetrics.avgGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <div className="text-2xl font-bold" suppressHydrationWarning>
+                        {keyMetrics.totalTickers}
+                      </div>
+                      <div
+                        className={`text-xs flex items-center gap-1 mt-1 ${keyMetrics.avgGrowth >= 0 ? "text-green-600" : "text-red-600"}`}
+                        suppressHydrationWarning
+                      >
                         <ArrowUpIcon className="h-3 w-3" />
-                        {keyMetrics.avgGrowth >= 0 ? '+' : ''}{keyMetrics.avgGrowth.toFixed(1)}% avg growth
+                        {keyMetrics.avgGrowth >= 0 ? "+" : ""}
+                        {keyMetrics.avgGrowth.toFixed(1)}% avg growth
                       </div>
                     </div>
 
@@ -213,10 +239,10 @@ export function MarketInsights() {
                         <AlignHorizontalDistributeCenter className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">Positive Rate</span>
                       </div>
-                      <div className="text-2xl font-bold">{keyMetrics.retentionRate.toFixed(1)}%</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Tickers with gains
+                      <div className="text-2xl font-bold" suppressHydrationWarning>
+                        {keyMetrics.retentionRate.toFixed(1)}%
                       </div>
+                      <div className="text-xs text-muted-foreground mt-1">Tickers with gains</div>
                     </div>
 
                     <div className="p-4 rounded-lg max-lg:col-span-3 xl:col-span-3 border">
@@ -224,10 +250,10 @@ export function MarketInsights() {
                         <Landmark className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">Avg. Price</span>
                       </div>
-                      <div className="text-2xl font-bold">${keyMetrics.avgPrice.toFixed(0)}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Across featured
+                      <div className="text-2xl font-bold" suppressHydrationWarning>
+                        ${keyMetrics.avgPrice.toFixed(0)}
                       </div>
+                      <div className="text-xs text-muted-foreground mt-1">Across featured</div>
                     </div>
                   </div>
                 </div>
@@ -243,8 +269,12 @@ export function MarketInsights() {
                   <TableRow className="border-b">
                     <TableHead className="py-5 px-6 font-semibold">Ticker</TableHead>
                     <TableHead className="text-right py-5 px-6 font-semibold">Price</TableHead>
-                    <TableHead className="text-right py-5 px-6 font-semibold">% of Portfolio</TableHead>
-                    <TableHead className="text-right py-5 px-6 font-semibold">Monthly Growth</TableHead>
+                    <TableHead className="text-right py-5 px-6 font-semibold">
+                      % of Portfolio
+                    </TableHead>
+                    <TableHead className="text-right py-5 px-6 font-semibold">
+                      Monthly Growth
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -271,7 +301,9 @@ export function MarketInsights() {
                   <TableRow className="border-b">
                     <TableHead className="py-5 px-6 font-semibold">Sector</TableHead>
                     <TableHead className="text-right py-5 px-6 font-semibold"># Tickers</TableHead>
-                    <TableHead className="text-right py-5 px-6 font-semibold">Total Value</TableHead>
+                    <TableHead className="text-right py-5 px-6 font-semibold">
+                      Total Value
+                    </TableHead>
                     <TableHead className="text-right py-5 px-6 font-semibold">Growth</TableHead>
                   </TableRow>
                 </TableHeader>

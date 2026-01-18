@@ -1,62 +1,77 @@
 "use client"
 
-import { useState } from "react"
-import { 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  format,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
+import {
   Calendar as CalendarIcon,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Clock,
-  MapPin,
-  Users,
-  Search,
   Grid3X3,
   List,
-  ChevronDown,
+  MapPin,
   Menu,
-  Plus
+  Plus,
+  Search,
+  Users,
 } from "lucide-react"
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay } from "date-fns"
+import { useState } from "react"
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu"
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
 // Updated CalendarEvent interface with optional fields
 interface CalendarEvent {
-  id: string;
-  name: string;
-  date: Date;
-  type: "gann" | "fibonacci" | "fiscal" | "secondary fib" | "secondary gann";
-  color: string;
-  visible: boolean;
-  
+  id: string
+  name: string
+  date: Date
+  type: "gann" | "fibonacci" | "fiscal" | "secondary fib" | "secondary gann"
+  color: string
+  visible: boolean
+
   // Optional fields
-  title?: string;
-  time?: string;
-  duration?: string;
-  attendees?: string[];
-  location?: string;
-  description?: string;
+  title?: string
+  time?: string
+  duration?: string
+  attendees?: string[]
+  location?: string
+  description?: string
 }
 
 // Import data
-import eventsData from "../data/events.json"
 import calendarsData from "../data/calendars.json"
 
 interface CalendarMainProps {
@@ -66,16 +81,23 @@ interface CalendarMainProps {
 export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [viewMode, setViewMode] = useState<"month" | "week" | "day" | "list">("month")
+  const [viewMode, setViewMode] = useState<"month" | "week" | "day" | "list">(
+    "month"
+  )
   const [showEventDialog, setShowEventDialog] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [showCalendarSheet, setShowCalendarSheet] = useState(false)
 
   // Convert JSON events to CalendarEvent objects with proper Date objects
-  const sampleCalendars: CalendarEvent[] = calendarsData.map(event => ({
+  const sampleCalendars: CalendarEvent[] = calendarsData.map((event) => ({
     ...event,
     date: new Date(event.date),
-    type: event.type as "gann" | "fibonacci" | "fiscal" | "secondary fib" | "secondary gann"
+    type: event.type as
+      | "gann"
+      | "fibonacci"
+      | "fiscal"
+      | "secondary fib"
+      | "secondary gann",
   }))
 
   const monthStart = startOfMonth(currentDate)
@@ -84,18 +106,25 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
   // Extend to show full weeks (including previous/next month days)
   const calendarStart = new Date(monthStart)
   calendarStart.setDate(calendarStart.getDate() - monthStart.getDay())
-  
+
   const calendarEnd = new Date(monthEnd)
   calendarEnd.setDate(calendarEnd.getDate() + (6 - monthEnd.getDay()))
-  
-  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd })
+
+  const calendarDays = eachDayOfInterval({
+    start: calendarStart,
+    end: calendarEnd,
+  })
 
   const getEventsForDay = (date: Date) => {
-    return sampleCalendars.filter(event => isSameDay(event.date, date))
+    return sampleCalendars.filter((event) => isSameDay(event.date, date))
   }
 
   const navigateMonth = (direction: "prev" | "next") => {
-    setCurrentDate(direction === "prev" ? subMonths(currentDate, 1) : addMonths(currentDate, 1))
+    setCurrentDate(
+      direction === "prev"
+        ? subMonths(currentDate, 1)
+        : addMonths(currentDate, 1)
+    )
   }
 
   const goToToday = () => {
@@ -122,14 +151,17 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
   }
 
   const renderCalendarGrid = () => {
-    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    
+    const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
     return (
       <div className="flex-1 bg-background">
         {/* Calendar Header */}
         <div className="grid grid-cols-7 border-b">
-          {weekDays.map(day => (
-            <div key={day} className="p-4 text-center font-medium text-sm text-muted-foreground border-r last:border-r-0">
+          {weekDays.map((day) => (
+            <div
+              key={day}
+              className="p-4 text-center font-medium text-sm text-muted-foreground border-r last:border-r-0"
+            >
               {day}
             </div>
           ))}
@@ -155,11 +187,13 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
                 onClick={() => handleDateSelect(day)}
               >
                 {/* Date Number */}
-                <div className={cn(
-                  "text-sm font-medium mb-1",
-                  isDayToday && "text-blue-600 dark:text-blue-400"
-                )}>
-                  {format(day, 'd')}
+                <div
+                  className={cn(
+                    "text-sm font-medium mb-1",
+                    isDayToday && "text-blue-600 dark:text-blue-400"
+                  )}
+                >
+                  {format(day, "d")}
                 </div>
 
                 {/* Events */}
@@ -177,7 +211,8 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
                       }}
                     >
                       {/* Display time if available, otherwise just the title/name */}
-                      {event.time ? `${event.time} ` : ''}{event.title || event.name}
+                      {event.time ? `${event.time} ` : ""}
+                      {event.title || event.name}
                     </div>
                   ))}
                   {dayEvents.length > 3 && (
@@ -204,7 +239,7 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
             Event
           </Button>
         </div>
-        
+
         {/* Date Picker */}
         <Calendar
           mode="single"
@@ -212,10 +247,10 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
           onSelect={(date) => date && handleDateSelect(date)}
           className="rounded-md border"
           modifiers={{
-            eventDay: eventDates.map(ed => ed.date)
+            eventDay: eventDates.map((ed) => ed.date),
           }}
           modifiersStyles={{
-            eventDay: { fontWeight: 'bold' }
+            eventDay: { fontWeight: "bold" },
           }}
         />
       </div>
@@ -228,7 +263,7 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
             <Plus className="h-4 w-4" />
           </Button>
         </div>
-        
+
         <div className="space-y-2">
           {calendarsData.map((calendar) => (
             <div key={calendar.id} className="flex items-center space-x-2">
@@ -248,7 +283,7 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
         <div className="hidden xl:block w-80 flex-shrink-0">
           {renderSidebar()}
         </div>
-        
+
         {/* Main Calendar Panel */}
         <div className="flex-1 min-w-0">
           {/* Calendar Toolbar */}
@@ -267,13 +302,21 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
 
                 {/* Month Navigation */}
                 <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm" onClick={() => navigateMonth("prev")}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigateMonth("prev")}
+                  >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <h2 className="text-lg font-semibold min-w-[140px] text-center">
-                    {format(currentDate, 'MMMM yyyy')}
+                    {format(currentDate, "MMMM yyyy")}
                   </h2>
-                  <Button variant="ghost" size="sm" onClick={() => navigateMonth("next")}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigateMonth("next")}
+                  >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -296,7 +339,13 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
                       <Grid3X3 className="h-4 w-4 mr-1" />
-                      {viewMode === "month" ? "Month" : viewMode === "week" ? "Week" : viewMode === "day" ? "Day" : "List"}
+                      {viewMode === "month"
+                        ? "Month"
+                        : viewMode === "week"
+                          ? "Week"
+                          : viewMode === "day"
+                            ? "Day"
+                            : "List"}
                       <ChevronDown className="h-4 w-4 ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -345,10 +394,10 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
       <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{selectedEvent?.title || selectedEvent?.name}</DialogTitle>
-            <DialogDescription>
-              Event details and information
-            </DialogDescription>
+            <DialogTitle>
+              {selectedEvent?.title || selectedEvent?.name}
+            </DialogTitle>
+            <DialogDescription>Event details and information</DialogDescription>
           </DialogHeader>
           {selectedEvent && (
             <div className="space-y-4 pt-4">
@@ -362,7 +411,7 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
                   </span>
                 </div>
               )}
-              
+
               {/* Only show location if it exists */}
               {selectedEvent.location && (
                 <div className="flex items-center space-x-2 text-sm">
@@ -370,22 +419,23 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
                   <span>{selectedEvent.location}</span>
                 </div>
               )}
-              
+
               {/* Only show attendees if they exist */}
-              {selectedEvent.attendees && selectedEvent.attendees.length > 0 && (
-                <div className="flex items-center space-x-2 text-sm">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <div className="flex space-x-1">
-                    {selectedEvent.attendees.map((attendee, index) => (
-                      <Avatar key={index} className="h-6 w-6">
-                        <AvatarFallback className="text-xs">
-                          {attendee}
-                        </AvatarFallback>
-                      </Avatar>
-                    ))}
+              {selectedEvent.attendees &&
+                selectedEvent.attendees.length > 0 && (
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex space-x-1">
+                      {selectedEvent.attendees.map((attendee, index) => (
+                        <Avatar key={index} className="h-6 w-6">
+                          <AvatarFallback className="text-xs">
+                            {attendee}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {selectedEvent.description && (
                 <div className="text-sm text-muted-foreground">
@@ -394,7 +444,10 @@ export function CalendarMain({ eventDates = [] }: CalendarMainProps) {
               )}
 
               <div className="flex items-center space-x-2 pt-4">
-                <Badge variant="secondary" className={cn("text-white", selectedEvent.color)}>
+                <Badge
+                  variant="secondary"
+                  className={cn("text-white", selectedEvent.color)}
+                >
                   {selectedEvent.type}
                 </Badge>
               </div>

@@ -4,10 +4,28 @@
   "singleQuote": false,
   "tabWidth": 2,
   "useTabs": false,
-  "printWidth": 80,
+  "printWidth": 100,
   "bracketSpacing": true,
   "arrowParens": "always",
   "endOfLine": "lf",
   "jsxSingleQuote": false,
-  "bracketSameLine": false
+  "bracketSameLine": false,
+  "proseWrap": "preserve",
+  "embeddedLanguageFormatting": "auto",
+  "overrides": [
+    {
+      "files": "*.md",
+      "options": {
+        "printWidth": 80,
+        "proseWrap": "always"
+      }
+    },
+    {
+      "files": "*.json",
+      "options": {
+        "printWidth": 120,
+        "trailingComma": "none"
+      }
+    }
+  ]
 }

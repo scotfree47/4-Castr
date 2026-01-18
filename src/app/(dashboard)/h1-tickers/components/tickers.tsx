@@ -2,7 +2,7 @@
 
 {/* Imports / Components / Variables - All */}
 import * as React from "react"
-  
+
 import {
   closestCenter,
   DndContext,
@@ -71,19 +71,6 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { Ticker, tickerSchema } from "../../data"
-
-{/*
-const schema = z.object({
-  id: z.number(),
-  ticker: z.string(),
-  sector: z.string(),
-  trend: z.string(),
-  next: z.string(),
-  last: z.string(),
-  compare: z.string(),
-  type: z.string(),
-})
-*/}
 
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -196,7 +183,6 @@ function DataTableColumnHeader<TData, TValue>({
   )
 }
 
-
 {/* DragHandle Component */}
 function DragHandle({ id }: { id: string | number }) {
   const { attributes, listeners } = useSortable({
@@ -225,7 +211,7 @@ const columns: ColumnDef<Ticker>[] = [
     header: () => null,
     cell: ({ row }) => <DragHandle id={row.original.id} />,
   },
-  
+
   // Checkbox
   {
     id: "select",
@@ -253,7 +239,7 @@ const columns: ColumnDef<Ticker>[] = [
     enableSorting: false,
     enableHiding: false,
   },
-  
+
   // Ticker (with drawer)
   {
     accessorKey: "ticker",
@@ -265,7 +251,7 @@ const columns: ColumnDef<Ticker>[] = [
     },
     enableHiding: false,
   },
-  
+
   // Sector
   {
     accessorKey: "sector",
@@ -278,7 +264,7 @@ const columns: ColumnDef<Ticker>[] = [
         .split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ')
-      
+
       return (
         <div className="flex items-center">
           <span className="max-w-[200px] truncate">
@@ -288,7 +274,7 @@ const columns: ColumnDef<Ticker>[] = [
       )
     },
   },
-  
+
   // Trend
   {
     accessorKey: "trend",
@@ -297,38 +283,38 @@ const columns: ColumnDef<Ticker>[] = [
     ),
     cell: ({ row }) => {
       const trend = row.getValue("trend") as string
-      
+
       const trendConfig: Record<string, { label: string; icon: any; color: string }> = {
-        favorable: { 
-          label: "Favorable", 
-          icon: TrendingUp, 
-          color: "text-green-600" 
+        favorable: {
+          label: "Favorable",
+          icon: TrendingUp,
+          color: "text-green-600"
         },
-        bullish: { 
-          label: "Bullish", 
-          icon: TrendingUp, 
-          color: "text-green-600" 
+        bullish: {
+          label: "Bullish",
+          icon: TrendingUp,
+          color: "text-green-600"
         },
-        unfavorable: { 
-          label: "Unfavorable", 
-          icon: TrendingDown, 
-          color: "text-red-600" 
+        unfavorable: {
+          label: "Unfavorable",
+          icon: TrendingDown,
+          color: "text-red-600"
         },
-        bearish: { 
-          label: "Bearish", 
-          icon: TrendingDown, 
-          color: "text-red-600" 
+        bearish: {
+          label: "Bearish",
+          icon: TrendingDown,
+          color: "text-red-600"
         },
-        neutral: { 
-          label: "Neutral", 
-          icon: Minus, 
-          color: "text-gray-600" 
+        neutral: {
+          label: "Neutral",
+          icon: Minus,
+          color: "text-gray-600"
         },
       }
-      
+
       const config = trendConfig[trend] || trendConfig.neutral
       const Icon = config.icon
-      
+
       return (
         <div className="flex items-center gap-2">
           <Icon className={`h-4 w-4 ${config.color}`} />
@@ -339,7 +325,7 @@ const columns: ColumnDef<Ticker>[] = [
       )
     },
   },
-  
+
   // Next Key Price
   {
     accessorKey: "next",
@@ -355,7 +341,7 @@ const columns: ColumnDef<Ticker>[] = [
       )
     },
   },
-  
+
   // Previous Key Price
   {
     accessorKey: "last",
@@ -371,7 +357,7 @@ const columns: ColumnDef<Ticker>[] = [
       )
     },
   },
-  
+
   // Compare
   {
     accessorKey: "compare",
@@ -381,7 +367,7 @@ const columns: ColumnDef<Ticker>[] = [
     cell: ({ row }) => {
       const compare = row.getValue("compare") as string
       const isUnassigned = compare === "Ticker(s)"
-      
+
       return (
         <div className="flex items-center">
           <span className={isUnassigned ? "text-muted-foreground italic text-sm" : "text-sm"}>
@@ -430,35 +416,35 @@ export function Tickers({
 }: {
   data: Ticker[]
 }) {
-  
+
   // Single data source
   const [data, setData] = React.useState(() => initialData)
-  
+
   // Filter by type for each tab
-  const equity = React.useMemo(() => 
+  const equity = React.useMemo(() =>
     data.filter(item => item.type === 'equity'), [data]
   )
-  
-  const commodity = React.useMemo(() => 
+
+  const commodity = React.useMemo(() =>
     data.filter(item => item.type === 'commodity'), [data]
   )
-  
-  const forex = React.useMemo(() => 
+
+  const forex = React.useMemo(() =>
     data.filter(item => item.type === 'forex'), [data]
   )
-  
-  const crypto = React.useMemo(() => 
+
+  const crypto = React.useMemo(() =>
     data.filter(item => item.type === 'crypto'), [data]
   )
-  
-  const ratesMacro = React.useMemo(() => 
+
+  const ratesMacro = React.useMemo(() =>
     data.filter(item => item.type === 'rates-macro'), [data]
   )
-  
-  const stress = React.useMemo(() => 
+
+  const stress = React.useMemo(() =>
     data.filter(item => item.type === 'stress'), [data]
   )
-  
+
   // Chart state
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -468,9 +454,9 @@ export function Tickers({
     pageIndex: 0,
     pageSize: 10,
   })
-  
+
   const sortableId = React.useId()
-  
+
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
@@ -481,8 +467,8 @@ export function Tickers({
   const equityIds = React.useMemo<UniqueIdentifier[]>(
     () => equity?.map(({ id }) => id) || [],
     [equity]
-  )  
-  
+  )
+
   const commodityIds = React.useMemo<UniqueIdentifier[]>(
     () => commodity?.map(({ id }) => id) || [],
     [commodity]
@@ -666,11 +652,11 @@ export function Tickers({
       setData((currentData) => {
         const equityItems = currentData.filter(item => item.type === 'equity')
         const nonEquityItems = currentData.filter(item => item.type !== 'equity')
-        
+
         // BOTH active.id AND over.id need .toString()
         const oldIndex = equityItems.findIndex(item => item.id.toString() === active.id)
         const newIndex = equityItems.findIndex(item => item.id.toString() === over.id)
-        
+
         const reorderedEquity = arrayMove(equityItems, oldIndex, newIndex)
         return [...nonEquityItems, ...reorderedEquity]
       })
@@ -683,10 +669,10 @@ export function Tickers({
       setData((currentData) => {
         const cfItems = currentData.filter(item => item.type === 'commodity')
         const nonCfItems = currentData.filter(item => item.type !== 'commodity')
-        
+
         const oldIndex = cfItems.findIndex(item => item.id.toString() === active.id)
         const newIndex = cfItems.findIndex(item => item.id.toString() === over.id)
-        
+
         const reorderedCf = arrayMove(cfItems, oldIndex, newIndex)
         return [...nonCfItems, ...reorderedCf]
       })
@@ -699,10 +685,10 @@ export function Tickers({
       setData((currentData) => {
         const forexItems = currentData.filter(item => item.type === 'forex')
         const nonForexItems = currentData.filter(item => item.type !== 'forex')
-        
+
         const oldIndex = forexItems.findIndex(item => item.id.toString() === active.id)
         const newIndex = forexItems.findIndex(item => item.id.toString() === over.id)
-        
+
         const reorderedForex = arrayMove(forexItems, oldIndex, newIndex)
         return [...nonForexItems, ...reorderedForex]
       })
@@ -715,10 +701,10 @@ export function Tickers({
       setData((currentData) => {
         const cryptoItems = currentData.filter(item => item.type === 'crypto')
         const nonCryptoItems = currentData.filter(item => item.type !== 'crypto')
-        
+
         const oldIndex = cryptoItems.findIndex(item => item.id.toString() === active.id)
         const newIndex = cryptoItems.findIndex(item => item.id.toString() === over.id)
-        
+
         const reorderedCrypto = arrayMove(cryptoItems, oldIndex, newIndex)
         return [...nonCryptoItems, ...reorderedCrypto]
       })
@@ -731,41 +717,41 @@ export function Tickers({
       setData((currentData) => {
         const rmItems = currentData.filter(item => item.type === 'rates-macro')
         const nonRmItems = currentData.filter(item => item.type !== 'rates-macro')
-        
+
         const oldIndex = rmItems.findIndex(item => item.id.toString() === active.id)
         const newIndex = rmItems.findIndex(item => item.id.toString() === over.id)
-        
+
         const reorderedRm = arrayMove(rmItems, oldIndex, newIndex)
         return [...nonRmItems, ...reorderedRm]
       })
     }
   }
-  
+
   function handleStressDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (active && over && active.id !== over.id) {
       setData((currentData) => {
         const stressItems = currentData.filter(item => item.type === 'stress')
         const nonStressItems = currentData.filter(item => item.type !== 'stress')
-        
+
         const oldIndex = stressItems.findIndex(item => item.id.toString() === active.id)
         const newIndex = stressItems.findIndex(item => item.id.toString() === over.id)
-        
+
         const reorderedStress = arrayMove(stressItems, oldIndex, newIndex)
         return [...nonStressItems, ...reorderedStress]
       })
     }
   }
-  
+
   // Table content component
-  const TableContent = ({ 
-    currentTable, 
-    currentDataIds, 
-    handleCurrentDragEnd 
-  }: { 
-    currentTable: ReturnType<typeof useReactTable<Ticker>>, 
-    currentDataIds: UniqueIdentifier[], 
-    handleCurrentDragEnd: (event: DragEndEvent) => void 
+  const TableContent = ({
+    currentTable,
+    currentDataIds,
+    handleCurrentDragEnd
+  }: {
+    currentTable: ReturnType<typeof useReactTable<Ticker>>,
+    currentDataIds: UniqueIdentifier[],
+    handleCurrentDragEnd: (event: DragEndEvent) => void
   }) => (
     <>
       <div className="cursor-pointer overflow-hidden rounded-lg border hover:border-primary/50 hover:shadow-[0_0_20px_rgba(51,255,51,0.3)] transition-all">
@@ -825,7 +811,7 @@ export function Tickers({
           {currentTable.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="flex w-full items-center gap-8 lg:w-fit">
-          
+
           <div className="hidden items-center gap-2 lg:flex">
             <Label htmlFor="rows-per-page" className="text-sm font-medium">
               Rows per page
@@ -850,7 +836,7 @@ export function Tickers({
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="flex w-fit items-center justify-center text-sm font-medium">
             Page {currentTable.getState().pagination.pageIndex + 1} of{" "}
             {currentTable.getPageCount()}
@@ -908,16 +894,16 @@ export function Tickers({
     defaultValue="equity"
     className="relative z-0 w-full flex flex-col gap-6"
   >
-    
+
     {/* Header container with proper responsive wrapping */}
     <div className="flex items-center gap-3 px-4 lg:px-6 flex-wrap">
-      
+
       {/* Mobile dropdown selector - visible only on small screens */}
       <div className="flex sm:hidden w-auto">
         <Label htmlFor="view-selector" className="sr-only">
           View
         </Label>
-        
+
         <Select defaultValue="equity">
           <SelectTrigger
             className="flex cursor-pointer w-auto min-w-[140px]"
@@ -941,7 +927,7 @@ export function Tickers({
       {/* Desktop tabs - hidden on small screens, scrollable */}
       <div className="hidden sm:flex overflow-x-auto overflow-y-visible rounded-sm flex-1 min-w-0 scrollbar-hide">
         <TabsList className="flex gap-1 whitespace-nowrap **:data-[slot=badge]:bg-muted-foreground/25 **:data-[slot=badge]:size-6 **:data-[slot=badge]:px-1">
-          
+
           <TabsTrigger
           value="equity"
             className={`
@@ -963,7 +949,7 @@ export function Tickers({
           >
             Equity <Badge variant="secondary">{equity.length}</Badge>
           </TabsTrigger>
-          
+
           <TabsTrigger
           value="commodity"
             className={`
@@ -985,7 +971,7 @@ export function Tickers({
           >
             Commodity <Badge variant="secondary">{commodity.length}</Badge>
           </TabsTrigger>
-          
+
           <TabsTrigger
             value="forex"
             className={`
@@ -1007,7 +993,7 @@ export function Tickers({
           >
             Forex <Badge variant="secondary">{forex.length}</Badge>
           </TabsTrigger>
-          
+
           <TabsTrigger
             value="crypto"
             className={`
@@ -1029,7 +1015,7 @@ export function Tickers({
           >
             Crypto <Badge variant="secondary">{crypto.length}</Badge>
           </TabsTrigger>
-          
+
           <TabsTrigger
             value="rates-macro"
             className={`
@@ -1053,11 +1039,11 @@ export function Tickers({
             <span className="lg:hidden">R & M</span>
             <Badge variant="secondary">{stress.length}</Badge>
           </TabsTrigger>
-          
-            
-          
-          
-          <TabsTrigger 
+
+
+
+
+          <TabsTrigger
             value="stress"
             className={`
               cursor-pointer
@@ -1078,13 +1064,13 @@ export function Tickers({
           >
             StressRates & Macro <Badge variant="secondary">{stress.length}</Badge>
           </TabsTrigger>
-          
+
         </TabsList>
       </div>
-      
+
       {/* Action buttons - always visible, wraps on small screens */}
       <div className="flex items-center gap-2 ml-auto sm:ml-0">
-        
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="default" className="cursor-pointer">
@@ -1093,9 +1079,9 @@ export function Tickers({
               <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
-          
+
           <DropdownMenuContent align="end" className="w-56" onCloseAutoFocus={(e) => e.preventDefault()}>
-            {equityTable  
+            {equityTable
               .getAllColumns()
               .filter(
                 (column) =>
@@ -1115,12 +1101,12 @@ export function Tickers({
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
-                ) 
+                )
               })
             }
           </DropdownMenuContent>
         </DropdownMenu>
-        
+
         {/*}
         <Button variant="outline" size="sm" className="cursor-pointer">
           <Plus />
@@ -1132,47 +1118,47 @@ export function Tickers({
       </div>
 
     </div>
-    
+
     {/* TAB CONTENTS - All tabs use filtered data */}
-    
+
     <TabsContent
       value="equity"
       className="relative flex flex-col gap-4 overflow-visible px-4 lg:px-6"
     >
-      <TableContent 
+      <TableContent
         currentTable={equityTable}
         currentDataIds={equityIds}
         handleCurrentDragEnd={handleEquityDragEnd}
       />
     </TabsContent>
-    
+
     <TabsContent
       value="commodity"
       className="relative flex flex-col gap-4 overflow-visible px-4 lg:px-6"
     >
-      <TableContent 
+      <TableContent
         currentTable={commodityTable}
         currentDataIds={commodityIds}
         handleCurrentDragEnd={handlecommodityDragEnd}
       />
     </TabsContent>
-  
-    <TabsContent 
-      value="forex" 
+
+    <TabsContent
+      value="forex"
       className="relative flex flex-col gap-4 overflow-visible px-4 lg:px-6"
     >
-      <TableContent 
+      <TableContent
         currentTable={forexTable}
         currentDataIds={forexIds}
         handleCurrentDragEnd={handleForexDragEnd}
       />
     </TabsContent>
-  
+
     <TabsContent
       value="crypto"
       className="relative flex flex-col gap-4 overflow-visible px-4 lg:px-6"
     >
-      <TableContent 
+      <TableContent
         currentTable={cryptoTable}
         currentDataIds={cryptoIds}
         handleCurrentDragEnd={handleCryptoDragEnd}
@@ -1183,7 +1169,7 @@ export function Tickers({
       value="rates-macro"
       className="relative flex flex-col gap-4 overflow-visible px-4 lg:px-6"
     >
-      <TableContent 
+      <TableContent
         currentTable={ratesMacroTable}
         currentDataIds={ratesMacroIds}
         handleCurrentDragEnd={handleRatesMacroDragEnd}
@@ -1194,7 +1180,7 @@ export function Tickers({
       value="stress"
       className="relative flex flex-col gap-4 overflow-visible px-4 lg:px-6"
     >
-      <TableContent 
+      <TableContent
         currentTable={stressTable}
         currentDataIds={stressIds}
         handleCurrentDragEnd={handleStressDragEnd}
@@ -1229,27 +1215,27 @@ const chartConfig = {
 
 {/* Function / Data Table / Cell Viewer / Settings - All */}
 function TableCellViewer({ item }: { item: Ticker }) {
-  
+
   const isMobile = useIsMobile()
-  
+
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
-      
+
       <DrawerTrigger asChild>
         <Button variant="link" className="text-foreground w-fit px-0 text-left cursor-pointer">
           {item.ticker}  {/* CHANGED FROM: item.header */}
         </Button>
       </DrawerTrigger>
-      
+
       <DrawerContent>
-        
+
         <DrawerHeader className="gap-1">
           <DrawerTitle>{item.ticker}</DrawerTitle>  {/* CHANGED FROM: item.header */}
           <DrawerDescription>
             Ticker Performance Yearly Review
           </DrawerDescription>
         </DrawerHeader>
-        
+
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
           {!isMobile && (
             <>
@@ -1293,9 +1279,9 @@ function TableCellViewer({ item }: { item: Ticker }) {
                   />
                 </AreaChart>
               </ChartContainer>
-              
+
               <Separator />
-              
+
               <div className="grid gap-2">
                 <div className="flex gap-2 leading-none font-medium">
                   Trending up by 5.2% this month{" "}
@@ -1305,30 +1291,30 @@ function TableCellViewer({ item }: { item: Ticker }) {
                   Showing ticker performance from the past year.
                 </div>
               </div>
-              
+
               <Separator />
             </>
           )}
-          
+
           <form className="flex flex-col gap-4">
-            
+
             {/* TICKER INPUT */}
             <div className="flex flex-col gap-3">
               <Label htmlFor="ticker">Ticker</Label>  {/* CHANGED FROM: Header */}
               <Input id="ticker" defaultValue={item.ticker} />  {/* CHANGED FROM: item.header */}
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
-              
+
               {/* SECTOR SELECT */}
               <div className="flex flex-col gap-3">
                 <Label htmlFor="sector">Sector</Label>  {/* CHANGED FROM: Type */}
-                
+
                 <Select defaultValue={item.sector}>  {/* CHANGED FROM: item.type */}
                   <SelectTrigger id="sector" className="w-full cursor-pointer">
                     <SelectValue placeholder="Select a sector" />
                   </SelectTrigger>
-                  
+
                   <SelectContent>
                     <SelectItem value="Technology">Technology</SelectItem>
                     <SelectItem value="Finance">Finance</SelectItem>
@@ -1341,16 +1327,16 @@ function TableCellViewer({ item }: { item: Ticker }) {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* TREND SELECT */}
               <div className="flex flex-col gap-3">
                 <Label htmlFor="trend">Trend</Label>  {/* CHANGED FROM: Status */}
-                
+
                 <Select defaultValue={item.trend}>  {/* CHANGED FROM: item.status */}
                   <SelectTrigger id="trend" className="w-full cursor-pointer">
                     <SelectValue placeholder="Select a trend" />
                   </SelectTrigger>
-                  
+
                   <SelectContent>
                     <SelectItem value="bullish">Bullish</SelectItem>  {/* CHANGED */}
                     <SelectItem value="bearish">Bearish</SelectItem>  {/* CHANGED */}
@@ -1358,31 +1344,31 @@ function TableCellViewer({ item }: { item: Ticker }) {
                 </Select>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
-              
+
               {/* NEXT KEY PRICE */}
               <div className="flex flex-col gap-3">
                 <Label htmlFor="next">Next</Label>  {/* CHANGED FROM: Target */}
                 <Input id="next" defaultValue={item.next} />  {/* CHANGED FROM: item.target */}
               </div>
-              
+
               {/* PREVIOUS KEY PRICE */}
               <div className="flex flex-col gap-3">
                 <Label htmlFor="last">Last</Label>  {/* CHANGED FROM: Limit */}
                 <Input id="last" defaultValue={item.last} />  {/* CHANGED FROM: item.limit */}
               </div>
             </div>
-            
+
             {/* COMPARE SELECT */}
             <div className="flex flex-col gap-3">
               <Label htmlFor="compare">Compare</Label>
-              
+
               <Select defaultValue={item.compare}>
                 <SelectTrigger id="compare" className="w-full cursor-pointer">
                   <SelectValue placeholder="Select a compare" />
                 </SelectTrigger>
-                
+
                 <SelectContent>
                   <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
                   <SelectItem value="Jamik Tashpulatov">Jamik Tashpulatov</SelectItem>
@@ -1392,7 +1378,7 @@ function TableCellViewer({ item }: { item: Ticker }) {
             </div>
           </form>
         </div>
-        
+
         <DrawerFooter>
           <Button className="cursor-pointer">Submit</Button>
           <DrawerClose asChild>

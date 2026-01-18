@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useCallback, useState } from "react"
 import { type CalendarEvent } from "./types"
 
 export interface UseCalendarState {
@@ -24,9 +24,12 @@ export interface UseCalendarActions {
   handleEditEvent: (event: CalendarEvent) => void
 }
 
-export interface UseCalendarReturn extends UseCalendarState, UseCalendarActions {}
+export interface UseCalendarReturn
+  extends UseCalendarState, UseCalendarActions {}
 
-export function useCalendar(initialEvents: CalendarEvent[] = []): UseCalendarReturn {
+export function useCalendar(
+  initialEvents: CalendarEvent[] = []
+): UseCalendarReturn {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [showEventForm, setShowEventForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)

@@ -2,13 +2,13 @@ name: Scheduled Featured Tickers Refresh
 
 on:
   schedule:
-    - cron: '0 */4 * * *'
+    - cron: "0 */4 * * *"
   workflow_dispatch:
 
 jobs:
   trigger-cron:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Trigger Vercel Cron Endpoint
         run: |
