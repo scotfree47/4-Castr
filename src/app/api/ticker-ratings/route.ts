@@ -1,12 +1,12 @@
 // app/api/ticker-ratings/route.ts
 // UNIFIED ENDPOINT: Uses consolidated confluenceEngine
 
-import { NextRequest, NextResponse } from "next/server"
 import {
   batchCalculateRatings,
   calculateAllFeaturedTickers,
   type TickerRating,
 } from "@/lib/services/confluenceEngine"
+import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
   try {

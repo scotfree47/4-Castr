@@ -1,0 +1,118 @@
+# .github/workflows/update-prices.yml
+# GitHub Actions workflow to update prices multiple times per day
+# Optimized for free-tier API limits with intelligent scheduling
+
+name: Update Financial Prices
+
+on:
+  schedule:
+    # Core market hours (9:30 AM - 4 PM EST = 14:30-21:00 UTC)
+    # Every 5 minutes during active trading
+    - cron: "*/5 14-20 * * 1-5" # Weekdays market hours
+
+    # Extended hours (7 AM - 9:30 AM, 4 PM - 8 PM EST)
+    # Every 15 minutes for pre/post market
+    - cron: "*/15 12-14,21-23 * * 1-5"
+
+    # Crypto updates (24/7 market)
+    # Every 30 minutes outside equity hours
+    - cron: "*/30 0-11,22-23 * * *"
+    - cron: "*/30 * * * 0,6" # Weekends for crypto/forex
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      categories:
+        description: "Categories to update (comma-separated)"
+        required: false
+        default: "equity,crypto,forex,stress"
+      force:
+        description: "Force update even if rate limited"
+        type: boolean
+        default: false
+
+jobs:
+  update-prices:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+      ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+      COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+      COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+      TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+      FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+      EXCHANGERATE_API_KEY: ${{ secrets.EXCHANGERATE_API_KEY }}
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Determine update strategy
+        id: strategy
+        run: |
+          # Get current time in EST
+          HOUR=$(TZ=America/New_York date +%H)
+          DAY=$(TZ=America/New_York date +%u)
+
+          # Default categories based on time
+          if [ $DAY -ge 1 ] && [ $DAY -le 5 ]; then
+            # Weekday
+            if [ $HOUR -ge 9 ] && [ $HOUR -lt 16 ]; then
+              # Market hours - prioritize equity and stress
+              CATEGORIES="equity,stress"
+            elif [ $HOUR -ge 7 ] && [ $HOUR -lt 20 ]; then
+              # Extended hours - crypto and forex
+              CATEGORIES="crypto,forex"
+            else
+              # After hours - crypto only
+              CATEGORIES="crypto"
+            fi
+          else
+            # Weekend - crypto and forex
+            CATEGORIES="crypto,forex"
+          fi
+
+          # Override with manual input if provided
+          MANUAL_CATS="${{ github.event.inputs.categories }}"
+          if [ -n "$MANUAL_CATS" ]; then
+            CATEGORIES="$MANUAL_CATS"
+          fi
+
+          echo "categories=$CATEGORIES" >> $GITHUB_OUTPUT
+          echo "📊 Update strategy: $CATEGORIES at $(TZ=America/New_York date)"
+
+      - name: Update prices via data-manager
+        run: |
+          CATEGORIES="${{ steps.strategy.outputs.categories }}"
+          echo "🔄 Updating categories: $CATEGORIES"
+          npx tsx scripts/data-manager.ts cron-update-prices --categories=$CATEGORIES
+
+      - name: Verify update
+        run: |
+          echo "✅ Checking data freshness..."
+          npx tsx scripts/data-manager.ts check-freshness
+        continue-on-error: true
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: update-logs-${{ github.run_number }}
+          path: |
+            *.log
+            npm-debug.log*
+          retention-days: 7

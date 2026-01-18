@@ -24,12 +24,9 @@ export interface UseCalendarActions {
   handleEditEvent: (event: CalendarEvent) => void
 }
 
-export interface UseCalendarReturn
-  extends UseCalendarState, UseCalendarActions {}
+export interface UseCalendarReturn extends UseCalendarState, UseCalendarActions {}
 
-export function useCalendar(
-  initialEvents: CalendarEvent[] = []
-): UseCalendarReturn {
+export function useCalendar(initialEvents: CalendarEvent[] = []): UseCalendarReturn {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [showEventForm, setShowEventForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)

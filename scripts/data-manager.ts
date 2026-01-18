@@ -1,40 +1,39 @@
 // scripts/data-manager.ts
-// FINAL COMPLETE VERSION - All features included
+// COMPLETE CONSOLIDATED VERSION - All features unified
 // Usage: npx tsx scripts/data-manager.ts [command] [options]
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { parse } from 'csv-parse/sync';
-import Papa from 'papaparse';
-import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
-import axios from 'axios';
+import { createClient } from "@supabase/supabase-js"
+import axios from "axios"
+import { parse } from "csv-parse/sync"
+import dotenv from "dotenv"
+import * as fs from "fs"
+import Papa from "papaparse"
 
-dotenv.config({ path: '.env.local' });
+dotenv.config({ path: ".env.local" })
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+)
 
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
 
 interface CSVMapping {
-  csvPath: string;
-  tableName: string;
-  columnMapping: Record<string, string>;
-  transform?: (row: any) => any;
+  csvPath: string
+  tableName: string
+  columnMapping: Record<string, string>
+  transform?: (row: any) => any
 }
 
 interface APIProvider {
-  name: string;
-  categories: string[];
-  priority: number;
-  rateLimit: { calls: number; period: number };
-  enabled: () => boolean;
-  fetch: (symbol: string, category: string) => Promise<number | null>;
+  name: string
+  categories: string[]
+  priority: number
+  rateLimit: { calls: number; period: number }
+  enabled: () => boolean
+  fetch: (symbol: string, category: string) => Promise<number | null>
 }
 
 // ============================================================================
@@ -42,33 +41,42 @@ interface APIProvider {
 // ============================================================================
 
 const CATEGORY_MAP = {
-  'equity': ['SPY', 'QQQ', 'XLY'],
-  'commodity': ['GLD', 'USO', 'HG1!', 'GC1!', 'CL1!'],
-  'crypto': ['Bitcoin', 'Ethereum', 'Solana', 'BNB', 'XRP'],
-  'forex': ['EUR/USD', 'USD/JPY', 'GBP/USD', 'GBP/JPY', 'AUD/USD'],
-  'rates-macro': ['TLT', 'FEDFUNDS', 'CPI'],
-  'stress': ['VIX', 'MOVE', 'TRIN']
-};
+  equity: ["SPY", "QQQ", "XLY"],
+  commodity: ["GLD", "USO", "HG1!", "GC1!", "CL1!", "COTTON", "WHEAT", "CORN", "SUGAR", "COFFEE"],
+  crypto: ["Bitcoin", "Ethereum", "Solana", "BNB", "XRP"],
+  forex: ["EUR/USD", "USD/JPY", "GBP/USD", "GBP/JPY", "AUD/USD"],
+  "rates-macro": ["TLT", "FEDFUNDS", "CPI"],
+  stress: ["VIX", "MOVE", "TRIN"],
+}
 
 const PRICE_CSVS = {
-  equity: './csv-pull/market-data/data/unintegrated/equities/equities_solstice_equinox.csv',
-  commodity: './csv-pull/market-data/data/unintegrated/commodities/commodities_solstice_equinox.csv',
-  crypto: './csv-pull/market-data/data/unintegrated/crypto/crypto_solstice_equinox.csv',
-  forex: './csv-pull/market-data/data/unintegrated/forex/forex_solstice_equinox.csv',
-};
+  equity: "./csv-pull/market-data/data/unintegrated/equities/equities_solstice_equinox.csv",
+  commodity:
+    "./csv-pull/market-data/data/unintegrated/commodities/commodities_solstice_equinox.csv",
+  crypto: "./csv-pull/market-data/data/unintegrated/crypto/crypto_solstice_equinox.csv",
+  forex: "./csv-pull/market-data/data/unintegrated/forex/forex_solstice_equinox.csv",
+}
 
 const CSV_MAPPINGS: CSVMapping[] = [
   {
-    csvPath: './csv-pull/market-data/data/astro/aspects.csv',
-    tableName: 'astro_aspects',
+    csvPath: "./csv-pull/market-data/data/astro/aspects.csv",
+    tableName: "astro_aspects",
     columnMapping: {
-      date: 'date',
-      body1: 'body1',
-      body2: 'body2',
-      aspect_type: 'aspect_type'
-    }
-  }
-];
+      date: "date",
+      body1: "body1",
+      body2: "body2",
+      aspect_type: "aspect_type",
+      aspect_nature: "aspect_nature",
+      orb: "orb",
+      exact: "exact",
+      body1_sign: "body1_sign",
+      body2_sign: "body2_sign",
+      primary_scoring: "primary_scoring",
+      bonus_eligible: "bonus_eligible",
+      influence_weight: "influence_weight",
+    },
+  },
+]
 
 // ============================================================================
 // API PROVIDERS
@@ -76,155 +84,253 @@ const CSV_MAPPINGS: CSVMapping[] = [
 
 function mapCryptoSymbol(symbol: string): string {
   const map: Record<string, string> = {
-    'Bitcoin': 'bitcoin', 'BTC': 'bitcoin',
-    'Ethereum': 'ethereum', 'ETH': 'ethereum',
-    'Solana': 'solana', 'SOL': 'solana',
-    'BNB': 'binancecoin', 'XRP': 'ripple'
-  };
-  return map[symbol] || symbol.toLowerCase();
+    Bitcoin: "bitcoin",
+    BTC: "bitcoin",
+    Ethereum: "ethereum",
+    ETH: "ethereum",
+    Solana: "solana",
+    SOL: "solana",
+    BNB: "binancecoin",
+    XRP: "ripple",
+    BCH: "bitcoin-cash",
+    Cardano: "cardano",
+    ADA: "cardano",
+    Polkadot: "polkadot",
+    DOT: "polkadot",
+    Chainlink: "chainlink",
+    LINK: "chainlink",
+    Stellar: "stellar",
+    XLM: "stellar",
+  }
+  return map[symbol] || symbol.toLowerCase()
 }
 
 const API_PROVIDERS: APIProvider[] = [
   {
-    name: 'polygon',
-    categories: ['equity', 'stress'],
+    name: "polygon",
+    categories: ["equity", "stress"],
     priority: 1,
     rateLimit: { calls: 5, period: 60000 },
     enabled: () => !!process.env.POLYGON_API_KEY,
     fetch: async (symbol: string) => {
-      const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${process.env.POLYGON_API_KEY}`;
-      const res = await axios.get(url, { timeout: 10000 });
-      return res.data?.results?.[0]?.c || null;
-    }
+      const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${process.env.POLYGON_API_KEY}`
+      const res = await axios.get(url, { timeout: 10000 })
+      return res.data?.results?.[0]?.c || null
+    },
   },
   {
-    name: 'coingecko',
-    categories: ['crypto'],
-    priority: 1,
-    rateLimit: { calls: 10, period: 60000 },
-    enabled: () => !!process.env.COINGECKO_API_KEY,
-    fetch: async (symbol: string) => {
-      const coinId = mapCryptoSymbol(symbol);
-      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&x_cg_demo_api_key=${process.env.COINGECKO_API_KEY}`;
-      const res = await axios.get(url, { timeout: 10000 });
-      return res.data?.[coinId]?.usd || null;
-    }
-  },
-  {
-    name: 'alpha_vantage',
-    categories: ['equity', 'forex'],
+    name: "alpha_vantage",
+    categories: ["equity", "forex", "commodity"],
     priority: 2,
     rateLimit: { calls: 5, period: 60000 },
     enabled: () => !!process.env.ALPHA_VANTAGE_API_KEY,
     fetch: async (symbol: string, category: string) => {
-      if (category === 'forex' && symbol.includes('/')) {
-        const [from, to] = symbol.split('/');
-        const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${from}&to_currency=${to}&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`;
-        const res = await axios.get(url, { timeout: 10000 });
-        return parseFloat(res.data?.['Realtime Currency Exchange Rate']?.['5. Exchange Rate']) || null;
+      if (category === "forex" && symbol.includes("/")) {
+        const [from, to] = symbol.split("/")
+        const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${from}&to_currency=${to}&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`
+        const res = await axios.get(url, { timeout: 10000 })
+        return (
+          parseFloat(res.data?.["Realtime Currency Exchange Rate"]?.["5. Exchange Rate"]) || null
+        )
       }
-      const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`;
-      const res = await axios.get(url, { timeout: 10000 });
-      return parseFloat(res.data?.['Global Quote']?.['05. price']) || null;
-    }
-  }
-];
+      const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`
+      const res = await axios.get(url, { timeout: 10000 })
+      return parseFloat(res.data?.["Global Quote"]?.["05. price"]) || null
+    },
+  },
+  {
+    name: "coingecko",
+    categories: ["crypto"],
+    priority: 1,
+    rateLimit: { calls: 10, period: 60000 },
+    enabled: () => !!process.env.COINGECKO_API_KEY,
+    fetch: async (symbol: string) => {
+      const coinId = mapCryptoSymbol(symbol)
+      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&x_cg_demo_api_key=${process.env.COINGECKO_API_KEY}`
+      const res = await axios.get(url, { timeout: 10000 })
+      return res.data?.[coinId]?.usd || null
+    },
+  },
+  {
+    name: "coinmarketcap",
+    categories: ["crypto"],
+    priority: 2,
+    rateLimit: { calls: 30, period: 60000 },
+    enabled: () => !!process.env.COINMARKETCAP_API_KEY,
+    fetch: async (symbol: string) => {
+      const coinSymbol = symbol === "Bitcoin" ? "BTC" : symbol === "Ethereum" ? "ETH" : symbol
+      const url = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=${coinSymbol}`
+      const res = await axios.get(url, {
+        timeout: 10000,
+        headers: { "X-CMC_PRO_API_KEY": process.env.COINMARKETCAP_API_KEY },
+      })
+      return res.data?.data?.[coinSymbol]?.quote?.USD?.price || null
+    },
+  },
+  {
+    name: "twelve_data",
+    categories: ["equity", "forex", "commodity"],
+    priority: 3,
+    rateLimit: { calls: 8, period: 60000 },
+    enabled: () => !!process.env.TWELVE_DATA_API_KEY,
+    fetch: async (symbol: string, category: string) => {
+      const url = `https://api.twelvedata.com/price?symbol=${symbol}&apikey=${process.env.TWELVE_DATA_API_KEY}`
+      const res = await axios.get(url, { timeout: 10000 })
+      return parseFloat(res.data?.price) || null
+    },
+  },
+  {
+    name: "fmp",
+    categories: ["equity"],
+    priority: 4,
+    rateLimit: { calls: 5, period: 60000 },
+    enabled: () => !!process.env.FMP_API_KEY,
+    fetch: async (symbol: string) => {
+      const url = `https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${process.env.FMP_API_KEY}`
+      const res = await axios.get(url, { timeout: 10000 })
+      return res.data?.[0]?.price || null
+    },
+  },
+  {
+    name: "exchangerate",
+    categories: ["forex"],
+    priority: 3,
+    rateLimit: { calls: 10, period: 60000 },
+    enabled: () => !!process.env.EXCHANGERATE_API_KEY,
+    fetch: async (symbol: string) => {
+      if (!symbol.includes("/")) return null
+      const [from, to] = symbol.split("/")
+      const url = `https://v6.exchangerate-api.com/v6/${process.env.EXCHANGERATE_API_KEY}/pair/${from}/${to}`
+      const res = await axios.get(url, { timeout: 10000 })
+      return res.data?.conversion_rate || null
+    },
+  },
+  {
+    name: "fred",
+    categories: ["rates-macro"],
+    priority: 1,
+    rateLimit: { calls: 10, period: 60000 },
+    enabled: () => !!process.env.FRED_API_KEY,
+    fetch: async (symbol: string) => {
+      // Map symbols to FRED series IDs
+      const seriesMap: Record<string, string> = {
+        FEDFUNDS: "DFF",
+        CPI: "CPIAUCSL",
+      }
+      const seriesId = seriesMap[symbol]
+      if (!seriesId) return null
+
+      const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${process.env.FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`
+      const res = await axios.get(url, { timeout: 10000 })
+      return parseFloat(res.data?.observations?.[0]?.value) || null
+    },
+  },
+]
 
 // ============================================================================
 // RATE LIMITER
 // ============================================================================
 
 class RateLimiter {
-  private callHistory: Map<string, number[]> = new Map();
+  private callHistory: Map<string, number[]> = new Map()
 
   async throttle(provider: APIProvider): Promise<void> {
-    const now = Date.now();
-    const history = this.callHistory.get(provider.name) || [];
-    const validCalls = history.filter(time => now - time < provider.rateLimit.period);
+    const now = Date.now()
+    const history = this.callHistory.get(provider.name) || []
+    const validCalls = history.filter((time) => now - time < provider.rateLimit.period)
 
     if (validCalls.length >= provider.rateLimit.calls) {
-      const oldestCall = validCalls[0];
-      const waitTime = provider.rateLimit.period - (now - oldestCall) + 100;
+      const oldestCall = validCalls[0]
+      const waitTime = provider.rateLimit.period - (now - oldestCall) + 100
       if (waitTime > 0) {
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        console.log(`   ⏳ Rate limit: waiting ${Math.ceil(waitTime / 1000)}s for ${provider.name}`)
+        await new Promise((resolve) => setTimeout(resolve, waitTime))
       }
     }
 
-    validCalls.push(Date.now());
-    this.callHistory.set(provider.name, validCalls);
+    validCalls.push(Date.now())
+    this.callHistory.set(provider.name, validCalls)
   }
 
   reset(): void {
-    this.callHistory.clear();
+    this.callHistory.clear()
   }
 }
 
-const rateLimiter = new RateLimiter();
+const rateLimiter = new RateLimiter()
 
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 
 function parseCSV(filePath: string): any[] {
-  if (!fs.existsSync(filePath)) return [];
-  const content = fs.readFileSync(filePath, 'utf-8');
-  const cleanedContent = content
-    .split('\n')
-    .filter(line => !line.trim().startsWith('//'))
-    .join('\n');
+  if (!fs.existsSync(filePath)) {
+    console.warn(`⚠️  CSV not found: ${filePath}`)
+    return []
+  }
 
-  const parsed = Papa.parse(cleanedContent, {
+  const content = fs.readFileSync(filePath, "utf-8")
+  const cleanedContent = content
+    .split("\n")
+    .filter((line) => !line.trim().startsWith("//"))
+    .join("\n")
+
+  const parsed = Papa.parse<any>(cleanedContent, {
     header: true,
     skipEmptyLines: true,
     dynamicTyping: true,
-    trim: true
-  });
+  })
 
-  return (parsed.data as any[]).filter((row: any) =>
-    row.symbol || row.Symbol || row.Commodity || row.Pair
-  );
+  return (parsed.data as any[]).filter(
+    (row: any) => row.symbol || row.Symbol || row.Commodity || row.Pair || row.Indicator
+  )
 }
 
 function getLatestPrice(symbol: string, category: string): { price: number; date: string } | null {
-  const csvPath = PRICE_CSVS[category as keyof typeof PRICE_CSVS];
-  if (!csvPath || !fs.existsSync(csvPath)) return null;
+  const categoryKey = category === "commodity" ? "commodity" : category
+  const csvPath = PRICE_CSVS[categoryKey as keyof typeof PRICE_CSVS]
 
-  const data = parseCSV(csvPath);
+  if (!csvPath || !fs.existsSync(csvPath)) return null
+
+  const data = parseCSV(csvPath)
   const symbolData = data.filter((row: any) => {
-    const rowSymbol = row.Symbol || row.Commodity || row.Pair;
-    return rowSymbol === symbol;
-  });
+    const rowSymbol = row.Symbol || row.Commodity || row.Pair
+    return rowSymbol === symbol
+  })
 
-  if (symbolData.length === 0) return null;
-  const sorted = symbolData.sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
-  const latest = sorted[0];
+  if (symbolData.length === 0) return null
+
+  const sorted = symbolData.sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())
+  const latest = sorted[0]
 
   return {
     price: latest.Close || latest.Price || latest.Rate || 0,
-    date: latest.Date
-  };
+    date: latest.Date,
+  }
 }
 
 async function fetchPriceWithFallback(
   symbol: string,
   category: string
 ): Promise<{ price: number; provider: string } | null> {
-  const providers = API_PROVIDERS
-    .filter(p => p.categories.includes(category) && p.enabled())
-    .sort((a, b) => a.priority - b.priority);
+  const providers = API_PROVIDERS.filter(
+    (p) => p.categories.includes(category) && p.enabled()
+  ).sort((a, b) => a.priority - b.priority)
+
+  if (providers.length === 0) return null
 
   for (const provider of providers) {
     try {
-      await rateLimiter.throttle(provider);
-      const price = await provider.fetch(symbol, category);
+      await rateLimiter.throttle(provider)
+      const price = await provider.fetch(symbol, category)
       if (price && price > 0) {
-        return { price, provider: provider.name };
+        return { price, provider: provider.name }
       }
     } catch (error: any) {
-      continue;
+      continue
     }
   }
-  return null;
+  return null
 }
 
 // ============================================================================
@@ -232,106 +338,178 @@ async function fetchPriceWithFallback(
 // ============================================================================
 
 async function loadAllCSVs(): Promise<void> {
-  console.log('🚀 Starting CSV data load...\n');
+  console.log("🚀 Starting CSV data load...\n")
   for (const mapping of CSV_MAPPINGS) {
     try {
-      await loadCSV(mapping);
+      await loadCSV(mapping)
     } catch (error: any) {
-      console.error(`❌ Error: ${error.message}`);
+      console.error(`❌ Error loading ${mapping.csvPath}:`, error.message)
     }
   }
-  console.log('✅ CSV data load complete!');
+  console.log("✅ CSV data load complete!")
 }
 
 async function loadCSV(mapping: CSVMapping): Promise<void> {
-  const { csvPath, tableName, columnMapping, transform } = mapping;
-  if (!fs.existsSync(csvPath)) return;
+  const { csvPath, tableName, columnMapping, transform } = mapping
 
-  const fileContent = fs.readFileSync(csvPath, 'utf-8');
-  const cleanedContent = fileContent.split('\n').filter(line => !line.trim().startsWith('//')).join('\n');
+  if (!fs.existsSync(csvPath)) {
+    console.log(`   ⚠️  File not found, skipping: ${csvPath}`)
+    return
+  }
+
+  const fileContent = fs.readFileSync(csvPath, "utf-8")
+  const cleanedContent = fileContent
+    .split("\n")
+    .filter((line) => !line.trim().startsWith("//"))
+    .join("\n")
 
   const records = parse(cleanedContent, {
     columns: true,
     skip_empty_lines: true,
-    trim: true
-  }) as any[];
+    trim: true,
+  })
 
-  const transformedRecords = records.map((record: any) => {
-    const mapped: any = {};
-    for (const [csvCol, dbCol] of Object.entries(columnMapping)) {
-      if (record[csvCol] !== undefined && record[csvCol] !== '') {
-        mapped[dbCol] = record[csvCol];
+  const transformedRecords = records
+    .map((record: any) => {
+      const mapped: any = {}
+      for (const [csvCol, dbCol] of Object.entries(columnMapping)) {
+        if (record[csvCol] !== undefined && record[csvCol] !== "") {
+          mapped[dbCol] = record[csvCol]
+        }
       }
+      return transform ? transform(mapped) : mapped
+    })
+    .filter((r: any) => Object.keys(r).length > 0)
+
+  if (transformedRecords.length === 0) return
+
+  const batchSize = 500
+  for (let i = 0; i < transformedRecords.length; i += batchSize) {
+    const batch = transformedRecords.slice(i, i + batchSize)
+    const { error } = await supabase.from(tableName).upsert(batch, { onConflict: "symbol,date" })
+    if (error) {
+      console.error(`   ❌ Error inserting batch:`, error.message)
     }
-    return transform ? transform(mapped) : mapped;
-  }).filter((r: any) => Object.keys(r).length > 0);
+  }
+}
 
-  const { error } = await supabase
-    .from(tableName)
-    .upsert(transformedRecords, { onConflict: 'symbol,date' });
+async function updatePricesFromCSV(csvPath?: string): Promise<void> {
+  console.log("📊 Updating prices from CSV...\n")
 
-  if (error) console.error(`❌ Error: ${error.message}`);
+  const targetPath = csvPath || "./public/data/tickers/price_data_dec22_20260107.csv"
+  if (!fs.existsSync(targetPath)) {
+    console.error("❌ CSV file not found:", targetPath)
+    return
+  }
+
+  const csvContent = fs.readFileSync(targetPath, "utf8")
+  const parsed = Papa.parse<any>(csvContent, {
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+  })
+
+  const symbolData: Record<string, any[]> = {}
+  ;(parsed.data as any[]).forEach((row: any) => {
+    const symbol = row.symbol || row.Symbol
+    if (!symbol) return
+
+    if (!symbolData[symbol]) symbolData[symbol] = []
+    symbolData[symbol].push({
+      symbol,
+      date: row.date || row.Date,
+      open: parseFloat(row.open || row.Open) || null,
+      high: parseFloat(row.high || row.High) || null,
+      low: parseFloat(row.low || row.Low) || null,
+      close: parseFloat(row.close || row.Close),
+      volume: parseFloat(row.volume || row.Volume) || 0,
+    })
+  })
+
+  let updated = 0
+  for (const symbol of Object.keys(symbolData)) {
+    const records = symbolData[symbol]
+    for (let i = 0; i < records.length; i += 1000) {
+      const batch = records.slice(i, i + 1000)
+      const { error } = await supabase
+        .from("financial_data")
+        .upsert(batch, { onConflict: "symbol,date" })
+      if (!error) updated++
+    }
+    console.log(`✅ Updated ${symbol}`)
+  }
 }
 
 async function checkPriceFreshness(): Promise<void> {
-  console.log('🔍 Checking price data freshness...\n');
+  console.log("🔍 Checking price data freshness...\n")
 
-  const symbols = ['SPY', 'QQQ', 'Bitcoin', 'EUR/USD'];
-
+  const symbols = ["SPY", "QQQ", "Bitcoin", "EUR/USD"]
   for (const symbol of symbols) {
     const { data } = await supabase
-      .from('financial_data')
-      .select('symbol, date, close')
-      .eq('symbol', symbol)
-      .order('date', { ascending: false })
-      .limit(1);
+      .from("financial_data")
+      .select("symbol, date, close")
+      .eq("symbol", symbol)
+      .order("date", { ascending: false })
+      .limit(1)
 
     if (data && data.length > 0) {
-      const latest = data[0];
-      const daysOld = Math.floor((Date.now() - new Date(latest.date).getTime()) / (1000 * 60 * 60 * 24));
-      console.log(`${symbol.padEnd(10)} | $${latest.close.toFixed(2).padStart(8)} | ${latest.date} (${daysOld} days old)`);
+      const latest = data[0]
+      const daysOld = Math.floor(
+        (Date.now() - new Date(latest.date).getTime()) / (1000 * 60 * 60 * 24)
+      )
+      console.log(
+        `${symbol.padEnd(10)} | $${latest.close.toFixed(2).padStart(8)} | ${latest.date} (${daysOld}d old)`
+      )
     } else {
-      console.log(`${symbol.padEnd(10)} | NO DATA FOUND`);
+      console.log(`${symbol.padEnd(10)} | NO DATA`)
     }
   }
 }
 
 async function populateFeaturedTickers(): Promise<void> {
-  console.log('🚀 Populating featured tickers...\n');
+  console.log("🚀 Populating featured tickers...\n")
 
-  const SCORES_CSV = './csv-pull/market-data/data/scores/confidence_scores_20251231.csv';
-  const scores = parseCSV(SCORES_CSV);
+  const SCORES_CSV = "./csv-pull/market-data/data/scores/confidence_scores_20251231.csv"
+  const scores = parseCSV(SCORES_CSV)
 
-  const allRecords: any[] = [];
+  if (scores.length === 0) {
+    console.error("❌ No scores found")
+    return
+  }
 
+  await supabase.from("featured_tickers").delete().neq("id", 0)
+
+  const allRecords: any[] = []
   for (const [category, symbols] of Object.entries(CATEGORY_MAP)) {
     const categoryScores = scores
       .filter((row: any) => symbols.includes(row.symbol))
       .sort((a: any, b: any) => (b.total_score || 0) - (a.total_score || 0))
-      .slice(0, 10);
+      .slice(0, 10)
 
     for (let i = 0; i < categoryScores.length; i++) {
-      const score = categoryScores[i];
-      const priceData = getLatestPrice(score.symbol, category);
-      if (!priceData) continue;
+      const score = categoryScores[i]
+      const priceData = getLatestPrice(score.symbol, category)
+      if (!priceData) continue
 
       allRecords.push({
         symbol: score.symbol,
         category,
+        sector: score.sector || "Unknown",
         current_price: priceData.price,
+        next_key_level_price: priceData.price * 1.05,
+        next_key_level_type: "resistance",
+        distance_percent: 5.0,
         confluence_score: score.total_score || 0,
+        tradeability_score: (score.total_score || 0) * 0.8,
+        reason: `Top ${i + 1} by confluence`,
         rank: i + 1,
-        updated_at: new Date().toISOString()
-      });
+        updated_at: new Date().toISOString(),
+      })
     }
   }
 
-  const { error } = await supabase
-    .from('featured_tickers')
-    .insert(allRecords);
-
-  if (error) console.error('❌ Error:', error);
-  else console.log(`✅ Inserted ${allRecords.length} featured tickers`);
+  const { error } = await supabase.from("featured_tickers").insert(allRecords)
+  if (!error) console.log(`✅ Inserted ${allRecords.length} featured tickers`)
 }
 
 // ============================================================================
@@ -339,27 +517,24 @@ async function populateFeaturedTickers(): Promise<void> {
 // ============================================================================
 
 async function cronUpdatePricesDelayTolerant(): Promise<void> {
-  console.log('🔄 Starting smart price update...\n');
+  console.log("🔄 Starting smart price update...\n")
 
-  const args = process.argv.slice(3);
-  const categoryArg = args.find(arg => arg.startsWith('--categories='));
+  const args = process.argv.slice(3)
+  const categoryArg = args.find((arg) => arg.startsWith("--categories="))
   const requestedCategories = categoryArg
-    ? categoryArg.split('=')[1].split(',')
-    : Object.keys(CATEGORY_MAP);
+    ? categoryArg.split("=")[1].split(",")
+    : Object.keys(CATEGORY_MAP)
 
   for (const category of requestedCategories) {
-    const symbols = CATEGORY_MAP[category as keyof typeof CATEGORY_MAP];
-    if (!symbols) continue;
+    const symbols = CATEGORY_MAP[category as keyof typeof CATEGORY_MAP]
+    if (!symbols) continue
 
-    console.log(`\n📂 ${category.toUpperCase()} (${symbols.length} symbols)`);
-    console.log('═'.repeat(60));
-
-    const records: any[] = [];
-    const today = new Date().toISOString().split('T')[0];
+    console.log(`\n📂 ${category.toUpperCase()} (${symbols.length} symbols)`)
+    const records: any[] = []
+    const today = new Date().toISOString().split("T")[0]
 
     for (const symbol of symbols) {
-      const result = await fetchPriceWithFallback(symbol, category);
-
+      const result = await fetchPriceWithFallback(symbol, category)
       if (result) {
         records.push({
           symbol,
@@ -368,151 +543,263 @@ async function cronUpdatePricesDelayTolerant(): Promise<void> {
           open: result.price,
           high: result.price,
           low: result.price,
-          volume: 0
-        });
-        console.log(`   ✅ ${symbol.padEnd(12)} $${result.price.toFixed(2).padStart(10)} (${result.provider})`);
+          volume: 0,
+        })
+        console.log(
+          `   ✅ ${symbol.padEnd(12)} $${result.price.toFixed(2).padStart(10)} (${result.provider})`
+        )
       }
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200))
     }
 
     if (records.length > 0) {
-      await supabase.from('financial_data').upsert(records, { onConflict: 'symbol,date' });
-      console.log(`   ✅ Database updated`);
+      await supabase.from("financial_data").upsert(records, { onConflict: "symbol,date" })
+      console.log(`   ✅ Database updated`)
     }
   }
 
-  rateLimiter.reset();
-  console.log('\n✅ Price update complete\n');
+  rateLimiter.reset()
+  console.log("\n✅ Price update complete\n")
 }
 
 async function cronRefreshFeaturedDelayTolerant(): Promise<void> {
-  console.log('🌞 Checking ingress status...\n');
+  console.log("🌞 Checking ingress status...\n")
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0]
   const { data: currentIngress } = await supabase
-    .from('astro_events')
-    .select('*')
-    .eq('event_type', 'ingress')
-    .eq('body', 'Sun')
-    .lte('date', today)
-    .order('date', { ascending: false })
+    .from("astro_events")
+    .select("*")
+    .eq("event_type", "ingress")
+    .eq("body", "Sun")
+    .lte("date", today)
+    .order("date", { ascending: false })
     .limit(1)
-    .single();
+    .single()
 
   if (!currentIngress) {
-    console.log('⚠️  No ingress data\n');
-    return;
+    console.log("⚠️  No ingress data\n")
+    return
   }
 
   const daysSinceIngress = Math.floor(
     (Date.now() - new Date(currentIngress.date).getTime()) / (1000 * 60 * 60 * 24)
-  );
+  )
 
   if (daysSinceIngress <= 1 || (daysSinceIngress % 7 === 0 && daysSinceIngress <= 28)) {
-    console.log(`✅ Refresh triggered (day ${daysSinceIngress})\n`);
-    await populateFeaturedTickers();
+    console.log(`✅ Refresh triggered (day ${daysSinceIngress})\n`)
+    await populateFeaturedTickers()
   } else {
-    console.log('⏭️  No refresh needed\n');
+    console.log("⭐️  No refresh needed\n")
+  }
+}
+
+// ============================================================================
+// ENHANCEMENT COMMANDS
+// ============================================================================
+
+async function cleanOldPriceData(daysToKeep: number = 1095): Promise<void> {
+  console.log(`🧹 Cleaning price data older than ${daysToKeep} days...\n`)
+
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
+  const cutoffDateStr = cutoffDate.toISOString().split("T")[0]
+
+  const { data, error } = await supabase
+    .from("financial_data")
+    .delete()
+    .lt("date", cutoffDateStr)
+    .select()
+
+  if (error) {
+    console.error("❌ Error:", error.message)
+  } else {
+    console.log(`✅ Deleted ${data?.length || 0} old records\n`)
+  }
+}
+
+async function getDataQualityReport(): Promise<void> {
+  console.log("📊 DATA QUALITY REPORT\n")
+
+  for (const [category, symbols] of Object.entries(CATEGORY_MAP)) {
+    const { count } = await supabase
+      .from("financial_data")
+      .select("*", { count: "exact", head: true })
+      .in("symbol", symbols)
+
+    console.log(
+      `   ${category.padEnd(15)} | ${symbols.length} symbols | ${(count || 0).toLocaleString()} data points`
+    )
+  }
+}
+
+async function verifyDatabaseSchema(): Promise<void> {
+  console.log("🔍 Verifying Database Schema...\n")
+
+  const expectedTables = [
+    "financial_data",
+    "featured_tickers",
+    "astro_events",
+    "ticker_ratings_cache",
+  ]
+
+  for (const table of expectedTables) {
+    const { count, error } = await supabase.from(table).select("*", { count: "exact", head: true })
+
+    if (error) {
+      console.log(`   ❌ ${table.padEnd(25)} | Error: ${error.message}`)
+    } else {
+      console.log(`   ✅ ${table.padEnd(25)} | ${(count || 0).toLocaleString()} rows`)
+    }
+  }
+}
+
+async function exportToCSV(category?: string, outputDir: string = "./backups"): Promise<void> {
+  console.log("💾 Exporting data to CSV...\n")
+
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true })
+  }
+
+  const categories = category ? [category] : Object.keys(CATEGORY_MAP)
+
+  for (const cat of categories) {
+    const symbols = CATEGORY_MAP[cat as keyof typeof CATEGORY_MAP]
+    if (!symbols) continue
+
+    const { data, error } = await supabase
+      .from("financial_data")
+      .select("*")
+      .in("symbol", symbols)
+      .order("symbol")
+      .order("date")
+
+    if (error || !data || data.length === 0) continue
+
+    const csv = Papa.unparse(data)
+    const timestamp = new Date().toISOString().split("T")[0]
+    const filename = `${outputDir}/${cat}_${timestamp}.csv`
+
+    fs.writeFileSync(filename, csv)
+    console.log(`   ✅ Exported ${data.length} records to ${filename}`)
   }
 }
 
 async function testAPIProviders(): Promise<void> {
-  console.log('🧪 Testing API Providers...\n');
+  console.log("🧪 Testing API Providers...\n")
 
-  const testSymbols = { equity: 'SPY', crypto: 'Bitcoin', forex: 'EUR/USD' };
+  const testSymbols = { equity: "SPY", crypto: "Bitcoin", forex: "EUR/USD" }
 
   for (const provider of API_PROVIDERS) {
-    console.log(`📡 ${provider.name.toUpperCase()}`);
-    console.log(`   Enabled: ${provider.enabled() ? '✅' : '❌'}`);
+    console.log(`📡 ${provider.name.toUpperCase()}`)
+    console.log(`   Enabled: ${provider.enabled() ? "✅" : "❌"}`)
 
-    if (!provider.enabled()) continue;
+    if (!provider.enabled()) continue
 
-    let testSymbol = '';
-    let testCategory = '';
+    let testSymbol = ""
+    let testCategory = ""
 
     for (const [cat, sym] of Object.entries(testSymbols)) {
       if (provider.categories.includes(cat)) {
-        testSymbol = sym;
-        testCategory = cat;
-        break;
+        testSymbol = sym
+        testCategory = cat
+        break
       }
     }
 
     try {
-      const price = await provider.fetch(testSymbol, testCategory);
+      const price = await provider.fetch(testSymbol, testCategory)
       if (price) {
-        console.log(`   ✅ ${testSymbol} = $${price.toFixed(2)}\n`);
+        console.log(`   ✅ ${testSymbol} = $${price.toFixed(2)}\n`)
       }
     } catch (error: any) {
-      console.log(`   ❌ ${error.message}\n`);
+      console.log(`   ❌ ${error.message}\n`)
     }
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000))
   }
 }
 
 // ============================================================================
-// MAIN
+// MAIN CLI
 // ============================================================================
 
 async function main() {
-  const command = process.argv[2];
+  const command = process.argv[2]
 
   const commands: Record<string, () => Promise<void>> = {
-    'load-all': loadAllCSVs,
-    'check-freshness': checkPriceFreshness,
-    'populate-featured': populateFeaturedTickers,
-    'cron-update-prices': cronUpdatePricesDelayTolerant,
-    'cron-refresh-featured': cronRefreshFeaturedDelayTolerant,
-    'test-providers': testAPIProviders,
-    'check-ingress': async () => {
-      const today = new Date().toISOString().split('T')[0];
+    "load-all": loadAllCSVs,
+    "update-prices": () => updatePricesFromCSV(process.argv[3]),
+    "check-freshness": checkPriceFreshness,
+    "populate-featured": populateFeaturedTickers,
+    "cron-update-prices": cronUpdatePricesDelayTolerant,
+    "cron-refresh-featured": cronRefreshFeaturedDelayTolerant,
+    "clean-old-data": () => cleanOldPriceData(1095),
+    "quality-report": getDataQualityReport,
+    "verify-schema": verifyDatabaseSchema,
+    "export-csv": () => exportToCSV(process.argv[3]),
+    "test-providers": testAPIProviders,
+    "check-ingress": async () => {
+      const today = new Date().toISOString().split("T")[0]
       const { data } = await supabase
-        .from('astro_events')
-        .select('*')
-        .eq('event_type', 'ingress')
-        .eq('body', 'Sun')
-        .lte('date', today)
-        .order('date', { ascending: false })
+        .from("astro_events")
+        .select("*")
+        .eq("event_type", "ingress")
+        .eq("body", "Sun")
+        .lte("date", today)
+        .order("date", { ascending: false })
         .limit(1)
-        .single();
+        .single()
 
       if (data) {
-        const days = Math.floor((Date.now() - new Date(data.date).getTime()) / (1000 * 60 * 60 * 24));
-        console.log(`🌞 Current ingress: ${data.sign} (${data.date}, ${days} days ago)`);
+        const days = Math.floor(
+          (Date.now() - new Date(data.date).getTime()) / (1000 * 60 * 60 * 24)
+        )
+        console.log(`🌞 Current ingress: ${data.sign} (${data.date}, ${days} days ago)`)
       }
-    }
-  };
+    },
+  }
 
   if (!command || !commands[command]) {
     console.log(`
-📊 Data Manager
+📊 Data Manager - Unified data operations tool
 
-Commands:
+Usage: npx tsx scripts/data-manager.ts [command] [options]
+
+Core Commands:
+  load-all                       Load all CSV files into database
+  update-prices [path]           Update prices from CSV file
   check-freshness                Check price data staleness
-  populate-featured              Populate featured tickers
-  test-providers                 Test API provider connections
-  check-ingress                  Check current ingress status
+  populate-featured              Populate featured tickers from scores
+  check-ingress                  Check current astrological ingress status
 
-  🔄 Cron Commands:
+🔄 Cron Commands:
   cron-update-prices [--categories=equity,crypto,forex]
-  cron-refresh-featured
+                                 Smart price update with API fallbacks
+  cron-refresh-featured          Ingress-aware featured ticker refresh
+
+🛠️  Maintenance Commands:
+  quality-report                 Get comprehensive data quality report
+  verify-schema                  Verify database tables exist
+  export-csv [category]          Export data to CSV backups
+  clean-old-data                 Clean price data older than 3 years
+  test-providers                 Test all API provider connections
 
 Examples:
   npx tsx scripts/data-manager.ts check-freshness
-  npx tsx scripts/data-manager.ts cron-update-prices --categories=crypto
-    `);
-    process.exit(1);
+  npx tsx scripts/data-manager.ts cron-update-prices --categories=crypto,equity
+  npx tsx scripts/data-manager.ts export-csv equity
+    `)
+    process.exit(1)
   }
 
   try {
-    await commands[command]();
-    console.log('\n✅ Operation complete');
-    process.exit(0);
+    await commands[command]()
+    console.log("\n✅ Operation complete")
+    process.exit(0)
   } catch (error) {
-    console.error('\n❌ Fatal error:', error);
-    process.exit(1);
+    console.error("\n❌ Fatal error:", error)
+    process.exit(1)
   }
 }
 
-main();
+main()

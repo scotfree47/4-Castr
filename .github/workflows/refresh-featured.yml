@@ -1,0 +1,51 @@
+# .github/workflows/refresh-featured.yml
+# Daily check for featured ticker refresh based on astrological ingress
+# Uses data-manager.ts cron-refresh-featured command
+
+name: Refresh Featured Tickers
+
+on:
+  schedule:
+    # Check daily at 9 AM EST (14:00 UTC)
+    - cron: "0 14 * * *"
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force refresh regardless of ingress timing"
+        type: boolean
+        default: false
+
+jobs:
+  refresh-featured:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Check ingress and refresh featured tickers
+        run: |
+          echo "🌞 Checking ingress status and refreshing featured tickers if needed..."
+          npx tsx scripts/data-manager.ts cron-refresh-featured
+
+      - name: Verify ingress data
+        run: |
+          echo "📅 Current ingress period:"
+          npx tsx scripts/data-manager.ts check-ingress
+        continue-on-error: true
