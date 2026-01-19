@@ -1,0 +1,59 @@
+0000000000000000000000000000000000000000 06f13f5b4cd56bff21dc033c8e147a1b1cffdf11 scotfree47 <scotfree47@proton.me> 1766764664 -0500	commit (initial): Initial commit: cloned shadcn dashboard template
+06f13f5b4cd56bff21dc033c8e147a1b1cffdf11 0000000000000000000000000000000000000000 scotfree47 <scotfree47@proton.me> 1766764700 -0500	Branch: renamed refs/heads/master to refs/heads/main
+0000000000000000000000000000000000000000 06f13f5b4cd56bff21dc033c8e147a1b1cffdf11 scotfree47 <scotfree47@proton.me> 1766764700 -0500	Branch: renamed refs/heads/master to refs/heads/main
+06f13f5b4cd56bff21dc033c8e147a1b1cffdf11 abda823a7ad26bec2cfe6e6854d9f2439a4007f8 scotfree47 <scotfree47@proton.me> 1766765598 -0500	commit: Restructure: moved Next.js version to root
+abda823a7ad26bec2cfe6e6854d9f2439a4007f8 9a1967cab2f13e5c343c1516976f07445c1e9a14 scotfree47 <scotfree47@proton.me> 1766780358 -0500	commit: refactor: reformat chart code
+9a1967cab2f13e5c343c1516976f07445c1e9a14 eeab7167b6a42779179fa5b549df42cb784a9e35 scotfree47 <scotfree47@proton.me> 1766781182 -0500	commit: refactor: hide revenue breakdown card
+eeab7167b6a42779179fa5b549df42cb784a9e35 22f287394fec36f371cb943943fffa63a6dad1e6 scotfree47 <scotfree47@proton.me> 1766782392 -0500	commit: refactor: remove /dashboard route
+22f287394fec36f371cb943943fffa63a6dad1e6 9834e09f8060ca5b7c2f022133f79f596db9ba3b scotfree47 <scotfree47@proton.me> 1766782578 -0500	commit: refactor: rename dashboard button
+9834e09f8060ca5b7c2f022133f79f596db9ba3b b3fc0584f4b314e629fb456fe7fa4852f70f8490 scotfree47 <scotfree47@proton.me> 1766782874 -0500	commit: feat: rename dashboard to Home
+b3fc0584f4b314e629fb456fe7fa4852f70f8490 5bb14a842a1b0d6189c0e7592c44753a4317d967 scotfree47 <scotfree47@proton.me> 1766783910 -0500	commit: refactor: consolidate dashboards
+5bb14a842a1b0d6189c0e7592c44753a4317d967 bd4f4b8af57ccd82dde5651e23e9f52a005ff36b scotfree47 <scotfree47@proton.me> 1766784169 -0500	commit: refactor: rename Dashboard to Home
+bd4f4b8af57ccd82dde5651e23e9f52a005ff36b 88855f947bdd5a2c450b184d3253deaa87ff4871 scotfree47 <scotfree47@proton.me> 1766784831 -0500	commit: chore: comment out RevenueBreakdown component
+88855f947bdd5a2c450b184d3253deaa87ff4871 54c33fcfc6a20b9455815cc1343d76952301d334 scotfree47 <scotfree47@proton.me> 1766785111 -0500	commit: chore: hide revenueBreakdown component
+54c33fcfc6a20b9455815cc1343d76952301d334 99cffb44e9c5583e2ce4fac4d74a8343688af217 scotfree47 <scotfree47@proton.me> 1766785474 -0500	commit: chore: hide quick actions
+99cffb44e9c5583e2ce4fac4d74a8343688af217 fc45e21b40d2b46ad0d321b3dcc4380dab88b5a4 scotfree47 <scotfree47@proton.me> 1766941259 -0500	commit: feat: add carousel to metrics overview
+fc45e21b40d2b46ad0d321b3dcc4380dab88b5a4 51351d458d3b640ea354e0531658c2b7bded5ee4 scotfree47 <scotfree47@proton.me> 1766941800 -0500	commit: fix: update carousel import and component usage
+51351d458d3b640ea354e0531658c2b7bded5ee4 fc45e21b40d2b46ad0d321b3dcc4380dab88b5a4 scotfree47 <scotfree47@proton.me> 1766941867 -0500	reset: moving to HEAD~1
+fc45e21b40d2b46ad0d321b3dcc4380dab88b5a4 99cffb44e9c5583e2ce4fac4d74a8343688af217 scotfree47 <scotfree47@proton.me> 1766941883 -0500	reset: moving to HEAD~1
+99cffb44e9c5583e2ce4fac4d74a8343688af217 1e2f943d09bf761fcaaa462fe87b14f92e07701e scotfree47 <scotfree47@proton.me> 1766942199 -0500	commit: refactor: update metrics to carousel component
+1e2f943d09bf761fcaaa462fe87b14f92e07701e 886da55f0a510ebb5052994dd1b362ab3e763103 scotfree47 (aider) <scotfree47@proton.me> 1766942877 -0500	commit: feat: add carousel component
+886da55f0a510ebb5052994dd1b362ab3e763103 d61a9d780b97d1c4443c0593088f628fcc97889d scotfree47 <scotfree47@proton.me> 1766942886 -0500	commit: refactor: simplify carousel component
+d61a9d780b97d1c4443c0593088f628fcc97889d c96e4fa235972e93bf2cb41579513ee681609906 scotfree47 <scotfree47@proton.me> 1766943611 -0500	commit: fix: update avatar fallback logic
+c96e4fa235972e93bf2cb41579513ee681609906 bad99837177ff44364c4a2bc501ba971bdccb6d2 scotfree47 <scotfree47@proton.me> 1766943954 -0500	commit: refactor: simplify theme customizer code
+bad99837177ff44364c4a2bc501ba971bdccb6d2 e479eb4b60e77b2c19506e37b39b3538005cedf0 scotfree47 <scotfree47@proton.me> 1766944434 -0500	commit: fix: import Carousel correctly
+e479eb4b60e77b2c19506e37b39b3538005cedf0 e25b342318797701fe16bc3b78a47171ee1f48ef scotfree47 <scotfree47@proton.me> 1766945349 -0500	commit: feat: add carousel to stats section
+e25b342318797701fe16bc3b78a47171ee1f48ef e479eb4b60e77b2c19506e37b39b3538005cedf0 scotfree47 <scotfree47@proton.me> 1766945764 -0500	reset: moving to HEAD~1
+e479eb4b60e77b2c19506e37b39b3538005cedf0 9bb4de0cd469d56ceb62d1da9415b1be352f3b77 scotfree47 (aider) <scotfree47@proton.me> 1766945884 -0500	commit: refactor: update Carousel component usage
+9bb4de0cd469d56ceb62d1da9415b1be352f3b77 84a10ee0c098531a72b6a4e0e6c4c615448aa30b scotfree47 <scotfree47@proton.me> 1766945899 -0500	commit: refactor: fix carousel layout
+84a10ee0c098531a72b6a4e0e6c4c615448aa30b 2497c59ff518aaca02714f03332af7f79b194fa4 scotfree47 <scotfree47@proton.me> 1766946977 -0500	commit: feat: replace carousel arrows with custom navigation dots
+2497c59ff518aaca02714f03332af7f79b194fa4 63aecf7660fe4bb90d0f153be5aa0c70e85c553b scotfree47 <scotfree47@proton.me> 1766947141 -0500	commit: refactor: remove useCarousel hook
+63aecf7660fe4bb90d0f153be5aa0c70e85c553b df48e686825df2ceb6de79b12883b82bac51bfdc scotfree47 <scotfree47@proton.me> 1766947873 -0500	commit: fix: update carousel navigation to use Embla API
+df48e686825df2ceb6de79b12883b82bac51bfdc c2bb24e7ad17fbead42d95afc21de842b0bc3683 scotfree47 <scotfree47@proton.me> 1768175585 -0500	commit: Initial Next.js version of 4castr
+c2bb24e7ad17fbead42d95afc21de842b0bc3683 11c54b88ebd36b6d0fcbacd5619ad984b030ff61 scotfree47 <scotfree47@proton.me> 1768176106 -0500	commit: Remove node_modules from repository
+11c54b88ebd36b6d0fcbacd5619ad984b030ff61 a4c840d48df39cb04c35241a611a81097277cbd5 scotfree47 <scotfree47@proton.me> 1768177976 -0500	commit: Add confluence engine and cron-based featured ticker refresh
+a4c840d48df39cb04c35241a611a81097277cbd5 607eed5899dddd6e111a794e02ad6cac8cb9e386 scotfree47 <scotfree47@proton.me> 1768179192 -0500	commit: Add confluence engine and cron-based featured ticker refresh
+607eed5899dddd6e111a794e02ad6cac8cb9e386 5b402b103b8236751772b8a9ea89de98d04bcd1c scotfree47 <scotfree47@proton.me> 1768180285 -0500	commit: Add confluence engine and cron-based featured ticker refresh
+5b402b103b8236751772b8a9ea89de98d04bcd1c 7e6e08247c78dcf5adfb878602678406a7954a0c scotfree47 <scotfree47@proton.me> 1768181636 -0500	commit: fix: remove turbopack.root for Vercel compatibility
+7e6e08247c78dcf5adfb878602678406a7954a0c 77230b4fd6068e7201e7c617fef8b186aeee2af7 scotfree47 <scotfree47@proton.me> 1768182478 -0500	commit: fix: remove turbopack flag from dev script
+77230b4fd6068e7201e7c617fef8b186aeee2af7 f69018a7c19e779c3d612b6d055c30ce6b11d2e3 scotfree47 <scotfree47@proton.me> 1768183244 -0500	commit: chore: force rebuild without turbopack
+f69018a7c19e779c3d612b6d055c30ce6b11d2e3 38cfe0d62f41f6d32110e83e430bccbb4e3e17f8 scotfree47 <scotfree47@proton.me> 1768243995 -0500	commit: updates to api routing
+38cfe0d62f41f6d32110e83e430bccbb4e3e17f8 9f1fd0f58b409d1ec6612e478cd668f44a2efd6e scotfree47 <scotfree47@proton.me> 1768251574 -0500	pull: Fast-forward
+9f1fd0f58b409d1ec6612e478cd668f44a2efd6e 868bdedb5a8c5a887aa221556dc767bc47a01ab4 scotfree47 <scotfree47@proton.me> 1768253636 -0500	pull: Fast-forward
+868bdedb5a8c5a887aa221556dc767bc47a01ab4 701e4581396c7d3ecfa4b2b38308690dd257607d scotfree47 <scotfree47@proton.me> 1768256262 -0500	pull: Fast-forward
+701e4581396c7d3ecfa4b2b38308690dd257607d e17673dc05f6f32007be655d4abc15a967cdf11e scotfree47 <scotfree47@proton.me> 1768257593 -0500	commit: Fix: Update levels route to use calculateEnhancedLevels, fix cron path
+e17673dc05f6f32007be655d4abc15a967cdf11e ffbe43edff204f68e6a17d501ecc753a32032a4c scotfree47 <scotfree47@proton.me> 1768257717 -0500	commit: Change featured subfolder from [symbol] to [category]
+ffbe43edff204f68e6a17d501ecc753a32032a4c da1255f50193d47ed168c10845a9ba7047ccecfa scotfree47 <scotfree47@proton.me> 1768265072 -0500	commit: Fix: alternative to vercel hobby plan
+da1255f50193d47ed168c10845a9ba7047ccecfa ae90d9e65f54465324c6ce08bcb65fde87ce06ae scotfree47 <scotfree47@proton.me> 1768321271 -0500	commit: Fix: Api endpoints after switching to GitHub Actions over Vercel to execute cron job, featured-tickers.tsx still needs more update
+ae90d9e65f54465324c6ce08bcb65fde87ce06ae cc8def65121d01ed16465ad5e67798ba39b8a5da scotfree47 <scotfree47@proton.me> 1768405255 -0500	commit: Fix: cronjob s & minor changes to featured-tickers.tsx
+cc8def65121d01ed16465ad5e67798ba39b8a5da ae513dd1350b24b5bc789710d876fd2865dc4f10 scotfree47 <scotfree47@proton.me> 1768710793 -0500	commit: Major fixes/upgrades/consolidations to api routing,scripts, confluence engine, data manager, frontend components, supabase, and more
+ae513dd1350b24b5bc789710d876fd2865dc4f10 a0ed96cfcc418f0c57f14bcd37ab4e6bc646e766 scotfree47 <scotfree47@proton.me> 1768716320 -0500	commit: additional improvements/consolidations/etc of api routes, github workflows, and more
+a0ed96cfcc418f0c57f14bcd37ab4e6bc646e766 a0ed96cfcc418f0c57f14bcd37ab4e6bc646e766 scotfree47 <scotfree47@proton.me> 1768777213 -0500	reset: moving to HEAD
+a0ed96cfcc418f0c57f14bcd37ab4e6bc646e766 39abae780f87f38d65053f23032f4f50972b8780 scotfree47 <scotfree47@proton.me> 1768777389 -0500	commit: synchronization after updates/consolidations
+39abae780f87f38d65053f23032f4f50972b8780 8a0ea7fae98a2c2032d177334d5053f0fd2f744f scotfree47 <scotfree47@proton.me> 1768797908 -0500	commit: Remove redundant workflows - unified-market-sync handles everything
+8a0ea7fae98a2c2032d177334d5053f0fd2f744f 6cfabc6e0e9ce7d45252e76aa05ecb32cf08c207 scotfree47 <scotfree47@proton.me> 1768798019 -0500	commit: updated synchronization of files
+6cfabc6e0e9ce7d45252e76aa05ecb32cf08c207 b09210f87f088bd28b61460edfc2db14d8dd260f scotfree47 <scotfree47@proton.me> 1768798227 -0500	commit: remove env.local reference
+b09210f87f088bd28b61460edfc2db14d8dd260f 6cfabc6e0e9ce7d45252e76aa05ecb32cf08c207 scotfree47 <scotfree47@proton.me> 1768798995 -0500	reset: moving to HEAD~1
+6cfabc6e0e9ce7d45252e76aa05ecb32cf08c207 0aeb3a5e05f1fbccff96c295c503d5d1b30f3270 scotfree47 <scotfree47@proton.me> 1768798995 -0500	commit: fix: synchronized files (removed sensitive data)
+0aeb3a5e05f1fbccff96c295c503d5d1b30f3270 83bdfb662537d2b9f48e9a76284d25b4f14cab53 scotfree47 <scotfree47@proton.me> 1768802226 -0500	commit: temp commit
+83bdfb662537d2b9f48e9a76284d25b4f14cab53 83bdfb662537d2b9f48e9a76284d25b4f14cab53 scotfree47 <scotfree47@proton.me> 1768802226 -0500	checkout: moving from main to clean-main

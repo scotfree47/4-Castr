@@ -1,0 +1,20 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: precompute-astro.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PURPOSE (from comments):
+// Date range: Dec 21, 2004 → Present
+// All planets we care about
+// Zodiac signs with planetary rulerships
+
+MAIN FUNCTIONS:
+const Astronomy = require('astronomy-engine');
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(
+const START_DATE = new Date('2004-12-21');
+const END_DATE = new Date();
+const PLANETS = [
+const ZODIAC_SIGNS = [
+const ASPECTS = [
+function getEclipticLongitude(body, date) {
+function getZodiacSign(longitude) {
+

@@ -1,0 +1,248 @@
+# .github/workflows/unified-market-sync.yml
+# Optimized unified workflow for free-tier API limits
+# Handles ALL data updates with intelligent rate limiting
+
+name: Unified Market Sync
+
+on:
+  schedule:
+    # Every 5 minutes during core market hours (9:30 AM - 4:00 PM EST)
+    - cron: "*/5 14-20 * * 1-5"
+
+    # Every 15 minutes during extended hours (7 AM - 9:30 AM, 4 PM - 8 PM EST)
+    - cron: "*/15 12-13,21-23 * * 1-5"
+    - cron: "*/15 0-1 * * 2-6"
+
+    # Hourly outside market hours (for crypto/forex/ingress checks)
+    - cron: "0 2-11,22-23 * * 1-5"
+    - cron: "0 * * * 0,6" # Weekends hourly
+
+  workflow_dispatch:
+    inputs:
+      force_featured_refresh:
+        description: "Force featured tickers refresh"
+        required: false
+        type: boolean
+        default: false
+      categories:
+        description: "Categories to update (comma-separated: equity,crypto,forex,commodity,rates-macro,stress)"
+        required: false
+        type: string
+        default: "all"
+
+jobs:
+  smart-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # Supabase (required for all operations)
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      # Equity data providers
+      POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+      ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+      TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+      FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+
+      # Crypto data providers
+      COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+      COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+
+      # Forex data providers
+      OANDA_API_KEY: ${{ secrets.OANDA_API_KEY }}
+      EXCHANGERATE_API_KEY: ${{ secrets.EXCHANGERATE_API_KEY }}
+
+      # Commodity data providers
+      QUANDL_API_KEY: ${{ secrets.QUANDL_API_KEY }}
+      NASDAQ_DATA_LINK_API_KEY: ${{ secrets.NASDAQ_DATA_LINK_API_KEY }}
+
+      # Macro/rates data providers
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🧠 Determine Sync Strategy
+        id: strategy
+        run: |
+          # Get current time in EST
+          HOUR=$(TZ=America/New_York date +%H)
+          MINUTE=$(TZ=America/New_York date +%M)
+          DAY=$(TZ=America/New_York date +%u)
+
+          echo "hour=$HOUR" >> $GITHUB_OUTPUT
+          echo "minute=$MINUTE" >> $GITHUB_OUTPUT
+          echo "day=$DAY" >> $GITHUB_OUTPUT
+
+          # Parse manual input if provided
+          MANUAL_CATEGORIES="${{ github.event.inputs.categories }}"
+
+          # Initialize flags
+          UPDATE_EQUITY=false
+          UPDATE_CRYPTO=false
+          UPDATE_FOREX=false
+          UPDATE_COMMODITY=false
+          UPDATE_MACRO=false
+          UPDATE_STRESS=false
+          CHECK_INGRESS=false
+
+          # Manual override
+          if [ "$MANUAL_CATEGORIES" != "" ] && [ "$MANUAL_CATEGORIES" != "all" ]; then
+            if echo "$MANUAL_CATEGORIES" | grep -q "equity"; then UPDATE_EQUITY=true; fi
+            if echo "$MANUAL_CATEGORIES" | grep -q "crypto"; then UPDATE_CRYPTO=true; fi
+            if echo "$MANUAL_CATEGORIES" | grep -q "forex"; then UPDATE_FOREX=true; fi
+            if echo "$MANUAL_CATEGORIES" | grep -q "commodity"; then UPDATE_COMMODITY=true; fi
+            if echo "$MANUAL_CATEGORIES" | grep -q "rates-macro"; then UPDATE_MACRO=true; fi
+            if echo "$MANUAL_CATEGORIES" | grep -q "stress"; then UPDATE_STRESS=true; fi
+
+            echo "update_equity=$UPDATE_EQUITY" >> $GITHUB_OUTPUT
+            echo "update_crypto=$UPDATE_CRYPTO" >> $GITHUB_OUTPUT
+            echo "update_forex=$UPDATE_FOREX" >> $GITHUB_OUTPUT
+            echo "update_commodity=$UPDATE_COMMODITY" >> $GITHUB_OUTPUT
+            echo "update_macro=$UPDATE_MACRO" >> $GITHUB_OUTPUT
+            echo "update_stress=$UPDATE_STRESS" >> $GITHUB_OUTPUT
+            echo "check_ingress=false" >> $GITHUB_OUTPUT
+
+            echo "📊 Manual trigger - Categories: $MANUAL_CATEGORIES"
+            exit 0
+          fi
+
+          # Automated logic
+          # Monday-Friday market logic
+          if [ $DAY -ge 1 ] && [ $DAY -le 5 ]; then
+            # Core market hours (9:30 AM - 4:00 PM EST)
+            if [ $HOUR -ge 10 ] || ([ $HOUR -eq 9 ] && [ $MINUTE -ge 30 ]); then
+              if [ $HOUR -lt 16 ]; then
+                UPDATE_EQUITY=true
+                UPDATE_STRESS=true
+              fi
+            fi
+
+            # Extended hours (7 AM - 8 PM EST)
+            if [ $HOUR -ge 7 ] && [ $HOUR -lt 20 ]; then
+              UPDATE_CRYPTO=true
+              UPDATE_FOREX=true
+            fi
+          fi
+
+          # Weekend crypto updates (24/7 market)
+          if [ $DAY -eq 6 ] || [ $DAY -eq 7 ]; then
+            UPDATE_CRYPTO=true
+          fi
+
+          # Commodities - less frequent (every 15 min during market hours)
+          if [ $DAY -ge 1 ] && [ $DAY -le 5 ]; then
+            if [ $HOUR -ge 9 ] && [ $HOUR -lt 16 ]; then
+              if [ $((MINUTE % 15)) -eq 0 ]; then
+                UPDATE_COMMODITY=true
+              fi
+            fi
+          fi
+
+          # Macro/Rates - hourly during business hours
+          if [ $DAY -ge 1 ] && [ $DAY -le 5 ]; then
+            if [ $HOUR -ge 8 ] && [ $HOUR -lt 18 ]; then
+              if [ $MINUTE -lt 10 ]; then
+                UPDATE_MACRO=true
+              fi
+            fi
+          fi
+
+          # Ingress check - top of every hour
+          if [ $MINUTE -lt 10 ]; then
+            CHECK_INGRESS=true
+          fi
+
+          echo "update_equity=$UPDATE_EQUITY" >> $GITHUB_OUTPUT
+          echo "update_crypto=$UPDATE_CRYPTO" >> $GITHUB_OUTPUT
+          echo "update_forex=$UPDATE_FOREX" >> $GITHUB_OUTPUT
+          echo "update_commodity=$UPDATE_COMMODITY" >> $GITHUB_OUTPUT
+          echo "update_macro=$UPDATE_MACRO" >> $GITHUB_OUTPUT
+          echo "update_stress=$UPDATE_STRESS" >> $GITHUB_OUTPUT
+          echo "check_ingress=$CHECK_INGRESS" >> $GITHUB_OUTPUT
+
+          echo "📊 Strategy: Equity=$UPDATE_EQUITY Crypto=$UPDATE_CRYPTO Forex=$UPDATE_FOREX Commodity=$UPDATE_COMMODITY Macro=$UPDATE_MACRO Stress=$UPDATE_STRESS Ingress=$CHECK_INGRESS"
+
+      - name: 📈 Update Equity Prices
+        if: steps.strategy.outputs.update_equity == 'true'
+        run: |
+          echo "📈 Updating equity prices..."
+          npx tsx scripts/data-manager.ts cron-update-prices --categories=equity
+        continue-on-error: true
+
+      - name: ⚡ Update Stress Indicators
+        if: steps.strategy.outputs.update_stress == 'true'
+        run: |
+          echo "⚡ Updating stress indicators (VIX, MOVE, TRIN)..."
+          npx tsx scripts/data-manager.ts cron-update-prices --categories=stress
+        continue-on-error: true
+
+      - name: ₿ Update Crypto Prices
+        if: steps.strategy.outputs.update_crypto == 'true'
+        run: |
+          echo "₿ Updating crypto prices..."
+          npx tsx scripts/data-manager.ts cron-update-prices --categories=crypto
+        continue-on-error: true
+
+      - name: 💱 Update Forex Rates
+        if: steps.strategy.outputs.update_forex == 'true'
+        run: |
+          echo "💱 Updating forex rates..."
+          npx tsx scripts/data-manager.ts cron-update-prices --categories=forex
+        continue-on-error: true
+
+      - name: 🥇 Update Commodity Prices
+        if: steps.strategy.outputs.update_commodity == 'true'
+        run: |
+          echo "🥇 Updating commodity prices..."
+          npx tsx scripts/data-manager.ts cron-update-prices --categories=commodity
+        continue-on-error: true
+
+      - name: 📊 Update Macro/Rates Data
+        if: steps.strategy.outputs.update_macro == 'true'
+        run: |
+          echo "📊 Updating macro/rates data..."
+          npx tsx scripts/data-manager.ts cron-update-prices --categories=rates-macro
+        continue-on-error: true
+
+      - name: 🌞 Check Ingress & Refresh Featured
+        if: steps.strategy.outputs.check_ingress == 'true' || github.event.inputs.force_featured_refresh == 'true'
+        run: |
+          echo "🌞 Checking ingress period and refreshing featured tickers if needed..."
+          npx tsx scripts/data-manager.ts cron-refresh-featured
+        continue-on-error: true
+
+      - name: 📊 Execution Summary
+        if: always()
+        run: |
+          echo "════════════════════════════════════════════════════════════"
+          echo "⏰ Sync completed at $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z')"
+          echo "────────────────────────────────────────────────────────────"
+          echo "Updates executed:"
+          echo "  📈 Equity:    ${{ steps.strategy.outputs.update_equity }}"
+          echo "  ₿ Crypto:     ${{ steps.strategy.outputs.update_crypto }}"
+          echo "  💱 Forex:     ${{ steps.strategy.outputs.update_forex }}"
+          echo "  🥇 Commodity: ${{ steps.strategy.outputs.update_commodity }}"
+          echo "  📊 Macro:     ${{ steps.strategy.outputs.update_macro }}"
+          echo "  ⚡ Stress:    ${{ steps.strategy.outputs.update_stress }}"
+          echo "  🌞 Ingress:   ${{ steps.strategy.outputs.check_ingress }}"
+          echo "════════════════════════════════════════════════════════════"
+
+      - name: 🚨 Notify on Critical Failure
+        if: failure()
+        run: |
+          echo "::error::Critical failure in market sync workflow"
+          echo "Check logs above for specific error details"
+          # Future: Add Discord/Slack webhook notification here

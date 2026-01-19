@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "ticker": "COTTON",
+    "sector": "agriculture",
+    "trend": "favorable",
+    "next": "84",
+    "last": "84",
+    "compare": "Ticker(s)",
+    "type": "commodity",
+    "confidenceScore": 84
+  },
+  {
+    "id": 2,
+    "ticker": "WHEAT",
+    "sector": "agriculture",
+    "trend": "favorable",
+    "next": "84",
+    "last": "84",
+    "compare": "Ticker(s)",
+    "type": "commodity",
+    "confidenceScore": 84
+  },
+  {
+    "id": 3,
+    "ticker": "CORN",
+    "sector": "agriculture",
+    "trend": "favorable",
+    "next": "84",
+    "last": "84",
+    "compare": "Ticker(s)",
+    "type": "commodity",
+    "confidenceScore": 84
+  },
+  {
+    "id": 92,
+    "ticker": "WKHS",
+    "sector": "industrials",
+    "trend": "unfavorable",
+    "next": "49",
+    "last": "49",
+    "compare": "Ticker(s)",
+    "type": "equity",
+    "confidenceScore": 49
+  },
+  {
+    "id": 93,
+    "ticker": "WMG",
+    "sector": "communication_services",
+    "trend": "unfavorable",
+    "next": "49",
+    "last": "49",
+    "compare": "Ticker(s)",
+    "type": "equity",
+    "confidenceScore": 49
+  }
+]

@@ -1,0 +1,16 @@
+name: Scheduled Featured Tickers Refresh
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+
+jobs:
+  trigger-cron:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Vercel Cron Endpoint
+        run: |
+          curl -X GET https://4castr.vercel.app/api/cron-refresh-featured \
+               -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

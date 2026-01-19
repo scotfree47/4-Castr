@@ -1,0 +1,585 @@
+date,cycle_position,node_longitude,key_phase,bonus_eligible,cycle_days_elapsed
+2006-12-04,134.02,351.12,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.98, 'at_key_point': True}",False,2529
+2006-12-05,134.07,351.07,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.93, 'at_key_point': True}",False,2530
+2006-12-06,134.12,351.01,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.88, 'at_key_point': True}",False,2531
+2006-12-07,134.18,350.96,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.82, 'at_key_point': True}",False,2532
+2006-12-08,134.23,350.91,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.77, 'at_key_point': True}",False,2533
+2006-12-09,134.28,350.85,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.72, 'at_key_point': True}",False,2534
+2006-12-10,134.33,350.8,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.67, 'at_key_point': True}",False,2535
+2006-12-11,134.39,350.75,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.61, 'at_key_point': True}",False,2536
+2006-12-12,134.44,350.7,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.56, 'at_key_point': True}",False,2537
+2006-12-13,134.49,350.64,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.51, 'at_key_point': True}",False,2538
+2006-12-14,134.55,350.59,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.45, 'at_key_point': True}",False,2539
+2006-12-15,134.6,350.54,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.4, 'at_key_point': True}",False,2540
+2006-12-16,134.65,350.48,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.35, 'at_key_point': True}",False,2541
+2006-12-17,134.71,350.43,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.29, 'at_key_point': True}",False,2542
+2006-12-18,134.76,350.38,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.24, 'at_key_point': True}",False,2543
+2006-12-19,134.81,350.33,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.19, 'at_key_point': True}",False,2544
+2006-12-20,134.86,350.27,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.14, 'at_key_point': True}",False,2545
+2006-12-21,134.92,350.22,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.08, 'at_key_point': True}",False,2546
+2006-12-22,134.97,350.17,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.03, 'at_key_point': True}",False,2547
+2006-12-23,135.02,350.11,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.98, 'at_key_point': True}",False,2548
+2006-12-24,135.08,350.06,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.92, 'at_key_point': True}",False,2549
+2006-12-25,135.13,350.01,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.87, 'at_key_point': True}",False,2550
+2006-12-26,135.18,349.95,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.82, 'at_key_point': True}",False,2551
+2006-12-27,135.24,349.9,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.76, 'at_key_point': True}",False,2552
+2006-12-28,135.29,349.85,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.71, 'at_key_point': True}",False,2553
+2006-12-29,135.34,349.8,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.66, 'at_key_point': True}",False,2554
+2006-12-30,135.39,349.74,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.61, 'at_key_point': True}",False,2555
+2006-12-31,135.45,349.69,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.55, 'at_key_point': True}",False,2556
+2007-01-01,135.5,349.64,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.5, 'at_key_point': True}",False,2557
+2007-01-02,135.55,349.58,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.45, 'at_key_point': True}",False,2558
+2007-01-03,135.61,349.53,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.39, 'at_key_point': True}",False,2559
+2007-01-04,135.66,349.48,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.34, 'at_key_point': True}",False,2560
+2007-01-05,135.71,349.42,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.29, 'at_key_point': True}",False,2561
+2007-01-06,135.77,349.37,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.23, 'at_key_point': True}",False,2562
+2007-01-07,135.82,349.32,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.18, 'at_key_point': True}",False,2563
+2007-01-08,135.87,349.27,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.13, 'at_key_point': True}",False,2564
+2007-01-09,135.92,349.21,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.08, 'at_key_point': True}",False,2565
+2007-01-10,135.98,349.16,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.02, 'at_key_point': True}",False,2566
+2007-01-11,136.03,349.11,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.97, 'at_key_point': True}",False,2567
+2007-01-12,136.08,349.05,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.92, 'at_key_point': True}",False,2568
+2007-01-13,136.14,349.0,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.86, 'at_key_point': True}",False,2569
+2007-01-14,136.19,348.95,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.81, 'at_key_point': True}",False,2570
+2007-01-15,136.24,348.9,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.76, 'at_key_point': True}",False,2571
+2007-01-16,136.29,348.84,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.71, 'at_key_point': True}",False,2572
+2007-01-17,136.35,348.79,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.65, 'at_key_point': True}",False,2573
+2007-01-18,136.4,348.74,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.6, 'at_key_point': True}",False,2574
+2007-01-19,136.45,348.68,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.55, 'at_key_point': True}",False,2575
+2007-01-20,136.51,348.63,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.49, 'at_key_point': True}",False,2576
+2007-01-21,136.56,348.58,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.44, 'at_key_point': True}",False,2577
+2007-01-22,136.61,348.52,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.39, 'at_key_point': True}",False,2578
+2007-01-23,136.67,348.47,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.33, 'at_key_point': True}",False,2579
+2007-01-24,136.72,348.42,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.28, 'at_key_point': True}",False,2580
+2007-01-25,136.77,348.37,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.23, 'at_key_point': True}",False,2581
+2007-01-26,136.82,348.31,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.18, 'at_key_point': True}",False,2582
+2007-01-27,136.88,348.26,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.12, 'at_key_point': True}",False,2583
+2007-01-28,136.93,348.21,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.07, 'at_key_point': True}",False,2584
+2007-01-29,136.98,348.15,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.02, 'at_key_point': True}",False,2585
+2007-01-30,137.04,348.1,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.04, 'at_key_point': True}",False,2586
+2007-01-31,137.09,348.05,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.09, 'at_key_point': True}",False,2587
+2007-02-01,137.14,348.0,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.14, 'at_key_point': True}",False,2588
+2007-02-02,137.2,347.94,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.2, 'at_key_point': True}",False,2589
+2007-02-03,137.25,347.89,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.25, 'at_key_point': True}",False,2590
+2007-02-04,137.3,347.84,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.3, 'at_key_point': True}",False,2591
+2007-02-05,137.35,347.78,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.35, 'at_key_point': True}",False,2592
+2007-02-06,137.41,347.73,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.41, 'at_key_point': True}",False,2593
+2007-02-07,137.46,347.68,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.46, 'at_key_point': True}",False,2594
+2007-02-08,137.51,347.62,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.51, 'at_key_point': True}",False,2595
+2007-02-09,137.57,347.57,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.57, 'at_key_point': True}",False,2596
+2007-02-10,137.62,347.52,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.62, 'at_key_point': True}",False,2597
+2007-02-11,137.67,347.47,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.67, 'at_key_point': True}",False,2598
+2007-02-12,137.73,347.41,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.73, 'at_key_point': True}",False,2599
+2007-02-13,137.78,347.36,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.78, 'at_key_point': True}",False,2600
+2007-02-14,137.83,347.31,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.83, 'at_key_point': True}",False,2601
+2007-02-15,137.88,347.25,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.88, 'at_key_point': True}",False,2602
+2007-02-16,137.94,347.2,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.94, 'at_key_point': True}",False,2603
+2007-02-17,137.99,347.15,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.99, 'at_key_point': True}",False,2604
+2007-02-18,138.04,347.09,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.04, 'at_key_point': True}",False,2605
+2007-02-19,138.1,347.04,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.1, 'at_key_point': True}",False,2606
+2007-02-20,138.15,346.99,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.15, 'at_key_point': True}",False,2607
+2007-02-21,138.2,346.94,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.2, 'at_key_point': True}",False,2608
+2007-02-22,138.26,346.88,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.26, 'at_key_point': True}",False,2609
+2007-02-23,138.31,346.83,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.31, 'at_key_point': True}",False,2610
+2007-02-24,138.36,346.78,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.36, 'at_key_point': True}",False,2611
+2007-02-25,138.41,346.72,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.41, 'at_key_point': True}",False,2612
+2007-02-26,138.47,346.67,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.47, 'at_key_point': True}",False,2613
+2007-02-27,138.52,346.62,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.52, 'at_key_point': True}",False,2614
+2007-02-28,138.57,346.57,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.57, 'at_key_point': True}",False,2615
+2007-03-01,138.63,346.51,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.63, 'at_key_point': True}",False,2616
+2007-03-02,138.68,346.46,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.68, 'at_key_point': True}",False,2617
+2007-03-03,138.73,346.41,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.73, 'at_key_point': True}",False,2618
+2007-03-04,138.79,346.35,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.79, 'at_key_point': True}",False,2619
+2007-03-05,138.84,346.3,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.84, 'at_key_point': True}",False,2620
+2007-03-06,138.89,346.25,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.89, 'at_key_point': True}",False,2621
+2007-03-07,138.94,346.19,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.94, 'at_key_point': True}",False,2622
+2007-03-08,139.0,346.14,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.0, 'at_key_point': True}",False,2623
+2007-03-09,139.05,346.09,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.05, 'at_key_point': True}",False,2624
+2007-03-10,139.1,346.04,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.1, 'at_key_point': True}",False,2625
+2007-03-11,139.16,345.98,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.16, 'at_key_point': True}",False,2626
+2007-03-12,139.21,345.93,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.21, 'at_key_point': True}",False,2627
+2007-03-13,139.26,345.88,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.26, 'at_key_point': True}",False,2628
+2007-03-14,139.32,345.82,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.32, 'at_key_point': True}",False,2629
+2007-03-15,139.37,345.77,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.37, 'at_key_point': True}",False,2630
+2007-03-16,139.42,345.72,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.42, 'at_key_point': True}",False,2631
+2007-03-17,139.47,345.67,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.47, 'at_key_point': True}",False,2632
+2007-03-18,139.53,345.61,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.53, 'at_key_point': True}",False,2633
+2007-03-19,139.58,345.56,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.58, 'at_key_point': True}",False,2634
+2007-03-20,139.63,345.51,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.63, 'at_key_point': True}",False,2635
+2007-03-21,139.69,345.45,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.69, 'at_key_point': True}",False,2636
+2007-03-22,139.74,345.4,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.74, 'at_key_point': True}",False,2637
+2007-03-23,139.79,345.35,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.79, 'at_key_point': True}",False,2638
+2007-03-24,139.85,345.29,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.85, 'at_key_point': True}",False,2639
+2007-03-25,139.9,345.24,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.9, 'at_key_point': True}",False,2640
+2007-03-26,139.95,345.19,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.95, 'at_key_point': True}",False,2641
+2009-04-01,179.01,306.16,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.99, 'at_key_point': True}",True,3378
+2009-04-02,179.06,306.11,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.94, 'at_key_point': True}",True,3379
+2009-04-03,179.11,306.06,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.89, 'at_key_point': True}",True,3380
+2009-04-04,179.17,306.0,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.83, 'at_key_point': True}",True,3381
+2009-04-05,179.22,305.95,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.78, 'at_key_point': True}",True,3382
+2009-04-06,179.27,305.9,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.73, 'at_key_point': True}",True,3383
+2009-04-07,179.32,305.84,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.68, 'at_key_point': True}",True,3384
+2009-04-08,179.38,305.79,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.62, 'at_key_point': True}",True,3385
+2009-04-09,179.43,305.74,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.57, 'at_key_point': True}",True,3386
+2009-04-10,179.48,305.68,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.52, 'at_key_point': True}",True,3387
+2009-04-11,179.54,305.63,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.46, 'at_key_point': True}",True,3388
+2009-04-12,179.59,305.58,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.41, 'at_key_point': True}",True,3389
+2009-04-13,179.64,305.53,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.36, 'at_key_point': True}",True,3390
+2009-04-14,179.7,305.47,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.3, 'at_key_point': True}",True,3391
+2009-04-15,179.75,305.42,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.25, 'at_key_point': True}",True,3392
+2009-04-16,179.8,305.37,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.2, 'at_key_point': True}",True,3393
+2009-04-17,179.85,305.31,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.15, 'at_key_point': True}",True,3394
+2009-04-18,179.91,305.26,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.09, 'at_key_point': True}",True,3395
+2009-04-19,179.96,305.21,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.04, 'at_key_point': True}",True,3396
+2009-04-20,180.01,305.16,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.01, 'at_key_point': True}",True,3397
+2009-04-21,180.07,305.1,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.07, 'at_key_point': True}",True,3398
+2009-04-22,180.12,305.05,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.12, 'at_key_point': True}",True,3399
+2009-04-23,180.17,305.0,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.17, 'at_key_point': True}",True,3400
+2009-04-24,180.23,304.94,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.23, 'at_key_point': True}",True,3401
+2009-04-25,180.28,304.89,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.28, 'at_key_point': True}",True,3402
+2009-04-26,180.33,304.84,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.33, 'at_key_point': True}",True,3403
+2009-04-27,180.38,304.78,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.38, 'at_key_point': True}",True,3404
+2009-04-28,180.44,304.73,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.44, 'at_key_point': True}",True,3405
+2009-04-29,180.49,304.68,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.49, 'at_key_point': True}",True,3406
+2009-04-30,180.54,304.63,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.54, 'at_key_point': True}",True,3407
+2009-05-01,180.6,304.57,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.6, 'at_key_point': True}",True,3408
+2009-05-02,180.65,304.52,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.65, 'at_key_point': True}",True,3409
+2009-05-03,180.7,304.47,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.7, 'at_key_point': True}",True,3410
+2009-05-04,180.76,304.41,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.76, 'at_key_point': True}",True,3411
+2009-05-05,180.81,304.36,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.81, 'at_key_point': True}",True,3412
+2009-05-06,180.86,304.31,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.86, 'at_key_point': True}",True,3413
+2009-05-07,180.91,304.26,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.91, 'at_key_point': True}",True,3414
+2009-05-08,180.97,304.2,"{'phase': 'opposition', 'description': 'Major volatility / turning point', 'orb': 0.97, 'at_key_point': True}",True,3415
+2011-05-15,220.02,265.17,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.98, 'at_key_point': True}",False,4152
+2011-05-16,220.08,265.12,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.92, 'at_key_point': True}",False,4153
+2011-05-17,220.13,265.07,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.87, 'at_key_point': True}",False,4154
+2011-05-18,220.18,265.02,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.82, 'at_key_point': True}",False,4155
+2011-05-19,220.23,264.96,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.77, 'at_key_point': True}",False,4156
+2011-05-20,220.29,264.91,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.71, 'at_key_point': True}",False,4157
+2011-05-21,220.34,264.86,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.66, 'at_key_point': True}",False,4158
+2011-05-22,220.39,264.8,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.61, 'at_key_point': True}",False,4159
+2011-05-23,220.45,264.75,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.55, 'at_key_point': True}",False,4160
+2011-05-24,220.5,264.7,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.5, 'at_key_point': True}",False,4161
+2011-05-25,220.55,264.65,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.45, 'at_key_point': True}",False,4162
+2011-05-26,220.6,264.59,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.4, 'at_key_point': True}",False,4163
+2011-05-27,220.66,264.54,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.34, 'at_key_point': True}",False,4164
+2011-05-28,220.71,264.49,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.29, 'at_key_point': True}",False,4165
+2011-05-29,220.76,264.43,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.24, 'at_key_point': True}",False,4166
+2011-05-30,220.82,264.38,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.18, 'at_key_point': True}",False,4167
+2011-05-31,220.87,264.33,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.13, 'at_key_point': True}",False,4168
+2011-06-01,220.92,264.27,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.08, 'at_key_point': True}",False,4169
+2011-06-02,220.98,264.22,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.02, 'at_key_point': True}",False,4170
+2011-06-03,221.03,264.17,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.97, 'at_key_point': True}",False,4171
+2011-06-04,221.08,264.12,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.92, 'at_key_point': True}",False,4172
+2011-06-05,221.13,264.06,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.87, 'at_key_point': True}",False,4173
+2011-06-06,221.19,264.01,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.81, 'at_key_point': True}",False,4174
+2011-06-07,221.24,263.96,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.76, 'at_key_point': True}",False,4175
+2011-06-08,221.29,263.9,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.71, 'at_key_point': True}",False,4176
+2011-06-09,221.35,263.85,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.65, 'at_key_point': True}",False,4177
+2011-06-10,221.4,263.8,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.6, 'at_key_point': True}",False,4178
+2011-06-11,221.45,263.75,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.55, 'at_key_point': True}",False,4179
+2011-06-12,221.51,263.69,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.49, 'at_key_point': True}",False,4180
+2011-06-13,221.56,263.64,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.44, 'at_key_point': True}",False,4181
+2011-06-14,221.61,263.59,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.39, 'at_key_point': True}",False,4182
+2011-06-15,221.66,263.53,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.34, 'at_key_point': True}",False,4183
+2011-06-16,221.72,263.48,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.28, 'at_key_point': True}",False,4184
+2011-06-17,221.77,263.43,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.23, 'at_key_point': True}",False,4185
+2011-06-18,221.82,263.37,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.18, 'at_key_point': True}",False,4186
+2011-06-19,221.88,263.32,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.12, 'at_key_point': True}",False,4187
+2011-06-20,221.93,263.27,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.07, 'at_key_point': True}",False,4188
+2011-06-21,221.98,263.22,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.02, 'at_key_point': True}",False,4189
+2011-06-22,222.04,263.16,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.96, 'at_key_point': True}",False,4190
+2011-06-23,222.09,263.11,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.91, 'at_key_point': True}",False,4191
+2011-06-24,222.14,263.06,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.86, 'at_key_point': True}",False,4192
+2011-06-25,222.19,263.0,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.81, 'at_key_point': True}",False,4193
+2011-06-26,222.25,262.95,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.75, 'at_key_point': True}",False,4194
+2011-06-27,222.3,262.9,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.7, 'at_key_point': True}",False,4195
+2011-06-28,222.35,262.85,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.65, 'at_key_point': True}",False,4196
+2011-06-29,222.41,262.79,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.59, 'at_key_point': True}",False,4197
+2011-06-30,222.46,262.74,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.54, 'at_key_point': True}",False,4198
+2011-07-01,222.51,262.69,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.49, 'at_key_point': True}",False,4199
+2011-07-02,222.57,262.63,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.43, 'at_key_point': True}",False,4200
+2011-07-03,222.62,262.58,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.38, 'at_key_point': True}",False,4201
+2011-07-04,222.67,262.53,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.33, 'at_key_point': True}",False,4202
+2011-07-05,222.72,262.47,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.28, 'at_key_point': True}",False,4203
+2011-07-06,222.78,262.42,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.22, 'at_key_point': True}",False,4204
+2011-07-07,222.83,262.37,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.17, 'at_key_point': True}",False,4205
+2011-07-08,222.88,262.32,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.12, 'at_key_point': True}",False,4206
+2011-07-09,222.94,262.26,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.06, 'at_key_point': True}",False,4207
+2011-07-10,222.99,262.21,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.01, 'at_key_point': True}",False,4208
+2011-07-11,223.04,262.16,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.04, 'at_key_point': True}",False,4209
+2011-07-12,223.1,262.1,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.1, 'at_key_point': True}",False,4210
+2011-07-13,223.15,262.05,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.15, 'at_key_point': True}",False,4211
+2011-07-14,223.2,262.0,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.2, 'at_key_point': True}",False,4212
+2011-07-15,223.25,261.94,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.25, 'at_key_point': True}",False,4213
+2011-07-16,223.31,261.89,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.31, 'at_key_point': True}",False,4214
+2011-07-17,223.36,261.84,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.36, 'at_key_point': True}",False,4215
+2011-07-18,223.41,261.79,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.41, 'at_key_point': True}",False,4216
+2011-07-19,223.47,261.73,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.47, 'at_key_point': True}",False,4217
+2011-07-20,223.52,261.68,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.52, 'at_key_point': True}",False,4218
+2011-07-21,223.57,261.63,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.57, 'at_key_point': True}",False,4219
+2011-07-22,223.63,261.57,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.63, 'at_key_point': True}",False,4220
+2011-07-23,223.68,261.52,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.68, 'at_key_point': True}",False,4221
+2011-07-24,223.73,261.47,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.73, 'at_key_point': True}",False,4222
+2011-07-25,223.78,261.42,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.78, 'at_key_point': True}",False,4223
+2011-07-26,223.84,261.36,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.84, 'at_key_point': True}",False,4224
+2011-07-27,223.89,261.31,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.89, 'at_key_point': True}",False,4225
+2011-07-28,223.94,261.26,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 0.94, 'at_key_point': True}",False,4226
+2011-07-29,224.0,261.2,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.0, 'at_key_point': True}",False,4227
+2011-07-30,224.05,261.15,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.05, 'at_key_point': True}",False,4228
+2011-07-31,224.1,261.1,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.1, 'at_key_point': True}",False,4229
+2011-08-01,224.16,261.04,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.16, 'at_key_point': True}",False,4230
+2011-08-02,224.21,260.99,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.21, 'at_key_point': True}",False,4231
+2011-08-03,224.26,260.94,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.26, 'at_key_point': True}",False,4232
+2011-08-04,224.31,260.89,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.31, 'at_key_point': True}",False,4233
+2011-08-05,224.37,260.83,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.37, 'at_key_point': True}",False,4234
+2011-08-06,224.42,260.78,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.42, 'at_key_point': True}",False,4235
+2011-08-07,224.47,260.73,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.47, 'at_key_point': True}",False,4236
+2011-08-08,224.53,260.67,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.53, 'at_key_point': True}",False,4237
+2011-08-09,224.58,260.62,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.58, 'at_key_point': True}",False,4238
+2011-08-10,224.63,260.57,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.63, 'at_key_point': True}",False,4239
+2011-08-11,224.69,260.52,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.69, 'at_key_point': True}",False,4240
+2011-08-12,224.74,260.46,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.74, 'at_key_point': True}",False,4241
+2011-08-13,224.79,260.41,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.79, 'at_key_point': True}",False,4242
+2011-08-14,224.84,260.36,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.84, 'at_key_point': True}",False,4243
+2011-08-15,224.9,260.3,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.9, 'at_key_point': True}",False,4244
+2011-08-16,224.95,260.25,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 1.95, 'at_key_point': True}",False,4245
+2011-08-17,225.0,260.2,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.0, 'at_key_point': True}",False,4246
+2011-08-18,225.06,260.14,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.06, 'at_key_point': True}",False,4247
+2011-08-19,225.11,260.09,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.11, 'at_key_point': True}",False,4248
+2011-08-20,225.16,260.04,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.16, 'at_key_point': True}",False,4249
+2011-08-21,225.22,259.99,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.22, 'at_key_point': True}",False,4250
+2011-08-22,225.27,259.93,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.27, 'at_key_point': True}",False,4251
+2011-08-23,225.32,259.88,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.32, 'at_key_point': True}",False,4252
+2011-08-24,225.37,259.83,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.37, 'at_key_point': True}",False,4253
+2011-08-25,225.43,259.77,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.43, 'at_key_point': True}",False,4254
+2011-08-26,225.48,259.72,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.48, 'at_key_point': True}",False,4255
+2011-08-27,225.53,259.67,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.53, 'at_key_point': True}",False,4256
+2011-08-28,225.59,259.61,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.59, 'at_key_point': True}",False,4257
+2011-08-29,225.64,259.56,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.64, 'at_key_point': True}",False,4258
+2011-08-30,225.69,259.51,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.69, 'at_key_point': True}",False,4259
+2011-08-31,225.75,259.46,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.75, 'at_key_point': True}",False,4260
+2011-09-01,225.8,259.4,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.8, 'at_key_point': True}",False,4261
+2011-09-02,225.85,259.35,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.85, 'at_key_point': True}",False,4262
+2011-09-03,225.9,259.3,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.9, 'at_key_point': True}",False,4263
+2011-09-04,225.96,259.24,"{'phase': 'fibonacci_61', 'description': 'Secondary reaction pivot', 'orb': 2.96, 'at_key_point': True}",False,4264
+2013-11-06,268.03,217.2,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.97, 'at_key_point': True}",False,5058
+2013-11-07,268.09,217.15,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.91, 'at_key_point': True}",False,5059
+2013-11-08,268.14,217.09,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.86, 'at_key_point': True}",False,5060
+2013-11-09,268.19,217.04,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.81, 'at_key_point': True}",False,5061
+2013-11-10,268.24,216.99,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.76, 'at_key_point': True}",False,5062
+2013-11-11,268.3,216.93,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.7, 'at_key_point': True}",False,5063
+2013-11-12,268.35,216.88,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.65, 'at_key_point': True}",False,5064
+2013-11-13,268.4,216.83,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.6, 'at_key_point': True}",False,5065
+2013-11-14,268.46,216.78,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.54, 'at_key_point': True}",False,5066
+2013-11-15,268.51,216.72,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.49, 'at_key_point': True}",False,5067
+2013-11-16,268.56,216.67,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.44, 'at_key_point': True}",False,5068
+2013-11-17,268.62,216.62,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.38, 'at_key_point': True}",False,5069
+2013-11-18,268.67,216.56,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.33, 'at_key_point': True}",False,5070
+2013-11-19,268.72,216.51,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.28, 'at_key_point': True}",False,5071
+2013-11-20,268.77,216.46,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.23, 'at_key_point': True}",False,5072
+2013-11-21,268.83,216.4,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.17, 'at_key_point': True}",False,5073
+2013-11-22,268.88,216.35,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.12, 'at_key_point': True}",False,5074
+2013-11-23,268.93,216.3,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.07, 'at_key_point': True}",False,5075
+2013-11-24,268.99,216.25,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.01, 'at_key_point': True}",False,5076
+2013-11-25,269.04,216.19,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.96, 'at_key_point': True}",False,5077
+2013-11-26,269.09,216.14,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.91, 'at_key_point': True}",False,5078
+2013-11-27,269.15,216.09,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.85, 'at_key_point': True}",False,5079
+2013-11-28,269.2,216.03,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.8, 'at_key_point': True}",False,5080
+2013-11-29,269.25,215.98,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.75, 'at_key_point': True}",False,5081
+2013-11-30,269.3,215.93,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.7, 'at_key_point': True}",False,5082
+2013-12-01,269.36,215.87,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.64, 'at_key_point': True}",False,5083
+2013-12-02,269.41,215.82,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.59, 'at_key_point': True}",False,5084
+2013-12-03,269.46,215.77,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.54, 'at_key_point': True}",False,5085
+2013-12-04,269.52,215.72,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.48, 'at_key_point': True}",False,5086
+2013-12-05,269.57,215.66,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.43, 'at_key_point': True}",False,5087
+2013-12-06,269.62,215.61,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.38, 'at_key_point': True}",False,5088
+2013-12-07,269.68,215.56,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.32, 'at_key_point': True}",False,5089
+2013-12-08,269.73,215.5,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.27, 'at_key_point': True}",False,5090
+2013-12-09,269.78,215.45,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.22, 'at_key_point': True}",False,5091
+2013-12-10,269.83,215.4,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.17, 'at_key_point': True}",False,5092
+2013-12-11,269.89,215.35,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.11, 'at_key_point': True}",False,5093
+2013-12-12,269.94,215.29,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.06, 'at_key_point': True}",False,5094
+2013-12-13,269.99,215.24,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.01, 'at_key_point': True}",False,5095
+2013-12-14,270.05,215.19,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.05, 'at_key_point': True}",False,5096
+2013-12-15,270.1,215.13,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.1, 'at_key_point': True}",False,5097
+2013-12-16,270.15,215.08,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.15, 'at_key_point': True}",False,5098
+2013-12-17,270.21,215.03,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.21, 'at_key_point': True}",False,5099
+2013-12-18,270.26,214.97,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.26, 'at_key_point': True}",False,5100
+2013-12-19,270.31,214.92,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.31, 'at_key_point': True}",False,5101
+2013-12-20,270.36,214.87,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.36, 'at_key_point': True}",False,5102
+2013-12-21,270.42,214.82,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.42, 'at_key_point': True}",False,5103
+2013-12-22,270.47,214.76,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.47, 'at_key_point': True}",False,5104
+2013-12-23,270.52,214.71,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.52, 'at_key_point': True}",False,5105
+2013-12-24,270.58,214.66,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.58, 'at_key_point': True}",False,5106
+2013-12-25,270.63,214.6,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.63, 'at_key_point': True}",False,5107
+2013-12-26,270.68,214.55,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.68, 'at_key_point': True}",False,5108
+2013-12-27,270.74,214.5,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.74, 'at_key_point': True}",False,5109
+2013-12-28,270.79,214.45,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.79, 'at_key_point': True}",False,5110
+2013-12-29,270.84,214.39,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.84, 'at_key_point': True}",False,5111
+2013-12-30,270.89,214.34,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.89, 'at_key_point': True}",False,5112
+2013-12-31,270.95,214.29,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 0.95, 'at_key_point': True}",False,5113
+2014-01-01,271.0,214.23,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.0, 'at_key_point': True}",False,5114
+2014-01-02,271.05,214.18,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.05, 'at_key_point': True}",False,5115
+2014-01-03,271.11,214.13,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.11, 'at_key_point': True}",False,5116
+2014-01-04,271.16,214.07,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.16, 'at_key_point': True}",False,5117
+2014-01-05,271.21,214.02,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.21, 'at_key_point': True}",False,5118
+2014-01-06,271.27,213.97,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.27, 'at_key_point': True}",False,5119
+2014-01-07,271.32,213.92,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.32, 'at_key_point': True}",False,5120
+2014-01-08,271.37,213.86,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.37, 'at_key_point': True}",False,5121
+2014-01-09,271.42,213.81,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.42, 'at_key_point': True}",False,5122
+2014-01-10,271.48,213.76,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.48, 'at_key_point': True}",False,5123
+2014-01-11,271.53,213.7,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.53, 'at_key_point': True}",False,5124
+2014-01-12,271.58,213.65,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.58, 'at_key_point': True}",False,5125
+2014-01-13,271.64,213.6,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.64, 'at_key_point': True}",False,5126
+2014-01-14,271.69,213.54,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.69, 'at_key_point': True}",False,5127
+2014-01-15,271.74,213.49,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.74, 'at_key_point': True}",False,5128
+2014-01-16,271.8,213.44,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.8, 'at_key_point': True}",False,5129
+2014-01-17,271.85,213.39,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.85, 'at_key_point': True}",False,5130
+2014-01-18,271.9,213.33,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.9, 'at_key_point': True}",False,5131
+2014-01-19,271.95,213.28,"{'phase': 'second_quadrature', 'description': 'Intermediate volatility peak', 'orb': 1.95, 'at_key_point': True}",False,5132
+2018-07-20,359.02,126.28,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.98, 'at_key_point': True}",True,6775
+2018-07-21,359.07,126.22,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.93, 'at_key_point': True}",True,6776
+2018-07-22,359.13,126.17,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.87, 'at_key_point': True}",True,6777
+2018-07-23,359.18,126.12,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.82, 'at_key_point': True}",True,6778
+2018-07-24,359.23,126.06,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.77, 'at_key_point': True}",True,6779
+2018-07-25,359.28,126.01,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.72, 'at_key_point': True}",True,6780
+2018-07-26,359.34,125.96,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.66, 'at_key_point': True}",True,6781
+2018-07-27,359.39,125.91,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.61, 'at_key_point': True}",True,6782
+2018-07-28,359.44,125.85,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.56, 'at_key_point': True}",True,6783
+2018-07-29,359.5,125.8,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.5, 'at_key_point': True}",True,6784
+2018-07-30,359.55,125.75,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.45, 'at_key_point': True}",True,6785
+2018-07-31,359.6,125.69,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.4, 'at_key_point': True}",True,6786
+2018-08-01,359.66,125.64,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.34, 'at_key_point': True}",True,6787
+2018-08-02,359.71,125.59,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.29, 'at_key_point': True}",True,6788
+2018-08-03,359.76,125.54,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.24, 'at_key_point': True}",True,6789
+2018-08-04,359.81,125.48,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.19, 'at_key_point': True}",True,6790
+2018-08-05,359.87,125.43,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.13, 'at_key_point': True}",True,6791
+2018-08-06,359.92,125.38,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.08, 'at_key_point': True}",True,6792
+2018-08-07,359.97,125.32,"{'phase': 'completion', 'description': 'Cycle reset / secular trend pivot', 'orb': 0.03, 'at_key_point': True}",True,6793
+2018-08-08,0.03,125.27,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.03, 'at_key_point': True}",True,0
+2018-08-09,0.08,125.22,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.08, 'at_key_point': True}",True,1
+2018-08-10,0.13,125.16,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.13, 'at_key_point': True}",True,2
+2018-08-11,0.19,125.11,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.19, 'at_key_point': True}",True,3
+2018-08-12,0.24,125.06,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.24, 'at_key_point': True}",True,4
+2018-08-13,0.29,125.01,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.29, 'at_key_point': True}",True,5
+2018-08-14,0.34,124.95,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.34, 'at_key_point': True}",True,6
+2018-08-15,0.4,124.9,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.4, 'at_key_point': True}",True,7
+2018-08-16,0.45,124.85,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.45, 'at_key_point': True}",True,8
+2018-08-17,0.5,124.79,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.5, 'at_key_point': True}",True,9
+2018-08-18,0.56,124.74,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.56, 'at_key_point': True}",True,10
+2018-08-19,0.61,124.69,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.61, 'at_key_point': True}",True,11
+2018-08-20,0.66,124.64,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.66, 'at_key_point': True}",True,12
+2018-08-21,0.72,124.58,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.72, 'at_key_point': True}",True,13
+2018-08-22,0.77,124.53,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.77, 'at_key_point': True}",True,14
+2018-08-23,0.82,124.48,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.82, 'at_key_point': True}",True,15
+2018-08-24,0.87,124.42,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.87, 'at_key_point': True}",True,16
+2018-08-25,0.93,124.37,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.93, 'at_key_point': True}",True,17
+2018-08-26,0.98,124.32,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 0.98, 'at_key_point': True}",True,18
+2018-08-27,1.03,124.26,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.03, 'at_key_point': True}",True,19
+2018-08-28,1.09,124.21,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.09, 'at_key_point': True}",True,20
+2018-08-29,1.14,124.16,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.14, 'at_key_point': True}",True,21
+2018-08-30,1.19,124.11,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.19, 'at_key_point': True}",True,22
+2018-08-31,1.25,124.05,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.25, 'at_key_point': True}",True,23
+2018-09-01,1.3,124.0,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.3, 'at_key_point': True}",True,24
+2018-09-02,1.35,123.95,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.35, 'at_key_point': True}",True,25
+2018-09-03,1.4,123.89,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.4, 'at_key_point': True}",True,26
+2018-09-04,1.46,123.84,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.46, 'at_key_point': True}",True,27
+2018-09-05,1.51,123.79,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.51, 'at_key_point': True}",True,28
+2018-09-06,1.56,123.73,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.56, 'at_key_point': True}",True,29
+2018-09-07,1.62,123.68,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.62, 'at_key_point': True}",True,30
+2018-09-08,1.67,123.63,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.67, 'at_key_point': True}",True,31
+2018-09-09,1.72,123.58,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.72, 'at_key_point': True}",True,32
+2018-09-10,1.78,123.52,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.78, 'at_key_point': True}",True,33
+2018-09-11,1.83,123.47,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.83, 'at_key_point': True}",True,34
+2018-09-12,1.88,123.42,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.88, 'at_key_point': True}",True,35
+2018-09-13,1.93,123.36,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.93, 'at_key_point': True}",True,36
+2018-09-14,1.99,123.31,"{'phase': 'start', 'description': 'Ascending Node - Cycle initiation', 'orb': 1.99, 'at_key_point': True}",True,37
+2023-02-24,88.05,37.31,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.95, 'at_key_point': True}",False,1661
+2023-02-25,88.1,37.26,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.9, 'at_key_point': True}",False,1662
+2023-02-26,88.15,37.21,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.85, 'at_key_point': True}",False,1663
+2023-02-27,88.2,37.16,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.8, 'at_key_point': True}",False,1664
+2023-02-28,88.26,37.1,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.74, 'at_key_point': True}",False,1665
+2023-03-01,88.31,37.05,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.69, 'at_key_point': True}",False,1666
+2023-03-02,88.36,37.0,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.64, 'at_key_point': True}",False,1667
+2023-03-03,88.42,36.94,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.58, 'at_key_point': True}",False,1668
+2023-03-04,88.47,36.89,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.53, 'at_key_point': True}",False,1669
+2023-03-05,88.52,36.84,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.48, 'at_key_point': True}",False,1670
+2023-03-06,88.58,36.78,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.42, 'at_key_point': True}",False,1671
+2023-03-07,88.63,36.73,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.37, 'at_key_point': True}",False,1672
+2023-03-08,88.68,36.68,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.32, 'at_key_point': True}",False,1673
+2023-03-09,88.73,36.63,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.27, 'at_key_point': True}",False,1674
+2023-03-10,88.79,36.57,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.21, 'at_key_point': True}",False,1675
+2023-03-11,88.84,36.52,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.16, 'at_key_point': True}",False,1676
+2023-03-12,88.89,36.47,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.11, 'at_key_point': True}",False,1677
+2023-03-13,88.95,36.41,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.05, 'at_key_point': True}",False,1678
+2023-03-14,89.0,36.36,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.0, 'at_key_point': True}",False,1679
+2023-03-15,89.05,36.31,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.95, 'at_key_point': True}",False,1680
+2023-03-16,89.11,36.25,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.89, 'at_key_point': True}",False,1681
+2023-03-17,89.16,36.2,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.84, 'at_key_point': True}",False,1682
+2023-03-18,89.21,36.15,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.79, 'at_key_point': True}",False,1683
+2023-03-19,89.26,36.1,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.74, 'at_key_point': True}",False,1684
+2023-03-20,89.32,36.04,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.68, 'at_key_point': True}",False,1685
+2023-03-21,89.37,35.99,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.63, 'at_key_point': True}",False,1686
+2023-03-22,89.42,35.94,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.58, 'at_key_point': True}",False,1687
+2023-03-23,89.48,35.88,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.52, 'at_key_point': True}",False,1688
+2023-03-24,89.53,35.83,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.47, 'at_key_point': True}",False,1689
+2023-03-25,89.58,35.78,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.42, 'at_key_point': True}",False,1690
+2023-03-26,89.64,35.73,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.36, 'at_key_point': True}",False,1691
+2023-03-27,89.69,35.67,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.31, 'at_key_point': True}",False,1692
+2023-03-28,89.74,35.62,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.26, 'at_key_point': True}",False,1693
+2023-03-29,89.79,35.57,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.21, 'at_key_point': True}",False,1694
+2023-03-30,89.85,35.51,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.15, 'at_key_point': True}",False,1695
+2023-03-31,89.9,35.46,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.1, 'at_key_point': True}",False,1696
+2023-04-01,89.95,35.41,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.05, 'at_key_point': True}",False,1697
+2023-04-02,90.01,35.35,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.01, 'at_key_point': True}",False,1698
+2023-04-03,90.06,35.3,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.06, 'at_key_point': True}",False,1699
+2023-04-04,90.11,35.25,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.11, 'at_key_point': True}",False,1700
+2023-04-05,90.17,35.2,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.17, 'at_key_point': True}",False,1701
+2023-04-06,90.22,35.14,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.22, 'at_key_point': True}",False,1702
+2023-04-07,90.27,35.09,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.27, 'at_key_point': True}",False,1703
+2023-04-08,90.32,35.04,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.32, 'at_key_point': True}",False,1704
+2023-04-09,90.38,34.98,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.38, 'at_key_point': True}",False,1705
+2023-04-10,90.43,34.93,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.43, 'at_key_point': True}",False,1706
+2023-04-11,90.48,34.88,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.48, 'at_key_point': True}",False,1707
+2023-04-12,90.54,34.83,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.54, 'at_key_point': True}",False,1708
+2023-04-13,90.59,34.77,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.59, 'at_key_point': True}",False,1709
+2023-04-14,90.64,34.72,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.64, 'at_key_point': True}",False,1710
+2023-04-15,90.7,34.67,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.7, 'at_key_point': True}",False,1711
+2023-04-16,90.75,34.61,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.75, 'at_key_point': True}",False,1712
+2023-04-17,90.8,34.56,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.8, 'at_key_point': True}",False,1713
+2023-04-18,90.85,34.51,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.85, 'at_key_point': True}",False,1714
+2023-04-19,90.91,34.45,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.91, 'at_key_point': True}",False,1715
+2023-04-20,90.96,34.4,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 0.96, 'at_key_point': True}",False,1716
+2023-04-21,91.01,34.35,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.01, 'at_key_point': True}",False,1717
+2023-04-22,91.07,34.3,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.07, 'at_key_point': True}",False,1718
+2023-04-23,91.12,34.24,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.12, 'at_key_point': True}",False,1719
+2023-04-24,91.17,34.19,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.17, 'at_key_point': True}",False,1720
+2023-04-25,91.23,34.14,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.23, 'at_key_point': True}",False,1721
+2023-04-26,91.28,34.08,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.28, 'at_key_point': True}",False,1722
+2023-04-27,91.33,34.03,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.33, 'at_key_point': True}",False,1723
+2023-04-28,91.38,33.98,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.38, 'at_key_point': True}",False,1724
+2023-04-29,91.44,33.92,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.44, 'at_key_point': True}",False,1725
+2023-04-30,91.49,33.87,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.49, 'at_key_point': True}",False,1726
+2023-05-01,91.54,33.82,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.54, 'at_key_point': True}",False,1727
+2023-05-02,91.6,33.77,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.6, 'at_key_point': True}",False,1728
+2023-05-03,91.65,33.71,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.65, 'at_key_point': True}",False,1729
+2023-05-04,91.7,33.66,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.7, 'at_key_point': True}",False,1730
+2023-05-05,91.76,33.61,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.76, 'at_key_point': True}",False,1731
+2023-05-06,91.81,33.55,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.81, 'at_key_point': True}",False,1732
+2023-05-07,91.86,33.5,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.86, 'at_key_point': True}",False,1733
+2023-05-08,91.91,33.45,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.91, 'at_key_point': True}",False,1734
+2023-05-09,91.97,33.4,"{'phase': 'first_quadrature', 'description': 'Interim volatility pivot', 'orb': 1.97, 'at_key_point': True}",False,1735
+2025-07-11,134.04,351.35,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.96, 'at_key_point': True}",False,2529
+2025-07-12,134.1,351.3,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.9, 'at_key_point': True}",False,2530
+2025-07-13,134.15,351.24,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.85, 'at_key_point': True}",False,2531
+2025-07-14,134.2,351.19,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.8, 'at_key_point': True}",False,2532
+2025-07-15,134.25,351.14,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.75, 'at_key_point': True}",False,2533
+2025-07-16,134.31,351.09,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.69, 'at_key_point': True}",False,2534
+2025-07-17,134.36,351.03,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.64, 'at_key_point': True}",False,2535
+2025-07-18,134.41,350.98,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.59, 'at_key_point': True}",False,2536
+2025-07-19,134.47,350.93,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.53, 'at_key_point': True}",False,2537
+2025-07-20,134.52,350.87,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.48, 'at_key_point': True}",False,2538
+2025-07-21,134.57,350.82,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.43, 'at_key_point': True}",False,2539
+2025-07-22,134.63,350.77,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.37, 'at_key_point': True}",False,2540
+2025-07-23,134.68,350.71,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.32, 'at_key_point': True}",False,2541
+2025-07-24,134.73,350.66,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.27, 'at_key_point': True}",False,2542
+2025-07-25,134.78,350.61,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.22, 'at_key_point': True}",False,2543
+2025-07-26,134.84,350.56,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.16, 'at_key_point': True}",False,2544
+2025-07-27,134.89,350.5,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.11, 'at_key_point': True}",False,2545
+2025-07-28,134.94,350.45,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.06, 'at_key_point': True}",False,2546
+2025-07-29,135.0,350.4,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.0, 'at_key_point': True}",False,2547
+2025-07-30,135.05,350.34,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.95, 'at_key_point': True}",False,2548
+2025-07-31,135.1,350.29,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.9, 'at_key_point': True}",False,2549
+2025-08-01,135.16,350.24,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.84, 'at_key_point': True}",False,2550
+2025-08-02,135.21,350.18,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.79, 'at_key_point': True}",False,2551
+2025-08-03,135.26,350.13,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.74, 'at_key_point': True}",False,2552
+2025-08-04,135.31,350.08,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.69, 'at_key_point': True}",False,2553
+2025-08-05,135.37,350.03,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.63, 'at_key_point': True}",False,2554
+2025-08-06,135.42,349.97,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.58, 'at_key_point': True}",False,2555
+2025-08-07,135.47,349.92,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.53, 'at_key_point': True}",False,2556
+2025-08-08,135.53,349.87,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.47, 'at_key_point': True}",False,2557
+2025-08-09,135.58,349.81,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.42, 'at_key_point': True}",False,2558
+2025-08-10,135.63,349.76,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.37, 'at_key_point': True}",False,2559
+2025-08-11,135.69,349.71,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.31, 'at_key_point': True}",False,2560
+2025-08-12,135.74,349.66,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.26, 'at_key_point': True}",False,2561
+2025-08-13,135.79,349.6,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.21, 'at_key_point': True}",False,2562
+2025-08-14,135.84,349.55,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.16, 'at_key_point': True}",False,2563
+2025-08-15,135.9,349.5,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.1, 'at_key_point': True}",False,2564
+2025-08-16,135.95,349.44,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.05, 'at_key_point': True}",False,2565
+2025-08-17,136.0,349.39,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.0, 'at_key_point': True}",False,2566
+2025-08-18,136.06,349.34,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.94, 'at_key_point': True}",False,2567
+2025-08-19,136.11,349.28,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.89, 'at_key_point': True}",False,2568
+2025-08-20,136.16,349.23,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.84, 'at_key_point': True}",False,2569
+2025-08-21,136.22,349.18,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.78, 'at_key_point': True}",False,2570
+2025-08-22,136.27,349.13,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.73, 'at_key_point': True}",False,2571
+2025-08-23,136.32,349.07,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.68, 'at_key_point': True}",False,2572
+2025-08-24,136.37,349.02,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.63, 'at_key_point': True}",False,2573
+2025-08-25,136.43,348.97,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.57, 'at_key_point': True}",False,2574
+2025-08-26,136.48,348.91,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.52, 'at_key_point': True}",False,2575
+2025-08-27,136.53,348.86,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.47, 'at_key_point': True}",False,2576
+2025-08-28,136.59,348.81,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.41, 'at_key_point': True}",False,2577
+2025-08-29,136.64,348.76,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.36, 'at_key_point': True}",False,2578
+2025-08-30,136.69,348.7,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.31, 'at_key_point': True}",False,2579
+2025-08-31,136.75,348.65,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.25, 'at_key_point': True}",False,2580
+2025-09-01,136.8,348.6,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.2, 'at_key_point': True}",False,2581
+2025-09-02,136.85,348.54,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.15, 'at_key_point': True}",False,2582
+2025-09-03,136.9,348.49,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.1, 'at_key_point': True}",False,2583
+2025-09-04,136.96,348.44,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.04, 'at_key_point': True}",False,2584
+2025-09-05,137.01,348.38,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.01, 'at_key_point': True}",False,2585
+2025-09-06,137.06,348.33,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.06, 'at_key_point': True}",False,2586
+2025-09-07,137.12,348.28,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.12, 'at_key_point': True}",False,2587
+2025-09-08,137.17,348.23,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.17, 'at_key_point': True}",False,2588
+2025-09-09,137.22,348.17,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.22, 'at_key_point': True}",False,2589
+2025-09-10,137.28,348.12,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.28, 'at_key_point': True}",False,2590
+2025-09-11,137.33,348.07,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.33, 'at_key_point': True}",False,2591
+2025-09-12,137.38,348.01,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.38, 'at_key_point': True}",False,2592
+2025-09-13,137.43,347.96,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.43, 'at_key_point': True}",False,2593
+2025-09-14,137.49,347.91,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.49, 'at_key_point': True}",False,2594
+2025-09-15,137.54,347.85,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.54, 'at_key_point': True}",False,2595
+2025-09-16,137.59,347.8,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.59, 'at_key_point': True}",False,2596
+2025-09-17,137.65,347.75,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.65, 'at_key_point': True}",False,2597
+2025-09-18,137.7,347.7,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.7, 'at_key_point': True}",False,2598
+2025-09-19,137.75,347.64,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.75, 'at_key_point': True}",False,2599
+2025-09-20,137.81,347.59,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.81, 'at_key_point': True}",False,2600
+2025-09-21,137.86,347.54,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.86, 'at_key_point': True}",False,2601
+2025-09-22,137.91,347.48,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.91, 'at_key_point': True}",False,2602
+2025-09-23,137.96,347.43,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 0.96, 'at_key_point': True}",False,2603
+2025-09-24,138.02,347.38,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.02, 'at_key_point': True}",False,2604
+2025-09-25,138.07,347.33,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.07, 'at_key_point': True}",False,2605
+2025-09-26,138.12,347.27,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.12, 'at_key_point': True}",False,2606
+2025-09-27,138.18,347.22,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.18, 'at_key_point': True}",False,2607
+2025-09-28,138.23,347.17,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.23, 'at_key_point': True}",False,2608
+2025-09-29,138.28,347.11,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.28, 'at_key_point': True}",False,2609
+2025-09-30,138.34,347.06,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.34, 'at_key_point': True}",False,2610
+2025-10-01,138.39,347.01,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.39, 'at_key_point': True}",False,2611
+2025-10-02,138.44,346.95,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.44, 'at_key_point': True}",False,2612
+2025-10-03,138.49,346.9,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.49, 'at_key_point': True}",False,2613
+2025-10-04,138.55,346.85,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.55, 'at_key_point': True}",False,2614
+2025-10-05,138.6,346.8,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.6, 'at_key_point': True}",False,2615
+2025-10-06,138.65,346.74,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.65, 'at_key_point': True}",False,2616
+2025-10-07,138.71,346.69,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.71, 'at_key_point': True}",False,2617
+2025-10-08,138.76,346.64,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.76, 'at_key_point': True}",False,2618
+2025-10-09,138.81,346.58,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.81, 'at_key_point': True}",False,2619
+2025-10-10,138.87,346.53,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.87, 'at_key_point': True}",False,2620
+2025-10-11,138.92,346.48,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.92, 'at_key_point': True}",False,2621
+2025-10-12,138.97,346.43,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 1.97, 'at_key_point': True}",False,2622
+2025-10-13,139.02,346.37,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.02, 'at_key_point': True}",False,2623
+2025-10-14,139.08,346.32,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.08, 'at_key_point': True}",False,2624
+2025-10-15,139.13,346.27,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.13, 'at_key_point': True}",False,2625
+2025-10-16,139.18,346.21,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.18, 'at_key_point': True}",False,2626
+2025-10-17,139.24,346.16,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.24, 'at_key_point': True}",False,2627
+2025-10-18,139.29,346.11,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.29, 'at_key_point': True}",False,2628
+2025-10-19,139.34,346.05,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.34, 'at_key_point': True}",False,2629
+2025-10-20,139.4,346.0,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.4, 'at_key_point': True}",False,2630
+2025-10-21,139.45,345.95,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.45, 'at_key_point': True}",False,2631
+2025-10-22,139.5,345.9,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.5, 'at_key_point': True}",False,2632
+2025-10-23,139.55,345.84,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.55, 'at_key_point': True}",False,2633
+2025-10-24,139.61,345.79,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.61, 'at_key_point': True}",False,2634
+2025-10-25,139.66,345.74,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.66, 'at_key_point': True}",False,2635
+2025-10-26,139.71,345.68,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.71, 'at_key_point': True}",False,2636
+2025-10-27,139.77,345.63,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.77, 'at_key_point': True}",False,2637
+2025-10-28,139.82,345.58,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.82, 'at_key_point': True}",False,2638
+2025-10-29,139.87,345.52,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.87, 'at_key_point': True}",False,2639
+2025-10-30,139.92,345.47,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.92, 'at_key_point': True}",False,2640
+2025-10-31,139.98,345.42,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.98, 'at_key_point': True}",False,2641

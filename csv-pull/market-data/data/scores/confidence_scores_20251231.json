@@ -1,0 +1,1490 @@
+[
+  {
+    "symbol": "COTTON",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "WHEAT",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "CORN",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "SUGAR",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "COFFEE",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "CRUDE_OIL_ETF",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "CRUDE_OIL",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "NAT_GAS",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "GOLD_ETF",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "GOLD",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "SILVER_ETF",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "SILVER",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "COPPER_ETF",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "COPPER",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "SOYBEANS",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "SOYBEAN_OIL",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "LIVE_CATTLE",
+    "category": "commodities",
+    "sector": "real_estate",
+    "date": "2025-12-31",
+    "total_score": 84,
+    "base_score": 84,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 30,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "BTC",
+    "category": "crypto",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "ETH",
+    "category": "crypto",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "BNB",
+    "category": "crypto",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "XRP",
+    "category": "crypto",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "BCH",
+    "category": "crypto",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "SOL",
+    "category": "crypto",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "ADA",
+    "category": "crypto",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "DOT",
+    "category": "crypto",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "LINK",
+    "category": "crypto",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "XLM",
+    "category": "crypto",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "AIG",
+    "category": "equities",
+    "sector": "tech",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "EURUSD",
+    "category": "forex",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "USDJPY",
+    "category": "forex",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "GBPJPY",
+    "category": "forex",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "GBPNZD",
+    "category": "forex",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "EURNZD",
+    "category": "forex",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "GBPAUD",
+    "category": "forex",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "GBPCAD",
+    "category": "forex",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "NZDCAD",
+    "category": "forex",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "NZDCHF",
+    "category": "forex",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "AUDNZD",
+    "category": "forex",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "TLT",
+    "category": "rates-macro",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "VIX",
+    "category": "stress",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "TNX",
+    "category": "stress",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "DXY",
+    "category": "stress",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "TYX",
+    "category": "stress",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "VVIX",
+    "category": "stress",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "VXN",
+    "category": "stress",
+    "sector": "finance",
+    "date": "2025-12-31",
+    "total_score": 74,
+    "base_score": 74,
+    "rating": "favorable",
+    "components": {
+      "ingress_period": 20,
+      "planetary_aspects": 40,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "SPY",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "QQQ",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "XLY",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "AAL",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "AMZN",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "AXP",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "BA",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "BABA",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "BAC",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "C",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "CLF",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "CLSK",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "COST",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "CSCO",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "CVX",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "DIS",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "DKNG",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "EQT",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "F",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "GE",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "GS",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "HLT",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "HP",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "IBM",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "IBIT",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "ILMN",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "INTC",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "JNJ",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "JPM",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "KO",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "LYV",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "MRVL",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "NKE",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "NUE",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "NVDA",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "PG",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "PTON",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "QCOM",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "RACE",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "RIOT",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "RKT",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "SPCE",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "T",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "TEVA",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "TSLA",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "V",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "WKHS",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  },
+  {
+    "symbol": "WMG",
+    "category": "equities",
+    "sector": null,
+    "date": "2025-12-31",
+    "total_score": 49,
+    "base_score": 49,
+    "rating": "unfavorable",
+    "components": {
+      "ingress_period": 15,
+      "planetary_aspects": 20,
+      "lunar_phase": 14,
+      "cycle_bonus": 0
+    },
+    "is_featured": false
+  }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "gann moments",
+    "name": "Gann",
+    "color": "bg-[#33ff33]",
+    "visible": true,
+    "type": "gann"
+  },
+  {
+    "id": "fibonacci moments",
+    "name": "Fibonacci Moments",
+    "color": "bg-[#f57f17]",
+    "visible": true,
+    "type": "fibonacci"
+  },
+  {
+    "id": "fiscal dates",
+    "name": "Fiscal Calendar",
+    "color": "bg-[#56c1ff]",
+    "visible": true,
+    "type": "fiscal"
+  },
+  {
+    "id": "secondary fibonacci moments",
+    "name": "Secondary Fiboonacci Moments",
+    "color": "bg-[#D5D5D5]",
+    "visible": true,
+    "type": "fibonacci"
+  },
+  {
+    "id": "secondary gann moments",
+    "name": "Secondary Gann Moments",
+    "color": "bg-[#000000]",
+    "visible": true,
+    "type": "gann"
+  }
+]

@@ -1,0 +1,382 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./astro/aspects.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+date,body1,body2,aspect_type,aspect_nature,orb,exact,body1_sign,body2_sign,primary_scoring,bonus_eligible,influence_weight
+2004-12-21,Sun,Moon,trine,harmonious,3.22,False,Sagittarius,Taurus,True,,
+2004-12-21,Mercury,Venus,conjunction,neutral,4.6,False,Sagittarius,Sagittarius,True,,
+2004-12-21,Mars,Saturn,trine,harmonious,1.44,False,Scorpio,Cancer,True,,
+2004-12-21,Uranus,Moon,sextile,harmonious,0.35,True,Pisces,Taurus,False,True,90.0
+2004-12-22,Mercury,Venus,conjunction,neutral,3.61,False,Sagittarius,Sagittarius,True,,
+2004-12-22,Mars,Saturn,trine,harmonious,2.19,False,Scorpio,Cancer,True,,
+2004-12-23,Moon,Mars,opposition,harsh,0.8,True,Taurus,Scorpio,True,,
+2004-12-23,Moon,Saturn,sextile,harmonious,2.14,False,Taurus,Cancer,True,,
+2004-12-23,Mercury,Venus,conjunction,neutral,2.76,False,Sagittarius,Sagittarius,True,,
+2004-12-23,Mars,Saturn,trine,harmonious,2.94,False,Scorpio,Cancer,True,,
+2004-12-24,Moon,Mercury,opposition,harsh,1.98,False,Gemini,Sagittarius,True,,
+2004-12-24,Moon,Venus,opposition,harsh,0.05,True,Gemini,Sagittarius,True,,
+2004-12-24,Mercury,Venus,conjunction,neutral,2.03,False,Sagittarius,Sagittarius,True,,
+2004-12-24,Mars,Saturn,trine,harmonious,3.7,False,Scorpio,Cancer,True,,
+2004-12-24,Uranus,Sun,sextile,harmonious,0.61,True,Pisces,Capricorn,False,True,90.0
+2004-12-25,Moon,Jupiter,trine,harmonious,5.12,False,Gemini,Libra,True,,
+2004-12-25,Mercury,Venus,conjunction,neutral,1.41,False,Sagittarius,Sagittarius,True,,
+2004-12-25,Mars,Saturn,trine,harmonious,4.46,False,Scorpio,Cancer,True,,
+2004-12-25,Uranus,Sun,sextile,harmonious,0.38,True,Pisces,Capricorn,False,True,90.0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./astro/ingresses.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+date,body,sign,from_sign,ruler,element
+2004-12-22,Sun,Capricorn,Sagittarius,Saturn,earth
+2004-12-24,Moon,Gemini,Taurus,Mercury,air
+2004-12-26,Moon,Cancer,Gemini,Moon,water
+2004-12-26,Mars,Sagittarius,Scorpio,Jupiter,fire
+2004-12-29,Moon,Leo,Cancer,Sun,fire
+2004-12-31,Moon,Virgo,Leo,Mercury,earth
+2005-01-03,Moon,Libra,Virgo,Venus,air
+2005-01-05,Moon,Scorpio,Libra,Mars,water
+2005-01-07,Moon,Sagittarius,Scorpio,Jupiter,fire
+2005-01-09,Moon,Capricorn,Sagittarius,Saturn,earth
+2005-01-10,Mercury,Capricorn,Sagittarius,Saturn,earth
+2005-01-10,Venus,Capricorn,Sagittarius,Saturn,earth
+2005-01-11,Moon,Aquarius,Capricorn,Saturn,air
+2005-01-13,Moon,Pisces,Aquarius,Jupiter,water
+2005-01-15,Moon,Aries,Pisces,Mars,fire
+2005-01-18,Moon,Taurus,Aries,Venus,earth
+2005-01-20,Sun,Aquarius,Capricorn,Saturn,air
+2005-01-20,Moon,Gemini,Taurus,Mercury,air
+2005-01-22,Moon,Cancer,Gemini,Moon,water
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./astro/lunar_cycle_18yr.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+date,cycle_position,node_longitude,key_phase,bonus_eligible,cycle_days_elapsed
+2006-12-04,134.02,351.12,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.98, 'at_key_point': True}",False,2529
+2006-12-05,134.07,351.07,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.93, 'at_key_point': True}",False,2530
+2006-12-06,134.12,351.01,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.88, 'at_key_point': True}",False,2531
+2006-12-07,134.18,350.96,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.82, 'at_key_point': True}",False,2532
+2006-12-08,134.23,350.91,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.77, 'at_key_point': True}",False,2533
+2006-12-09,134.28,350.85,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.72, 'at_key_point': True}",False,2534
+2006-12-10,134.33,350.8,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.67, 'at_key_point': True}",False,2535
+2006-12-11,134.39,350.75,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.61, 'at_key_point': True}",False,2536
+2006-12-12,134.44,350.7,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.56, 'at_key_point': True}",False,2537
+2006-12-13,134.49,350.64,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.51, 'at_key_point': True}",False,2538
+2006-12-14,134.55,350.59,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.45, 'at_key_point': True}",False,2539
+2006-12-15,134.6,350.54,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.4, 'at_key_point': True}",False,2540
+2006-12-16,134.65,350.48,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.35, 'at_key_point': True}",False,2541
+2006-12-17,134.71,350.43,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.29, 'at_key_point': True}",False,2542
+2006-12-18,134.76,350.38,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.24, 'at_key_point': True}",False,2543
+2006-12-19,134.81,350.33,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.19, 'at_key_point': True}",False,2544
+2006-12-20,134.86,350.27,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.14, 'at_key_point': True}",False,2545
+2006-12-21,134.92,350.22,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.08, 'at_key_point': True}",False,2546
+2006-12-22,134.97,350.17,"{'phase': 'fibonacci_38', 'description': 'Minor reaction / harmonic pivot', 'orb': 2.03, 'at_key_point': True}",False,2547
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./astro/lunar_phases.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+date,phase,illumination,sign,ruler
+2004-12-21,waxing_gibbous,77.4,Taurus,Venus
+2004-12-22,waxing_gibbous,85.1,Taurus,Venus
+2004-12-23,waxing_gibbous,91.3,Taurus,Venus
+2004-12-24,waxing_gibbous,95.9,Gemini,Mercury
+2004-12-25,full,98.9,Gemini,Mercury
+2004-12-26,full,100.0,Cancer,Moon
+2004-12-27,full,99.3,Cancer,Moon
+2004-12-28,full,96.9,Cancer,Moon
+2004-12-29,waning_gibbous,92.8,Leo,Sun
+2004-12-30,waning_gibbous,87.1,Leo,Sun
+2004-12-31,waning_gibbous,80.0,Virgo,Mercury
+2005-01-01,waning_gibbous,71.7,Virgo,Mercury
+2005-01-02,last_quarter,62.5,Virgo,Mercury
+2005-01-03,last_quarter,52.5,Libra,Venus
+2005-01-04,last_quarter,42.1,Libra,Venus
+2005-01-05,last_quarter,31.7,Scorpio,Mars
+2005-01-06,waning_crescent,21.8,Scorpio,Mars
+2005-01-07,waning_crescent,13.0,Sagittarius,Jupiter
+2005-01-08,waning_crescent,6.1,Sagittarius,Jupiter
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./astro/retrogrades.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+date,body,status,sign,stationary,primary_scoring,bonus_eligible,influence_weight
+2005-02-02,Jupiter,starts,Libra,True,True,,
+2005-03-20,Mercury,starts,Aries,False,True,,
+2005-03-22,Saturn,ends,Cancer,True,True,,
+2005-03-27,Pluto,starts,Sagittarius,True,False,True,95.0
+2005-04-12,Mercury,ends,Aries,False,True,,
+2005-05-20,Neptune,starts,Aquarius,True,False,True,85.0
+2005-06-05,Jupiter,ends,Libra,True,True,,
+2005-06-15,Uranus,starts,Pisces,True,False,True,90.0
+2005-07-23,Mercury,starts,Leo,False,True,,
+2005-08-16,Mercury,ends,Leo,False,True,,
+2005-09-02,Pluto,ends,Sagittarius,True,False,True,95.0
+2005-10-02,Mars,starts,Taurus,True,True,,
+2005-10-27,Neptune,ends,Aquarius,True,False,True,85.0
+2005-11-14,Mercury,starts,Sagittarius,False,True,,
+2005-11-16,Uranus,ends,Pisces,True,False,True,90.0
+2005-11-22,Saturn,starts,Leo,True,True,,
+2005-12-04,Mercury,ends,Scorpio,False,True,,
+2005-12-10,Mars,ends,Taurus,True,True,,
+2005-12-24,Venus,starts,Aquarius,True,True,,
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./astro/seasonal_anchors.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+date,type,sign,fibonacci_anchor,anchor_type
+2004-03-20,vernal_equinox,Aries,True,low
+2004-06-21,summer_solstice,Cancer,True,high
+2004-09-22,autumn_equinox,Libra,True,low
+2004-12-21,winter_solstice,Capricorn,True,high
+2005-03-20,vernal_equinox,Aries,True,low
+2005-06-21,summer_solstice,Cancer,True,high
+2005-09-22,autumn_equinox,Libra,True,low
+2005-12-21,winter_solstice,Capricorn,True,high
+2006-03-20,vernal_equinox,Aries,True,low
+2006-06-21,summer_solstice,Cancer,True,high
+2006-09-23,autumn_equinox,Libra,True,low
+2006-12-22,winter_solstice,Capricorn,True,high
+2007-03-21,vernal_equinox,Aries,True,low
+2007-06-21,summer_solstice,Cancer,True,high
+2007-09-23,autumn_equinox,Libra,True,low
+2007-12-22,winter_solstice,Capricorn,True,high
+2008-03-20,vernal_equinox,Aries,True,low
+2008-06-20,summer_solstice,Cancer,True,high
+2008-09-22,autumn_equinox,Libra,True,low
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./fibonacci/fibonacci_levels.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// fibonacci_levels.csv
+
+symbol,category,anchor_pair,high,low,range,time_span_days,fib_0.236,fib_0.382,fib_0.500,fib_0.618,fib_0.786,fib_1.000,fib_1.272,fib_1.618
+COTTON,commodities,2022-06-21_to_2022-09-23,143.50999450683594,96.83000183105467,46.679992675781264,94,107.84648010253905,114.66175903320311,120.16999816894531,125.6782373046875,133.52047607421875,143.50999450683594,156.20695251464844,172.35822998046876
+COTTON,commodities,2022-09-23_to_2022-12-21,96.83000183105467,88.30000305175781,8.52999877929686,89,90.31308276367187,91.55846258544922,92.56500244140625,93.57154229736327,95.00458209228515,96.83000183105467,99.15016149902343,102.10154107666014
+COTTON,commodities,2022-12-21_to_2025-03-20,88.30000305175781,66.08000183105469,22.220001220703125,820,71.32392211914062,74.56804229736328,77.19000244140625,79.81196258544922,83.54492279052735,88.30000305175781,94.34384338378906,102.03196380615235
+COTTON,commodities,2025-03-20_to_2025-06-21,66.08000183105469,64.04000091552734,2.0400009155273438,93,64.5214411315918,64.8192812652588,65.06000137329102,65.30072148132324,65.64344163513184,66.08000183105469,66.63488208007813,67.34072239685058
+COTTON,commodities,2025-06-21_to_2025-09-22,64.31999969482422,64.04000091552734,0.279998779296875,93,64.1060806274414,64.14696044921875,64.18000030517578,64.21304016113281,64.26007995605468,64.31999969482422,64.39615936279297,64.49303894042968
+WHEAT,commodities,2022-06-21_to_2022-09-23,975.25,910.75,64.5,94,925.972,935.389,943.0,950.611,961.447,975.25,992.794,1015.111
+WHEAT,commodities,2022-09-23_to_2022-12-21,910.75,767.75,143.0,89,801.498,822.376,839.25,856.124,880.148,910.75,949.646,999.124
+WHEAT,commodities,2022-12-21_to_2025-03-20,767.75,557.25,210.5,820,606.928,637.6610000000001,662.5,687.3389999999999,722.703,767.75,825.006,897.839
+WHEAT,commodities,2025-03-20_to_2025-06-21,567.75,557.25,10.5,93,559.728,561.261,562.5,563.739,565.503,567.75,570.606,574.239
+WHEAT,commodities,2025-06-21_to_2025-09-22,567.75,510.75,57.0,93,524.202,532.524,539.25,545.976,555.552,567.75,583.254,602.976
+CORN,commodities,2022-06-21_to_2022-09-23,760.75,688.25,72.5,94,705.36,715.945,724.5,733.055,745.235,760.75,780.47,805.5550000000001
+CORN,commodities,2022-09-23_to_2022-12-21,688.25,662.25,26.0,89,668.386,672.182,675.25,678.318,682.686,688.25,695.322,704.318
+CORN,commodities,2022-12-21_to_2025-03-20,662.25,469.0,193.25,820,514.607,542.8215,565.625,588.4285,620.8945,662.25,714.814,781.6785
+CORN,commodities,2025-03-20_to_2025-06-21,469.0,428.75,40.25,93,438.249,444.1255,448.875,453.6245,460.3865,469.0,479.948,493.8745
+CORN,commodities,2025-06-21_to_2025-09-22,428.75,421.75,7.0,93,423.402,424.424,425.25,426.076,427.252,428.75,430.654,433.076
+SUGAR,commodities,2022-06-21_to_2022-09-23,18.65999984741211,18.489999771118164,0.1700000762939453,94,18.530119789123535,18.554939800262453,18.574999809265137,18.59505981826782,18.623619831085204,18.65999984741211,18.70623986816406,18.765059894561766
+SUGAR,commodities,2022-09-23_to_2022-12-21,20.75,18.489999771118164,2.260000228881836,89,19.02335982513428,19.353319858551025,19.619999885559082,19.88667991256714,20.266359951019286,20.75,21.36472006225586,22.146680141448975
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./scores/confidence_scores_20251231.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// confidence_scores_20251231.csv
+
+symbol,category,sector,date,total_score,base_score,rating,components,is_featured
+COTTON,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+WHEAT,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+CORN,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+SUGAR,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+COFFEE,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+CRUDE_OIL_ETF,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+CRUDE_OIL,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+NAT_GAS,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+GOLD_ETF,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+GOLD,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+SILVER_ETF,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+SILVER,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+COPPER_ETF,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+COPPER,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+SOYBEANS,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+SOYBEAN_OIL,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+LIVE_CATTLE,commodities,real_estate,2025-12-31,84,84,favorable,"{'ingress_period': 30, 'planetary_aspects': 40, 'lunar_phase': 14, 'cycle_bonus': 0}",False
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./unintegrated/anchors/anchors_solstice_equinox.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// anchors_solstice_equinox.csv
+
+Date,Type,Significance,Source
+2005-03-20,solstice_equinox,high,astronomical
+2005-06-21,solstice_equinox,high,astronomical
+2005-09-22,solstice_equinox,high,astronomical
+2005-12-21,solstice_equinox,high,astronomical
+2015-03-20,solstice_equinox,high,astronomical
+2015-06-21,solstice_equinox,high,astronomical
+2015-09-23,solstice_equinox,high,astronomical
+2015-12-21,solstice_equinox,high,astronomical
+2018-03-20,solstice_equinox,high,astronomical
+2018-06-21,solstice_equinox,high,astronomical
+2018-09-22,solstice_equinox,high,astronomical
+2018-12-21,solstice_equinox,high,astronomical
+2022-03-20,solstice_equinox,high,astronomical
+2022-06-21,solstice_equinox,high,astronomical
+2022-09-22,solstice_equinox,high,astronomical
+2022-12-21,solstice_equinox,high,astronomical
+2025-03-20,solstice_equinox,high,astronomical
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./unintegrated/commodities/commodities_solstice_equinox.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// commodities_solstice_equinox.csv
+
+Commodity,Date,Price,Unit
+COTTON,2005-06-21,48.72999954223633,USD
+COTTON,2005-09-22,50.0,USD
+COTTON,2005-12-21,52.849998474121094,USD
+COTTON,2015-03-20,62.81999969482422,USD
+COTTON,2015-09-23,58.70000076293945,USD
+COTTON,2015-12-21,63.31999969482422,USD
+COTTON,2018-03-20,83.08000183105469,USD
+COTTON,2018-06-21,83.20999908447266,USD
+COTTON,2018-12-21,73.18000030517578,USD
+COTTON,2022-06-21,143.50999450683594,USD
+COTTON,2022-09-22,96.83000183105469,USD
+COTTON,2022-12-21,88.30000305175781,USD
+COTTON,2025-03-20,66.08000183105469,USD
+COTTON,2025-06-20,64.04000091552734,USD
+COTTON,2025-09-22,64.31999969482422,USD
+WHEAT,2005-06-21,335.0,USD
+WHEAT,2005-09-22,332.25,USD
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./unintegrated/crypto/crypto_solstice_equinox.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// crypto_solstice_equinox.csv
+
+Symbol,Date,Price,Volume,Market Cap
+BTC,2015-03-20,261.7489929199219,18456700.0,
+BTC,2015-06-21,243.94400024414062,10600900.0,
+BTC,2015-09-23,230.2830047607422,17254100.0,
+BTC,2015-12-21,438.6390075683594,77639696.0,
+BTC,2018-03-20,8913.4697265625,6361789952.0,
+BTC,2018-06-21,6729.740234375,3529129984.0,
+BTC,2018-09-22,6721.97998046875,4509660000.0,
+BTC,2018-12-21,3896.543701171875,7206015706.0,
+BTC,2022-03-20,41247.82421875,20127946682.0,
+BTC,2022-06-21,20710.59765625,28970212744.0,
+BTC,2022-09-22,19413.55078125,41135767926.0,
+BTC,2022-12-21,16817.53515625,14882945045.0,
+BTC,2025-03-20,84167.1953125,29028988961.0,
+BTC,2025-06-20,103309.6015625,50951862476.0,
+BTC,2025-09-22,112748.5078125,70684158591.0,
+BTC,2025-12-21,88621.75,19845522660.0,
+ETH,2018-03-20,557.1749877929688,1833680000.0,
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./unintegrated/equities/equities_solstice_equinox.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// equities_solstice_equinox.csv
+
+Symbol,Date,Open,High,Low,Close,Volume
+SPY,2005-06-21,83.0776792257625,83.18024530518919,82.75630794469838,83.05716705322266,39879800.0
+SPY,2005-09-22,83.05369109045907,83.54123701665624,82.70348912851351,83.32149505615234,84597200.0
+SPY,2005-12-21,87.13189446047214,87.50466662277006,86.84196231203123,87.000732421875,51806900.0
+SPY,2015-03-20,174.92113070534475,176.0138122504992,174.73762557421168,175.5050048828125,177715100.0
+SPY,2015-09-23,163.5423841592737,164.01419568659233,162.53135762131944,163.11270141601562,92790600.0
+SPY,2015-12-21,170.7027098602963,171.10105393731774,169.5839529803868,170.92306518554688,99094300.0
+SPY,2018-03-20,240.08112664058862,240.72799258315302,239.40767864787827,240.08999633789062,59757300.0
+SPY,2018-06-21,245.62736455520744,245.64518360453644,243.59797584420312,244.09642028808594,71061400.0
+SPY,2018-12-21,221.90160300643558,224.57262520442833,215.82209838644843,216.46961975097656,255345600.0
+SPY,2022-06-21,354.3952017864086,358.8169072573021,354.31894893856503,357.42559814453125,76811900.0
+SPY,2022-09-22,360.338677708997,361.98449795336916,357.3341162078935,358.0804748535156,89472600.0
+SPY,2022-12-21,368.40494991105,372.4038173364099,367.86664365527946,371.26953125,78167400.0
+SPY,2025-03-20,556.7915499004863,563.9475069089323,556.0699818531248,558.9264526367188,62958200.0
+SPY,2025-06-20,594.9675856083323,596.0414436168163,589.4790454395113,590.8909912109375,94051400.0
+SPY,2025-09-22,660.2490220888672,665.3239917254978,660.2190812650523,664.8753662109375,69452200.0
+QQQ,2005-06-21,32.3091472486011,32.45429777318615,32.18961075608984,32.317684173583984,97845600.0
+QQQ,2005-09-22,32.82146157430874,33.06907484812613,32.650696944074106,32.99222946166992,118686100.0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./unintegrated/forex-node_fetched/forex_solstice_equinox_node-fetched.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Pair,Date,Rate,Change %
+EURUSD,2025-09-22,1.1802,0
+EURUSD,2025-06-20,1.1522,0
+EURUSD,2025-03-20,1.08539,0
+EURUSD,2022-12-21,1.06039,0
+EURUSD,2022-09-22,0.98332,0
+EURUSD,2022-06-21,1.05337,0
+EURUSD,2018-12-21,1.1367,0
+EURUSD,2018-06-21,1.16095,0
+EURUSD,2018-03-20,1.22453,0
+EURUSD,2015-12-21,1.0908,0
+EURUSD,2015-09-23,1.1186,0
+EURUSD,2015-03-20,1.08115,0
+USDJPY,2025-09-22,147.71,0
+USDJPY,2025-06-20,146.07,0
+USDJPY,2025-03-20,148.759,0
+USDJPY,2022-12-21,132.46,0
+USDJPY,2022-09-22,142.303,0
+USDJPY,2022-06-21,136.654,0
+USDJPY,2018-12-21,111.21,0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./unintegrated/forex/forex_solstice_equinox.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// forex_solstice_equinox.csv
+
+Pair,Date,Rate,Change %
+EURUSD,2005-06-21,1.2174040079116821,0
+EURUSD,2005-09-22,1.2154065370559692,0
+EURUSD,2005-12-21,1.1834039688110352,0
+EURUSD,2015-03-20,1.066894292831421,0
+EURUSD,2015-09-23,1.1120749711990356,0
+EURUSD,2015-12-21,1.0869920253753662,0
+EURUSD,2018-03-20,1.2336845397949219,0
+EURUSD,2018-06-21,1.1579033136367798,0
+EURUSD,2018-12-21,1.1456853151321411,0
+EURUSD,2022-06-21,1.0520778894424438,0
+EURUSD,2022-09-22,0.983071506023407,0
+EURUSD,2022-12-21,1.062699317932129,0
+EURUSD,2025-03-20,1.0911908149719238,0
+EURUSD,2025-06-20,1.1512778997421265,0
+EURUSD,2025-09-22,1.1736950874328613,0
+USDJPY,2005-06-21,108.41000366210938,0
+USDJPY,2005-09-22,111.62999725341797,0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./unintegrated/rates-macro/rates_macro_solstice_equinox.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// rates_macro_solstice_equinox.csv
+
+Symbol,Date,Open,High,Low,Close,Volume
+TLT,2005-06-21,48.786497132947986,49.034618377685554,48.75548345626331,49.03461837768555,503100.0
+TLT,2005-09-22,48.78057113510937,48.822363603029395,48.65518177356161,48.74922180175781,761700.0
+TLT,2005-12-21,47.901765320048504,47.92822322883991,47.77477623905196,47.8964729309082,193100.0
+TLT,2015-03-20,98.05132937131276,98.40999587596092,97.99154972023764,98.26802062988281,5953800.0
+TLT,2015-09-23,92.05267783233428,92.39327496411025,91.57583491833454,92.16620635986328,6769900.0
+TLT,2015-12-21,94.01964344493044,94.28624582410708,93.63116237156102,93.84444427490234,7494900.0
+TLT,2018-03-20,95.69005296875967,95.93951627620613,95.62567336052271,95.72223663330078,5446000.0
+TLT,2018-06-21,97.50393868609855,97.81987817083653,97.39052482904347,97.6497573852539,7235800.0
+TLT,2018-12-21,99.72706036559258,99.78468677987755,99.1096318064788,99.38130187988281,9945100.0
+TLT,2022-06-21,96.33208669360305,97.1458651748767,96.08707926714675,96.41084289550781,17663800.0
+TLT,2022-09-22,93.1177257713593,93.26736035629634,92.18470222352649,92.6600112915039,29030600.0
+TLT,2022-12-21,92.68636079631754,92.78412238582139,91.5043392363336,92.16200256347656,15894100.0
+TLT,2025-03-20,88.86518747699209,88.90374158735268,87.86281002139535,87.93991088867188,35645800.0
+TLT,2025-06-20,83.94068355437703,84.5740893215034,83.75553223185965,84.28174591064453,26001900.0
+TLT,2025-09-22,87.53880397781151,87.6275096710841,87.26284407757382,87.4205322265625,24758200.0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE: ./unintegrated/stress/stress_solstice_equinox.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// stress_solstice_equinox.csv
+
+Indicator,Date,Value,Unit
+VIX,2005-06-21,11.079999923706055,index
+VIX,2005-09-22,13.329999923706055,index
+VIX,2005-12-21,10.8100004196167,index
+VIX,2015-03-20,13.020000457763672,index
+VIX,2015-09-23,22.1299991607666,index
+VIX,2015-12-21,18.700000762939453,index
+VIX,2018-03-20,18.200000762939453,index
+VIX,2018-06-21,14.640000343322754,index
+VIX,2018-12-21,30.110000610351562,index
+VIX,2022-06-21,30.190000534057617,index
+VIX,2022-09-22,27.350000381469727,index
+VIX,2022-12-21,20.06999969482422,index
+VIX,2025-03-20,19.799999237060547,index
+VIX,2025-06-20,20.6200008392334,index
+VIX,2025-09-22,16.100000381469727,index
+TNX,2005-06-21,4.048999786376953,index
+TNX,2005-09-22,4.176000118255615,index
+

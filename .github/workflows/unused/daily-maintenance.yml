@@ -1,0 +1,49 @@
+# .github/workflows/update-prices.yml
+# Fetches price data every 5 minutes during market hours
+
+name: Update Market Prices
+
+on:
+  schedule:
+    # Every 5 minutes from 9:30 AM - 4:00 PM EST (14:30 - 21:00 UTC) Mon-Fri
+    - cron: '*/5 14-20 * * 1-5'  # 9:30 AM - 3:55 PM EST
+    - cron: '0 21 * * 1-5'       # 4:00 PM EST
+
+    # Extended hours: 7 AM - 8 PM EST (12:00 - 01:00 UTC next day)
+    - cron: '*/5 12-13 * * 1-5'  # 7:00 AM - 8:55 AM EST (pre-market)
+    - cron: '*/5 21-23 * * 1-5'  # 4:05 PM - 6:55 PM EST (after-hours)
+    - cron: '*/5 0-1 * * 2-6'    # 7:00 PM - 8:00 PM EST (crosses to next day UTC)
+
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  update-prices:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: 📈 Fetch Current Market Prices
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+          ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+        run: |
+          echo "📊 Fetching price data at $(date)"
+          npx tsx scripts/data-manager.ts cron-update-prices
+
+      - name: ✅ Verify Update
+        run: |
+          echo "Price update completed successfully at $(date)"
