@@ -2,6 +2,7 @@
   "name": "shadcn-dashboard-nextjs",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -15,7 +16,9 @@
     "data:check": "tsx scripts/data-manager.ts check-freshness",
     "data:ingress": "tsx scripts/data-manager.ts check-ingress",
     "cron:prices": "tsx scripts/data-manager.ts cron-update-prices",
-    "cron:featured": "tsx scripts/data-manager.ts cron-refresh-featured"
+    "cron:featured": "tsx scripts/data-manager.ts cron-refresh-featured",
+    "ai:analyze": "tsx scripts/ai-analysis.ts",
+    "ai:review": "tsx scripts/ai-review.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
