@@ -44,3 +44,7 @@ node_modules/
 csv-pull/market-data/node_modules/
 env-local-ref-full.txt
 env-local-ref-full.txt
+**/unused/
+**/unused/**
+**/saved-unused/
+**/saved-unused/**
