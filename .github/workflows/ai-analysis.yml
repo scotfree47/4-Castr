@@ -1,105 +1,61 @@
-// scripts/ai-analysis.js
-/**
- * Weekly AI Architecture Analysis
- * Analyzes entire repo for drift, inconsistencies, and improvements
- */
+# .github/workflows/ai-analysis.yml
+name: AI Architecture Analysis
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { analyst, architect } from '../src/lib/ai/agents.js';
+on:
+  schedule:
+    # Run every Sunday at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch: # Manual trigger
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
 
-// Files to analyze
-const IMPORTANT_FILES = [
-  'src/app/layout.tsx',
-  'src/app/page.tsx',
-  'src/lib/supabase.js',
-  'src/lib/apiAdapters.js',
-  'src/lib/csvAdapter.js',
-  'src/lib/indicators/keyLevels.ts',
-  'src/app/(dashboard)/components/sentinels-overview.tsx',
-  'src/app/(dashboard)/2chart.tsx/components/trend-path.tsx',
-  'src/app/api/equity/route.js',
-  'src/app/api/ingress/route.js',
-];
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for change analysis
 
-async function readFiles(projectRoot) {
-  const files = [];
-  
-  for (const filePath of IMPORTANT_FILES) {
-    const fullPath = path.join(projectRoot, filePath);
-    try {
-      const content = fs.readFileSync(fullPath, 'utf8');
-      files.push({ path: filePath, content });
-    } catch (err) {
-      console.warn(`⚠️  Could not read ${filePath}:`, err.message);
-    }
-  }
-  
-  return files;
-}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-async function runAnalysis() {
-  const projectRoot = path.join(__dirname, '..');
-  console.log('📊 Starting AI architecture analysis...');
-  
-  // Read key files
-  const files = await readFiles(projectRoot);
-  console.log(`✓ Read ${files.length} files`);
-  
-  // Run repo-scale analysis
-  const analysisResult = await analyst(files, 
-    `Analyze this Next.js financial dashboard:
-    1. Identify architectural inconsistencies
-    2. Find repeated patterns that should be abstracted
-    3. Check for proper Server/Client component usage
-    4. Spot potential data fetching issues
-    5. Suggest improvements for maintainability
-    
-    Focus on high-level patterns, not minor code style.`
-  );
-  
-  console.log('✓ Analyst complete');
-  
-  // Get architect's recommendations
-  const recommendations = await architect(
-    `Based on this analysis:\n\n${analysisResult.content}\n\n
-    Provide 3-5 concrete action items to improve the codebase.
-    Prioritize by impact and effort.`
-  );
-  
-  console.log('✓ Architect recommendations complete');
-  
-  // Generate report
-  const report = `# AI Architecture Analysis Report
-**Date:** ${new Date().toISOString()}
+      - name: Install dependencies
+        run: npm ci
 
-## Executive Summary
-${analysisResult.content}
+      - name: Run AI analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_MODELS_ENDPOINT: https://models.inference.ai.azure.com
+          MODEL_ARCHITECT: gpt-4o-mini
+          MODEL_REVIEWER: o3-mini
+          MODEL_ANALYST: gpt-4o-mini
+          MODEL_CODER: Codestral-25.01
+          MODEL_EMBEDDINGS: text-embedding-3-small
+        run: npm run ai:analyze
 
-## Recommended Actions
-${recommendations.content}
+      - name: Create issue with findings
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
 
-## Token Usage
-- Analyst: ${analysisResult.usage.total_tokens} tokens
-- Architect: ${recommendations.usage.total_tokens} tokens
-- **Total:** ${analysisResult.usage.total_tokens + recommendations.usage.total_tokens} tokens
+            // Check if report exists
+            if (!fs.existsSync('ai-analysis-report.md')) {
+              console.log('No report found, skipping issue creation');
+              return;
+            }
 
----
-*Generated automatically by GitHub Actions*
-`;
+            const report = fs.readFileSync('ai-analysis-report.md', 'utf8');
 
-  // Save report
-  fs.writeFileSync(
-    path.join(projectRoot, 'ai-analysis-report.md'),
-    report,
-    'utf8'
-  );
-  
-  console.log('✅ Analysis complete! Report saved to ai-analysis-report.md');
-}
-
-runAnalysis().catch(console.error);
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `AI Architecture Analysis - ${new Date().toISOString().split('T')[0]}`,
+              body: report,
+              labels: ['ai-analysis', 'architecture']
+            });

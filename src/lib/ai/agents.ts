@@ -4,14 +4,14 @@
  * Specialized agents for code review, architecture, and analysis
  */
 
-import { githubModels } from './github-models';
+import { githubModels } from "./github-models"
 
 interface AgentResponse {
-  content: string;
+  content: string
   usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-  };
+    prompt_tokens: number
+    completion_tokens: number
+  }
 }
 
 /**
@@ -22,9 +22,9 @@ export async function architect(prompt: string): Promise<AgentResponse> {
   const response = await githubModels.chat(
     [
       {
-        role: 'system',
-        content: `You are a senior Next.js architect specializing in App Router, 
-Server Components, and modern React patterns. Make clear, opinionated 
+        role: "system",
+        content: `You are a senior Next.js architect specializing in App Router,
+Server Components, and modern React patterns. Make clear, opinionated
 architecture decisions. Consider:
 - Server vs Client component boundaries
 - Data fetching patterns (RSC, Server Actions, Route Handlers)
@@ -34,33 +34,30 @@ architecture decisions. Consider:
 
 Be concise but thorough. Provide specific code patterns when relevant.`,
       },
-      { role: 'user', content: prompt },
+      { role: "user", content: prompt },
     ],
     {
-      model: process.env.MODEL_ARCHITECT || 'gpt-4o-mini',
+      model: process.env.MODEL_ARCHITECT || "gpt-4o-mini",
       temperature: 0.3,
       max_tokens: 4000,
     }
-  );
+  )
 
   return {
     content: response.choices[0].message.content,
     usage: response.usage,
-  };
+  }
 }
 
 /**
  * o3-mini: Skeptical Reviewer
  * Finds edge cases, async issues, runtime problems
  */
-export async function reviewer(
-  code: string,
-  context: string
-): Promise<AgentResponse> {
+export async function reviewer(code: string, context: string): Promise<AgentResponse> {
   const response = await githubModels.chat(
     [
       {
-        role: 'system',
+        role: "system",
         content: `You are a skeptical code reviewer who stress-tests assumptions.
 Focus on finding:
 - Async/await mistakes and race conditions
@@ -73,35 +70,32 @@ Focus on finding:
 Be critical but constructive. Provide specific fixes.`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `Context: ${context}\n\nCode to review:\n\`\`\`\n${code}\n\`\`\``,
       },
     ],
     {
-      model: process.env.MODEL_REVIEWER || 'o3-mini',
+      model: process.env.MODEL_REVIEWER || "o3-mini",
       temperature: 0.2,
       max_tokens: 3000,
     }
-  );
+  )
 
   return {
     content: response.choices[0].message.content,
     usage: response.usage,
-  };
+  }
 }
 
 /**
  * Codestral-25.01: Code Author
  * Writes and refactors TypeScript/Next.js code
  */
-export async function coder(
-  instruction: string,
-  existingCode?: string
-): Promise<AgentResponse> {
-  const messages = [
+export async function coder(instruction: string, existingCode?: string): Promise<AgentResponse> {
+  const messages: Array<{ role: "system" | "user"; content: string }> = [
     {
-      role: 'system' as const,
-      content: `You are an expert TypeScript/Next.js developer. Write clean, 
+      role: "system",
+      content: `You are an expert TypeScript/Next.js developer. Write clean,
 type-safe, production-ready code following Next.js 15 best practices:
 - Use Server Components by default
 - Client Components only when needed ('use client')
@@ -111,48 +105,57 @@ type-safe, production-ready code following Next.js 15 best practices:
 
 Always include comments explaining non-obvious decisions.`,
     },
-  ];
+  ]
 
   if (existingCode) {
     messages.push({
-      role: 'user' as const,
+      role: "user",
       content: `Refactor this code:\n\`\`\`typescript\n${existingCode}\n\`\`\`\n\nInstruction: ${instruction}`,
-    });
+    })
   } else {
     messages.push({
-      role: 'user' as const,
+      role: "user",
       content: instruction,
-    });
+    })
   }
 
   const response = await githubModels.chat(messages, {
-    model: process.env.MODEL_CODER || 'Codestral-25.01',
+    model: process.env.MODEL_CODER || "Codestral-25.01",
     temperature: 0.1,
     max_tokens: 8000,
-  });
+  })
 
   return {
     content: response.choices[0].message.content,
     usage: response.usage,
-  };
+  }
 }
 
 /**
  * Llama-3.3-70B: Repo-Scale Analyst
  * Reads many files, analyzes architectural drift
+ * Note: Has 8K token input limit - use for summarized content
  */
 export async function analyst(
   files: Array<{ path: string; content: string }>,
   question: string
 ): Promise<AgentResponse> {
-  const fileContext = files
-    .map((f) => `// ${f.path}\n${f.content}`)
-    .join('\n\n---\n\n');
+  // Truncate large files to fit within 8K token limit
+  const MAX_FILE_LENGTH = 2000 // chars per file (rough ~500 tokens)
+  const truncatedFiles = files.map((f) => ({
+    path: f.path,
+    content:
+      f.content.length > MAX_FILE_LENGTH
+        ? f.content.substring(0, MAX_FILE_LENGTH) + "\n... [truncated]"
+        : f.content,
+  }))
+
+  const fileContext = truncatedFiles.map((f) => `// ${f.path}\n${f.content}`).join("\n\n---\n\n")
 
   const response = await githubModels.chat(
     [
       {
-        role: 'system',
+        role: "system",
         content: `You are a repository analyst who reads many files to understand
 the full codebase. Identify:
 - Architectural patterns and inconsistencies
@@ -164,21 +167,21 @@ the full codebase. Identify:
 Provide high-level insights, not line-by-line review.`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `Repository files:\n\n${fileContext}\n\nQuestion: ${question}`,
       },
     ],
     {
-      model: process.env.MODEL_ANALYST || 'Llama-3.3-70B-Instruct',
+      model: process.env.MODEL_ANALYST || "gpt-4o-mini", // Use GPT instead of Llama for large context
       temperature: 0.4,
-      max_tokens: 6000,
+      max_tokens: 4000,
     }
-  );
+  )
 
   return {
     content: response.choices[0].message.content,
     usage: response.usage,
-  };
+  }
 }
 
 /**
@@ -186,18 +189,19 @@ Provide high-level insights, not line-by-line review.`,
  * Semantic search over codebase
  */
 export async function embedCode(code: string): Promise<number[]> {
-  const response = await githubModels.embeddings(code, 
-    process.env.MODEL_EMBEDDINGS || 'text-embedding-3-small'
-  );
-  return response.data[0].embedding;
+  const response = await githubModels.embeddings(
+    code,
+    process.env.MODEL_EMBEDDINGS || "text-embedding-3-small"
+  )
+  return response.data[0].embedding
 }
 
 /**
  * Find similar code using cosine similarity
  */
 export function cosineSimilarity(a: number[], b: number[]): number {
-  const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
-  const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
-  const magnitudeB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
-  return dotProduct / (magnitudeA * magnitudeB);
+  const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0)
+  const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0))
+  const magnitudeB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0))
+  return dotProduct / (magnitudeA * magnitudeB)
 }

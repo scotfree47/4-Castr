@@ -4,17 +4,20 @@
  * Usage: npm run ai:review <filepath>
  */
 
+// CRITICAL: Load env FIRST
 import { config } from "dotenv"
-import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
-import { coder, reviewer } from "../src/lib/ai/agents.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Load environment variables
+// Load .env.local BEFORE importing agents
 config({ path: path.join(__dirname, "..", ".env.local") })
+
+// NOW import everything else
+import fs from "fs"
+import { reviewer, coder } from "../src/lib/ai/agents.js"
 
 async function reviewFile(filePath: string): Promise<void> {
   const fullPath = path.join(__dirname, "..", filePath)

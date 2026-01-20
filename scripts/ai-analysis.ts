@@ -4,26 +4,37 @@
  * Analyzes entire repo for drift, inconsistencies, and improvements
  */
 
-import fs from "fs"
+// CRITICAL: Load env FIRST, before any other imports
+import { config } from "dotenv"
 import path from "path"
 import { fileURLToPath } from "url"
-import { analyst, architect } from "../src/lib/ai/agents.js"
 
+// Declare __filename and __dirname ONCE (lines 12-13)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+// Load .env.local BEFORE importing agents
+config({ path: path.join(__dirname, "..", ".env.local") })
+
+// NOW import everything else (after env is loaded)
+import fs from "fs"
+import { analyst, architect } from "../src/lib/ai/agents.js"
+
+// ❌ DELETE LINES 22-23 if they look like this:
+// const __filename = fileURLToPath(import.meta.url);  // ← DUPLICATE!
+// const __dirname = path.dirname(__filename);         // ← DUPLICATE!
 
 // Files to analyze
 const IMPORTANT_FILES = [
   "src/app/layout.tsx",
   "src/app/page.tsx",
   "src/lib/supabase.js",
-  "src/lib/apiAdapters.js",
-  "src/lib/csvAdapter.js",
   "src/lib/indicators/keyLevels.ts",
   "src/app/(dashboard)/components/sentinels-overview.tsx",
-  "src/app/(dashboard)/2chart.tsx/components/trend-path.tsx",
-  "src/app/api/equity/route.js",
+  "src/app/(dashboard)/1watchlist/components/featured-tickers.tsx",
+  "src/app/(dashboard)/1watchlist/components/previously-featured.tsx",
   "src/app/api/ingress/route.js",
+  "src/app/api/levels/[symbol]/route.ts",
 ]
 
 interface FileContent {
@@ -38,6 +49,14 @@ async function readFiles(projectRoot: string): Promise<FileContent[]> {
     const fullPath = path.join(projectRoot, filePath)
     try {
       const content = fs.readFileSync(fullPath, "utf8")
+
+      // Skip if file is too large (>3000 lines = likely generated/vendor code)
+      const lineCount = content.split("\n").length
+      if (lineCount > 3000) {
+        console.warn(`⚠️  Skipping ${filePath} (${lineCount} lines, too large)`)
+        continue
+      }
+
       files.push({ path: filePath, content })
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Unknown error"
