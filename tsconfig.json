@@ -37,6 +37,19 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next",
+    "**/_unused",
+    "**/_unused/**",
+    "**/unused",
+    "**/unused/**",
+    "**/_saved-unused",
+    "**/_saved-unused/**",
+    "**/saved-unused",
+    "**/saved-unused/**",
+    "**/.aider*",
+    "csv-pull/market-data/node_modules",
+    "ai-analysis-report.md",
+    "scripts/test-env.ts"
   ]
 }
