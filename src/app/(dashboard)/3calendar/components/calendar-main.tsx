@@ -1,43 +1,52 @@
 "use client"
 
-import { useState } from "react"
 import {
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  format,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
+import {
+  Calendar as CalendarIcon,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Calendar as CalendarIcon,
   Clock,
-  MapPin,
-  Users,
-  MoreHorizontal,
-  Search,
   Grid3X3,
   List,
-  ChevronDown,
-  Menu
+  MapPin,
+  Menu,
+  Search,
+  Users,
 } from "lucide-react"
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay } from "date-fns"
+import { useState } from "react"
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { type CalendarEvent } from "../types"
 import { getGannMomentsForRange } from "../gann-calculator"
+import { type CalendarEvent } from "../types"
 
 interface CalendarMainProps {
   selectedDate?: Date
@@ -49,7 +58,15 @@ interface CalendarMainProps {
   visibleCalendars?: Record<string, boolean>
 }
 
-export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, onEventClick, visibleTimeframes = {}, visibleCalendars = {} }: CalendarMainProps) {
+export function CalendarMain({
+  selectedDate,
+  onDateSelect,
+  onMenuClick,
+  events,
+  onEventClick,
+  visibleTimeframes = {},
+  visibleCalendars = {},
+}: CalendarMainProps) {
   const [currentDate, setCurrentDate] = useState(selectedDate || new Date())
   const [viewMode, setViewMode] = useState<"month" | "week" | "day" | "list">("month")
   const [showEventDialog, setShowEventDialog] = useState(false)
@@ -69,41 +86,41 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
 
   // Generate Gann moments dynamically for the current view
   const allGannMoments = getGannMomentsForRange(calendarStart, calendarEnd)
-  
+
   // Filter Gann moments based on visibility settings
-  const filteredGannMoments = allGannMoments.filter(moment => {
+  const filteredGannMoments = allGannMoments.filter((moment) => {
     // Check timeframe visibility
     const timeframeKey = moment.timeframe.toLowerCase()
     if (visibleTimeframes[timeframeKey] === false) return false
-    
+
     // Check calendar type visibility (based on category)
     // Map categories to calendar IDs
     const categoryToCalendar: Record<string, string> = {
-      anchor: 'gann moments',
-      major_pivot: 'gann moments',
-      balance: 'gann moments',
-      reversal: 'gann moments',
-      golden_ratio: 'fibonacci moments',
-      fib_major: 'fibonacci moments',
-      angle_2x1_after_fib: 'fibonacci moments',
-      market_hours: 'fiscal dates',
-      angle_all: 'secondary gann moments',
-      fib_minor: 'secondary fibonacci moments',
+      anchor: "gann moments",
+      major_pivot: "gann moments",
+      balance: "gann moments",
+      reversal: "gann moments",
+      golden_ratio: "fibonacci moments",
+      fib_major: "fibonacci moments",
+      angle_2x1_after_fib: "fibonacci moments",
+      market_hours: "fiscal dates",
+      angle_all: "secondary gann moments",
+      fib_minor: "secondary fibonacci moments",
     }
-    
-    const calendarId = categoryToCalendar[moment.category] || 'gann moments'
+
+    const calendarId = categoryToCalendar[moment.category] || "gann moments"
     if (visibleCalendars[calendarId] === false) return false
-    
+
     return true
   })
-  
+
   // Combine with any user-provided events
-  const sampleEvents: CalendarEvent[] = events 
-    ? [...events, ...filteredGannMoments as any]
-    : filteredGannMoments as any
+  const sampleEvents: CalendarEvent[] = events
+    ? [...events, ...(filteredGannMoments as any)]
+    : (filteredGannMoments as any)
 
   const getEventsForDay = (date: Date) => {
-    return sampleEvents.filter(event => isSameDay(event.date, date))
+    return sampleEvents.filter((event) => isSameDay(event.date, date))
   }
 
   // Check if an event is a moment marker (Gann date)
@@ -130,14 +147,17 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
   }
 
   const renderCalendarGrid = () => {
-    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
     return (
       <div className="flex-1 bg-background">
         {/* Calendar Header */}
         <div className="grid grid-cols-7 border-b">
-          {weekDays.map(day => (
-            <div key={day} className="p-4 text-center font-medium text-sm text-muted-foreground border-r last:border-r-0">
+          {weekDays.map((day) => (
+            <div
+              key={day}
+              className="p-4 text-center font-medium text-sm text-muted-foreground border-r last:border-r-0"
+            >
               {day}
             </div>
           ))}
@@ -145,10 +165,10 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
 
         {/* Calendar Body */}
         <div className="grid grid-cols-7 flex-1">
-          {calendarDays.map(day => {
+          {calendarDays.map((day) => {
             const dayEvents = getEventsForDay(day)
             const momentMarkers = dayEvents.filter(isMomentMarker)
-            const regularEvents = dayEvents.filter(e => !isMomentMarker(e))
+            const regularEvents = dayEvents.filter((e) => !isMomentMarker(e))
             const isCurrentMonth = isSameMonth(day, currentDate)
             const isDayToday = isToday(day)
             const isSelected = selectedDate && isSameDay(day, selectedDate)
@@ -158,29 +178,32 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
                 key={day.toISOString()}
                 className={cn(
                   "min-h-[120px] border-r border-b last:border-r-0 p-2 cursor-pointer transition-colors relative",
-                  isCurrentMonth ? "bg-background hover:bg-accent/50" : "bg-muted/30 text-muted-foreground",
+                  isCurrentMonth
+                    ? "bg-background hover:bg-accent/50"
+                    : "bg-muted/30 text-muted-foreground",
                   isSelected && "ring-2 ring-primary ring-inset",
                   isDayToday && "bg-accent/20"
                 )}
                 onClick={() => onDateSelect?.(day)}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className={cn(
-                    "text-sm font-medium",
-                    isDayToday && "bg-primary text-primary-foreground rounded-md w-6 h-6 flex items-center justify-center text-xs"
-                  )}>
-                    {format(day, 'd')}
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      isDayToday &&
+                        "bg-primary text-primary-foreground rounded-md w-6 h-6 flex items-center justify-center text-xs"
+                    )}
+                  >
+                    {format(day, "d")}
                   </span>
                   {dayEvents.length > 3 && (
-                    <span className="text-xs text-muted-foreground">
-                      +{dayEvents.length - 3}
-                    </span>
+                    <span className="text-xs text-muted-foreground">+{dayEvents.length - 3}</span>
                   )}
                 </div>
 
                 {/* Regular Events */}
                 <div className="space-y-1 mb-2">
-                  {regularEvents.slice(0, 2).map(event => (
+                  {regularEvents.slice(0, 2).map((event) => (
                     <div
                       key={event.id}
                       className={cn(
@@ -203,7 +226,7 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
                 {/* Moment Markers - Rendered as thin horizontal lines */}
                 {momentMarkers.length > 0 && (
                   <div className="absolute bottom-1 left-1 right-1 space-y-0.5">
-                    {momentMarkers.slice(0, 3).map(marker => (
+                    {momentMarkers.slice(0, 3).map((marker) => (
                       <div
                         key={marker.id}
                         className={cn(
@@ -234,33 +257,40 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
 
   const renderListView = () => {
     const upcomingEvents = sampleEvents
-      .filter(event => event.date >= new Date())
+      .filter((event) => event.date >= new Date())
       .sort((a, b) => a.date.getTime() - b.date.getTime())
 
     // Group by date
-    const groupedByDate = upcomingEvents.reduce((acc, event) => {
-      const dateKey = format(event.date, 'yyyy-MM-dd')
-      if (!acc[dateKey]) acc[dateKey] = []
-      acc[dateKey].push(event)
-      return acc
-    }, {} as Record<string, CalendarEvent[]>)
+    const groupedByDate = upcomingEvents.reduce(
+      (acc, event) => {
+        const dateKey = format(event.date, "yyyy-MM-dd")
+        if (!acc[dateKey]) acc[dateKey] = []
+        acc[dateKey].push(event)
+        return acc
+      },
+      {} as Record<string, CalendarEvent[]>
+    )
 
     return (
       <div className="flex-1 p-6">
         <div className="space-y-6">
           {Object.entries(groupedByDate).map(([dateKey, dateEvents]) => {
             const momentMarkers = dateEvents.filter(isMomentMarker)
-            const regularEvents = dateEvents.filter(e => !isMomentMarker(e))
-            
+            const regularEvents = dateEvents.filter((e) => !isMomentMarker(e))
+
             return (
               <div key={dateKey}>
                 <h3 className="text-lg font-semibold mb-3">
-                  {format(new Date(dateKey), 'EEEE, MMMM d, yyyy')}
+                  {format(new Date(dateKey), "EEEE, MMMM d, yyyy")}
                 </h3>
-                
+
                 {/* Regular Events */}
-                {regularEvents.map(event => (
-                  <Card key={event.id} className="cursor-pointer hover:shadow-md transition-shadow mb-3" onClick={() => handleEventClick(event)}>
+                {regularEvents.map((event) => (
+                  <Card
+                    key={event.id}
+                    className="cursor-pointer hover:shadow-md transition-shadow mb-3"
+                    onClick={() => handleEventClick(event)}
+                  >
                     <CardContent className="px-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
@@ -292,7 +322,7 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
                     <CardContent className="px-4 py-3">
                       <h4 className="text-sm font-medium mb-2">Gann Moments</h4>
                       <div className="space-y-1">
-                        {momentMarkers.map(marker => (
+                        {momentMarkers.map((marker) => (
                           <div
                             key={marker.id}
                             className="flex items-center gap-2 text-xs cursor-pointer hover:bg-accent/50 p-1 rounded"
@@ -331,10 +361,20 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
           </Button>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigateMonth("prev")} className="cursor-pointer">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateMonth("prev")}
+              className="cursor-pointer"
+            >
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigateMonth("next")} className="cursor-pointer">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateMonth("next")}
+              className="cursor-pointer"
+            >
               <ChevronRight className="w-4 h-4" />
             </Button>
             <Button variant="outline" size="sm" onClick={goToToday} className="cursor-pointer">
@@ -342,9 +382,7 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
             </Button>
           </div>
 
-          <h1 className="text-2xl font-semibold">
-            {format(currentDate, 'MMMM yyyy')}
-          </h1>
+          <h1 className="text-2xl font-semibold">{format(currentDate, "MMMM yyyy")}</h1>
         </div>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
@@ -386,14 +424,16 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
           <DialogHeader>
             <DialogTitle>{selectedEvent?.title || "Event Details"}</DialogTitle>
             <DialogDescription>
-              {selectedEvent && isMomentMarker(selectedEvent) ? "Gann Calendar Moment" : "View and manage this calendar event"}
+              {selectedEvent && isMomentMarker(selectedEvent)
+                ? "Gann Calendar Moment"
+                : "View and manage this calendar event"}
             </DialogDescription>
           </DialogHeader>
           {selectedEvent && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                <span>{format(selectedEvent.date, 'EEEE, MMMM d, yyyy')}</span>
+                <span>{format(selectedEvent.date, "EEEE, MMMM d, yyyy")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-muted-foreground" />
@@ -406,9 +446,7 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
                 </div>
               )}
               {selectedEvent.description && (
-                <div className="text-sm text-muted-foreground">
-                  {selectedEvent.description}
-                </div>
+                <div className="text-sm text-muted-foreground">{selectedEvent.description}</div>
               )}
               {selectedEvent.angle && (
                 <div className="flex items-center gap-2">
@@ -420,21 +458,23 @@ export function CalendarMain({ selectedDate, onDateSelect, onMenuClick, events, 
                   )}
                 </div>
               )}
-              {!isMomentMarker(selectedEvent) && selectedEvent.attendees && selectedEvent.attendees.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-muted-foreground" />
+              {!isMomentMarker(selectedEvent) &&
+                selectedEvent.attendees &&
+                selectedEvent.attendees.length > 0 && (
                   <div className="flex items-center gap-2">
-                    <span>Attendees:</span>
-                    <div className="flex -space-x-2">
-                      {selectedEvent.attendees.map((attendee: string, index: number) => (
-                        <Avatar key={index} className="w-6 h-6 border-2 border-background">
-                          <AvatarFallback className="text-xs">{attendee}</AvatarFallback>
-                        </Avatar>
-                      ))}
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2">
+                      <span>Attendees:</span>
+                      <div className="flex -space-x-2">
+                        {selectedEvent.attendees.map((attendee: string, index: number) => (
+                          <Avatar key={index} className="w-6 h-6 border-2 border-background">
+                            <AvatarFallback className="text-xs">{attendee}</AvatarFallback>
+                          </Avatar>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           )}
         </DialogContent>

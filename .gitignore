@@ -44,7 +44,17 @@ node_modules/
 csv-pull/market-data/node_modules/
 env-local-ref-full.txt
 env-local-ref-full.txt
+
+# Unused/archived code
+**/_unused/
+**/_unused/**
 **/unused/
 **/unused/**
+**/_saved-unused/
+**/_saved-unused/**
 **/saved-unused/
 **/saved-unused/**
+
+# misc files for testing github models
+ai-analysis-report.md
+scripts/test-env.ts

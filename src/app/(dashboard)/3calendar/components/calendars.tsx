@@ -1,13 +1,9 @@
 "use client"
 
-import { useState } from "react"
 import { ChevronRight, Eye, EyeOff } from "lucide-react"
+import { useState } from "react"
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
@@ -26,7 +22,7 @@ interface TimeframeItem {
   id: string
   name: string
   visible: boolean
-  timeframe: 'Daily' | 'Weekly' | 'Monthly' | 'Quarterly' | 'Yearly'
+  timeframe: "Daily" | "Weekly" | "Monthly" | "Quarterly" | "Yearly"
 }
 
 interface CalendarsProps {
@@ -36,25 +32,22 @@ interface CalendarsProps {
 
 // Timeframe toggles for Gann moments
 const TIMEFRAME_TOGGLES: TimeframeItem[] = [
-  { id: 'daily', name: 'Daily', visible: true, timeframe: 'Daily' },
-  { id: 'weekly', name: 'Weekly', visible: true, timeframe: 'Weekly' },
-  { id: 'monthly', name: 'Monthly', visible: true, timeframe: 'Monthly' },
-  { id: 'quarterly', name: 'Quarterly', visible: true, timeframe: 'Quarterly' },
-  { id: 'yearly', name: 'Yearly', visible: true, timeframe: 'Yearly' },
+  { id: "daily", name: "Daily", visible: true, timeframe: "Daily" },
+  { id: "weekly", name: "Weekly", visible: true, timeframe: "Weekly" },
+  { id: "monthly", name: "Monthly", visible: true, timeframe: "Monthly" },
+  { id: "quarterly", name: "Quarterly", visible: true, timeframe: "Quarterly" },
+  { id: "yearly", name: "Yearly", visible: true, timeframe: "Yearly" },
 ]
 
-export function Calendars({
-  onCalendarToggle,
-  onTimeframeToggle,
-}: CalendarsProps) {
+export function Calendars({ onCalendarToggle, onTimeframeToggle }: CalendarsProps) {
   // Initialize with Gann calendar data
   const [calendarData, setCalendarData] = useState<CalendarItem[]>(
-    calendarsData.map(cal => ({
+    calendarsData.map((cal) => ({
       id: cal.id,
       name: cal.name,
       color: cal.color,
       visible: cal.visible,
-      type: cal.type
+      type: cal.type,
     }))
   )
 
@@ -62,35 +55,31 @@ export function Calendars({
   const [timeframeData, setTimeframeData] = useState<TimeframeItem[]>(TIMEFRAME_TOGGLES)
 
   const handleToggleVisibility = (calendarId: string) => {
-    setCalendarData(prev => prev.map(item => 
-      item.id === calendarId 
-        ? { ...item, visible: !item.visible }
-        : item
-    ))
-    
-    const calendar = calendarData.find(c => c.id === calendarId)
+    setCalendarData((prev) =>
+      prev.map((item) => (item.id === calendarId ? { ...item, visible: !item.visible } : item))
+    )
+
+    const calendar = calendarData.find((c) => c.id === calendarId)
     if (calendar) {
       onCalendarToggle?.(calendarId, !calendar.visible)
     }
   }
 
   const handleToggleTimeframe = (timeframeId: string) => {
-    setTimeframeData(prev => prev.map(item => 
-      item.id === timeframeId 
-        ? { ...item, visible: !item.visible }
-        : item
-    ))
-    
-    const timeframe = timeframeData.find(t => t.id === timeframeId)
+    setTimeframeData((prev) =>
+      prev.map((item) => (item.id === timeframeId ? { ...item, visible: !item.visible } : item))
+    )
+
+    const timeframe = timeframeData.find((t) => t.id === timeframeId)
     if (timeframe) {
       onTimeframeToggle?.(timeframeId, !timeframe.visible)
     }
   }
 
   // Group calendars by type
-  const gannMoments = calendarData.filter(cal => cal.type === 'gann')
-  const fibonacciMoments = calendarData.filter(cal => cal.type === 'fibonacci')
-  const fiscalDates = calendarData.filter(cal => cal.type === 'fiscal')
+  const gannMoments = calendarData.filter((cal) => cal.type === "gann")
+  const fibonacciMoments = calendarData.filter((cal) => cal.type === "fibonacci")
+  const fiscalDates = calendarData.filter((cal) => cal.type === "fiscal")
 
   return (
     <div className="space-y-4 pb-4">
@@ -109,7 +98,7 @@ export function Calendars({
                   <div className="flex items-center justify-between p-2 hover:bg-accent/50 rounded-md">
                     <div className="flex items-center gap-3 flex-1">
                       {/* Timeframe Name */}
-                      <span 
+                      <span
                         className={cn(
                           "flex-1 truncate text-sm",
                           !item.visible && "text-muted-foreground"
@@ -157,7 +146,7 @@ export function Calendars({
                       <div className={cn("w-3 h-3 rounded-full", item.color)} />
 
                       {/* Calendar Name */}
-                      <span 
+                      <span
                         className={cn(
                           "flex-1 truncate text-sm",
                           !item.visible && "text-muted-foreground"
@@ -181,21 +170,21 @@ export function Calendars({
                   </div>
                 </div>
               ))}
-              
+
               {/* Separator */}
               {gannMoments.length > 0 && fibonacciMoments.length > 0 && (
                 <div className="flex items-center gap-2 px-2 py-2">
                   <Separator className="flex-1" />
                 </div>
               )}
-              
+
               {/* Fibonacci Moments */}
               {fibonacciMoments.map((item) => (
                 <div key={item.id} className="group/calendar-item">
                   <div className="flex items-center justify-between p-2 hover:bg-accent/50 rounded-md">
                     <div className="flex items-center gap-3 flex-1">
                       <div className={cn("w-3 h-3 rounded-full", item.color)} />
-                      <span 
+                      <span
                         className={cn(
                           "flex-1 truncate text-sm",
                           !item.visible && "text-muted-foreground"
@@ -217,21 +206,21 @@ export function Calendars({
                   </div>
                 </div>
               ))}
-              
+
               {/* Separator */}
               {fibonacciMoments.length > 0 && fiscalDates.length > 0 && (
                 <div className="flex items-center gap-2 px-2 py-2">
                   <Separator className="flex-1" />
                 </div>
               )}
-              
+
               {/* Fiscal Dates */}
               {fiscalDates.map((item) => (
                 <div key={item.id} className="group/calendar-item">
                   <div className="flex items-center justify-between p-2 hover:bg-accent/50 rounded-md">
                     <div className="flex items-center gap-3 flex-1">
                       <div className={cn("w-3 h-3 rounded-full", item.color)} />
-                      <span 
+                      <span
                         className={cn(
                           "flex-1 truncate text-sm",
                           !item.visible && "text-muted-foreground"

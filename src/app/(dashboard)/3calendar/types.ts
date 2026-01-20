@@ -1,12 +1,12 @@
 // Calendar Event - individual dates/moments on the calendar
 export interface CalendarEvent {
   id: string | number
-  name: string  // Primary identifier (e.g., "Summer Solstice 2025")
+  name: string // Primary identifier (e.g., "Summer Solstice 2025")
   date: Date
   type: "gann" | "fibonacci" | "fiscal" | "secondary fib" | "secondary gann"
   color: string
   visible: boolean
-  
+
   // Optional meeting/event fields
   title?: string
   time?: string
@@ -14,9 +14,9 @@ export interface CalendarEvent {
   attendees?: string[]
   location?: string
   description?: string
-  
+
   // Optional Gann/Financial specific fields
-  timeframe?: 'Daily' | 'Weekly' | 'Monthly' | 'Quarterly' | 'Yearly'
+  timeframe?: "Daily" | "Weekly" | "Monthly" | "Quarterly" | "Yearly"
   angle?: string
   category?: string
 }
@@ -34,7 +34,7 @@ export interface Calendar {
 export interface CalendarEventJSON {
   id: string | number
   name: string
-  date: string  // Date as ISO string in JSON
+  date: string // Date as ISO string in JSON
   type: string
   color: string
   visible: boolean
@@ -44,7 +44,7 @@ export interface CalendarEventJSON {
   attendees?: string[]
   location?: string
   description?: string
-  timeframe?: 'Daily' | 'Weekly' | 'Monthly' | 'Quarterly' | 'Yearly'
+  timeframe?: "Daily" | "Weekly" | "Monthly" | "Quarterly" | "Yearly"
   angle?: string
   category?: string
 }

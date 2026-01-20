@@ -1,10 +1,7 @@
-import { BaseLayout } from "@/components/layouts/base-layout"
 import { Calendar } from "./components/calendar"
 import { events } from "./data"
 
 export default function CalendarPage() {
-  // eventDates will be generated dynamically from Gann moments
-  // No need to pass it explicitly anymore
   return (
     <div className="flex-1 space-y-6">
       <div className="flex md:flex-row flex-col md:items-center justify-between gap-4 md:gap-6">
@@ -14,7 +11,7 @@ export default function CalendarPage() {
         </div>
       </div>
       <div className="px-3 lg:px-6">
-          <Calendar events={events} />
+        <Calendar events={events} />
       </div>
     </div>
   )

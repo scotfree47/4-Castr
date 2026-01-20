@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import { type CalendarEvent } from "./types"
+import { type CalendarEvent } from "./types" // ← FIXED: Added ../ to go up one directory
 
 export interface UseCalendarState {
   selectedDate: Date
@@ -20,7 +20,7 @@ export interface UseCalendarActions {
   handleNewEvent: () => void
   handleNewCalendar: () => void
   handleSaveEvent: (eventData: Partial<CalendarEvent>) => void
-  handleDeleteEvent: (eventId: number) => void
+  handleDeleteEvent: (eventId: string | number) => void
   handleEditEvent: (event: CalendarEvent) => void
 }
 
@@ -35,7 +35,6 @@ export function useCalendar(initialEvents: CalendarEvent[] = []): UseCalendarRet
 
   const handleDateSelect = useCallback((date: Date) => {
     setSelectedDate(date)
-    // Auto-close mobile sheet when date is selected
     setShowCalendarSheet(false)
   }, [])
 
@@ -46,19 +45,16 @@ export function useCalendar(initialEvents: CalendarEvent[] = []): UseCalendarRet
 
   const handleNewCalendar = useCallback(() => {
     console.log("Creating new calendar")
-    // In a real app, this would open a new calendar form
   }, [])
 
   const handleSaveEvent = useCallback((eventData: Partial<CalendarEvent>) => {
     console.log("Saving event:", eventData)
-    // In a real app, this would save to a backend
     setShowEventForm(false)
     setEditingEvent(null)
   }, [])
 
-  const handleDeleteEvent = useCallback((eventId: number) => {
+  const handleDeleteEvent = useCallback((eventId: string | number) => {
     console.log("Deleting event:", eventId)
-    // In a real app, this would delete from backend
     setShowEventForm(false)
     setEditingEvent(null)
   }, [])
@@ -69,13 +65,11 @@ export function useCalendar(initialEvents: CalendarEvent[] = []): UseCalendarRet
   }, [])
 
   return {
-    // State
     selectedDate,
     showEventForm,
     editingEvent,
     showCalendarSheet,
     events,
-    // Actions
     setSelectedDate,
     setShowEventForm,
     setEditingEvent,

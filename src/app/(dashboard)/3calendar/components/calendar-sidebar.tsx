@@ -2,28 +2,26 @@
 
 import { Plus } from "lucide-react"
 
-import { Calendars } from "./calendars"
-import { DatePicker } from "./date-picker"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { Calendars } from "./calendars"
+import { DatePicker } from "./date-picker"
 
 interface CalendarSidebarProps {
   selectedDate?: Date
   onDateSelect?: (date: Date) => void
   onNewCalendar?: () => void
   onNewEvent?: () => void
-  events?: Array<{ date: Date; count: number }>
   className?: string
   onTimeframeToggle?: (timeframeId: string, visible: boolean) => void
   onCalendarToggle?: (calendarId: string, visible: boolean) => void
 }
 
-export function CalendarSidebar({ 
+export function CalendarSidebar({
   selectedDate,
   onDateSelect,
   onNewCalendar,
   onNewEvent,
-  events = [],
   className,
   onTimeframeToggle,
   onCalendarToggle,
@@ -32,27 +30,20 @@ export function CalendarSidebar({
     <div className={`flex flex-col h-full bg-background rounded-lg ${className}`}>
       {/* Add New Event Button */}
       <div className="px-6 pb-6 border-b">
-        <Button 
-          className="w-full cursor-pointer"
-          onClick={onNewEvent}
-        >
+        <Button className="w-full cursor-pointer" onClick={onNewEvent}>
           <Plus className="w-4 h-4 mr-2" />
           Add New Event
         </Button>
       </div>
 
-      {/* Date Picker */}
-      <DatePicker
-        selectedDate={selectedDate}
-        onDateSelect={onDateSelect}
-        events={events}
-      />
+      {/* Date Picker - No events prop needed, it's just for date selection */}
+      <DatePicker selectedDate={selectedDate} onDateSelect={onDateSelect} />
 
       <Separator />
 
       {/* Calendars - Gann Moments */}
       <div className="flex-1 p-4 overflow-y-auto">
-        <Calendars 
+        <Calendars
           onCalendarToggle={(calendarId, visible) => {
             console.log(`Calendar ${calendarId} visibility: ${visible}`)
             onCalendarToggle?.(calendarId, visible)

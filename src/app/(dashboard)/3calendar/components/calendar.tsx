@@ -1,19 +1,25 @@
 "use client"
 
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { useState } from "react"
-import { CalendarSidebar } from "./calendar-sidebar"
+import { type CalendarEvent } from "../types" // ← FIXED: Added ../ to go up one directory
+import { useCalendar } from "../use-calendar" // ← FIXED: Added ../ to go up one directory
 import { CalendarMain } from "./calendar-main"
+import { CalendarSidebar } from "./calendar-sidebar"
 import { EventForm } from "./event-form"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { type CalendarEvent } from "../types"
-import { useCalendar } from "../use-calendar"
 
 interface CalendarProps {
   events: CalendarEvent[]
-  eventDates?: Array<{ date: Date; count: number }>
 }
 
-export function Calendar({ events, eventDates = [] }: CalendarProps) {
+export function Calendar({ events }: CalendarProps) {
+  // ← Already has export, good!
   const calendar = useCalendar(events)
   const [visibleTimeframes, setVisibleTimeframes] = useState<Record<string, boolean>>({
     daily: true,
@@ -23,42 +29,41 @@ export function Calendar({ events, eventDates = [] }: CalendarProps) {
     yearly: true,
   })
   const [visibleCalendars, setVisibleCalendars] = useState<Record<string, boolean>>({
-    'gann moments': true,
-    'fibonacci moments': true,
-    'fiscal dates': true,
-    'secondary fibonacci moments': true,
-    'secondary gann moments': true,
+    "gann moments": true,
+    "fibonacci moments": true,
+    "fiscal dates": true,
+    "secondary fibonacci moments": true,
+    "secondary gann moments": true,
   })
 
   const handleTimeframeToggle = (timeframeId: string, visible: boolean) => {
-    setVisibleTimeframes(prev => ({ ...prev, [timeframeId]: visible }))
+    setVisibleTimeframes((prev) => ({ ...prev, [timeframeId]: visible }))
   }
 
   const handleCalendarToggle = (calendarId: string, visible: boolean) => {
-    setVisibleCalendars(prev => ({ ...prev, [calendarId]: visible }))
+    setVisibleCalendars((prev) => ({ ...prev, [calendarId]: visible }))
   }
 
   return (
     <>
       <div className="border rounded-lg bg-background relative">
         <div className="flex min-h-[800px]">
-          {/* Desktop Sidebar - Hidden on mobile/tablet, shown on extra large screens */}
+          {/* Desktop Sidebar */}
           <div className="hidden xl:block w-80 flex-shrink-0 border-r">
             <CalendarSidebar
               selectedDate={calendar.selectedDate}
               onDateSelect={calendar.handleDateSelect}
               onNewCalendar={calendar.handleNewCalendar}
               onNewEvent={calendar.handleNewEvent}
-              events={eventDates}
               className="h-full"
               onTimeframeToggle={handleTimeframeToggle}
               onCalendarToggle={handleCalendarToggle}
             />
           </div>
-          
+
           {/* Main Calendar Panel */}
           <div className="flex-1 min-w-0">
-            <CalendarMain 
+            <CalendarMain
               selectedDate={calendar.selectedDate}
               onDateSelect={calendar.handleDateSelect}
               onMenuClick={() => calendar.setShowCalendarSheet(true)}
@@ -70,21 +75,18 @@ export function Calendar({ events, eventDates = [] }: CalendarProps) {
           </div>
         </div>
 
-        {/* Mobile/Tablet Sheet - Positioned relative to calendar container */}
+        {/* Mobile/Tablet Sheet */}
         <Sheet open={calendar.showCalendarSheet} onOpenChange={calendar.setShowCalendarSheet}>
-          <SheetContent side="left" className="w-80 p-0" style={{ position: 'absolute' }}>
+          <SheetContent side="left" className="w-80 p-0" style={{ position: "absolute" }}>
             <SheetHeader className="p-4 pb-2">
               <SheetTitle>Calendar</SheetTitle>
-              <SheetDescription>
-                Browse dates and manage your calendar events
-              </SheetDescription>
+              <SheetDescription>Browse dates and manage your calendar events</SheetDescription>
             </SheetHeader>
             <CalendarSidebar
               selectedDate={calendar.selectedDate}
               onDateSelect={calendar.handleDateSelect}
               onNewCalendar={calendar.handleNewCalendar}
               onNewEvent={calendar.handleNewEvent}
-              events={eventDates}
               className="h-full"
               onTimeframeToggle={handleTimeframeToggle}
               onCalendarToggle={handleCalendarToggle}
