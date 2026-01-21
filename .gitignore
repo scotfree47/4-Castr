@@ -58,3 +58,6 @@ env-local-ref-full.txt
 # misc files for testing github models
 ai-analysis-report.md
 scripts/test-env.ts
+.zshenv
+zshenv
+.zshenv
