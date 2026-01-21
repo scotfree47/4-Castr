@@ -8,6 +8,8 @@ import { FloatingActionMenu } from "@/components/floating-action-menu";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { useSidebarConfig } from "@/hooks/use-sidebar-config";
 
+export const dynamic = 'force-dynamic'
+
 export default function DashboardLayout({
   children,
 }: {

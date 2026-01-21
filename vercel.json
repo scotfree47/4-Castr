@@ -1,3 +1,6 @@
 {
-  "crons": []
+  "crons": [],
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "regions": ["iad1"]
 }

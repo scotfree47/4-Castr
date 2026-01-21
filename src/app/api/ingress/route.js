@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 // app/api/ingress/route.js - CORRECTED VERSION
 import { supabaseAdmin } from "@/lib/supabase"
 import { NextResponse } from "next/server"
