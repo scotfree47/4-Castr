@@ -6,7 +6,7 @@ import {
   shouldRefreshFeatured,
   storeFeaturedTickers,
 } from "@/lib/services/confluenceEngine"
-import { supabaseAdmin } from "@/lib/supabase"
+import { getSupabaseAdmin } from "@/lib/supabase"
 import { NextRequest, NextResponse } from "next/server"
 
 export const runtime = "nodejs"
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
 async function cacheRatingsToSupabase(ratings: any[]) {
   try {
     for (const rating of ratings) {
-      await supabaseAdmin.from("ticker_ratings_cache").upsert(
+      await getSupabaseAdmin().from("ticker_ratings_cache").upsert(
         {
           symbol: rating.symbol,
           category: rating.category,

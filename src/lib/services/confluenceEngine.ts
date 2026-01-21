@@ -6,7 +6,7 @@ import {
   getUpcomingSeasonalDates,
   type OHLCVBar,
 } from "@/lib/indicators/keyLevels"
-import { supabaseAdmin } from "@/lib/supabase"
+import { getSupabaseAdmin } from "@/lib/supabase"
 
 // ============================================================================
 // CONFIGURATION
@@ -123,7 +123,7 @@ export async function calculateTickerRating(
     let priceRecords = null
 
     for (const variant of symbolVariants) {
-      const result = await supabaseAdmin
+      const result = await getSupabaseAdmin()
         .from("financial_data")
         .select("*")
         .eq("symbol", variant)
@@ -501,11 +501,11 @@ export async function storeFeaturedTickers(featured: TickerRating[]): Promise<vo
     const categories = [...new Set(featured.map((f) => f.category))]
 
     for (const category of categories) {
-      await supabaseAdmin.from("featured_tickers").delete().eq("category", category)
+      await getSupabaseAdmin().from("featured_tickers").delete().eq("category", category)
     }
 
     for (const row of rows) {
-      await supabaseAdmin.from("featured_tickers").insert([row])
+      await getSupabaseAdmin().from("featured_tickers").insert([row])
     }
 
     console.log(`✅ Stored ${rows.length} featured tickers`)
@@ -522,7 +522,7 @@ export async function shouldRefreshFeatured(): Promise<{
   try {
     const today = new Date().toISOString().split("T")[0]
 
-    const { data: ingressData, error } = await supabaseAdmin
+    const { data: ingressData, error } = await getSupabaseAdmin()
       .from("astro_events")
       .select("*")
       .eq("event_type", "ingress")
@@ -550,7 +550,7 @@ export async function shouldRefreshFeatured(): Promise<{
       return { shouldRefresh: true, reason: "Weekly refresh" }
     }
 
-    const { data: lastUpdate } = await supabaseAdmin
+    const { data: lastUpdate } = await getSupabaseAdmin()
       .from("featured_tickers")
       .select("updated_at")
       .order("updated_at", { ascending: false })
@@ -638,7 +638,7 @@ function determineSector(symbol: string, category: string): string {
 async function getCurrentIngressPeriod() {
   const today = new Date().toISOString().split("T")[0]
 
-  const { data } = await supabaseAdmin
+  const { data } = await getSupabaseAdmin()
     .from("astro_events")
     .select("*")
     .eq("event_type", "ingress")

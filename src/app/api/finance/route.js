@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-import { supabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
