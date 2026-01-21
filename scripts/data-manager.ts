@@ -8,13 +8,44 @@ import { parse } from "csv-parse/sync"
 import dotenv from "dotenv"
 import * as fs from "fs"
 import Papa from "papaparse"
+import path from "path"
+import { fileURLToPath } from "url"
 
-dotenv.config({ path: ".env.local" })
+// ============================================================================
+// ENVIRONMENT SETUP
+// ============================================================================
 
+// Get project root directory (ESM compatibility)
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const projectRoot = path.resolve(__dirname, "..")
+
+// Load environment variables in order (later files override earlier ones)
+dotenv.config({ path: path.join(projectRoot, ".env.scripts") }) // Local paths/config
+dotenv.config({ path: path.join(projectRoot, ".env.local") }) // Local secrets
+dotenv.config({ path: path.join(projectRoot, ".env") }) // Shared defaults
+
+// Data directory - use from .env.scripts or default to relative path
+const DATA_DIR = process.env.DATA_DIR || path.join(projectRoot, "csv-pull/market-data/data")
+
+// Validate required environment variables
+const requiredEnvVars = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`❌ Missing required environment variable: ${envVar}`)
+    console.error(`   Make sure it's set in .env.local or .env`)
+    process.exit(1)
+  }
+}
+
+// Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+// ... rest of your existing data-manager.ts code continues here ...
 
 // ============================================================================
 // TYPES & INTERFACES
