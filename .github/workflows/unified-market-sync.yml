@@ -31,8 +31,56 @@ on:
         default: "all"
 
 jobs:
+  check-universe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+      COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+      EXCHANGERATE_API_KEY: ${{ secrets.EXCHANGERATE_API_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Check and initialize universe
+        run: |
+          echo "🔍 Checking ticker universe..."
+
+          # Query Supabase for universe count
+          RESPONSE=$(curl -s -X GET \
+            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/ticker_universe?select=count" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Range: 0-0" \
+            -H "Prefer: count=exact")
+
+          # Extract count from Content-Range header or response
+          UNIVERSE_COUNT=$(echo "$RESPONSE" | grep -oP '(?<=count=)[0-9]+' || echo "0")
+
+          echo "📊 Current universe size: $UNIVERSE_COUNT tickers"
+
+          if [ "$UNIVERSE_COUNT" -lt 100 ]; then
+            echo "⚠️  Universe too small, initializing..."
+            npx tsx scripts/data-manager.ts init-universe
+          else
+            echo "✅ Universe already populated"
+          fi
+
   smart-sync:
     runs-on: ubuntu-latest
+    needs: check-universe
     timeout-minutes: 15
 
     env:
@@ -43,7 +91,6 @@ jobs:
       # Equity data providers
       POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
       ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
-      TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
       FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
 
       # Crypto data providers
@@ -51,12 +98,10 @@ jobs:
       COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
 
       # Forex data providers
-      OANDA_API_KEY: ${{ secrets.OANDA_API_KEY }}
       EXCHANGERATE_API_KEY: ${{ secrets.EXCHANGERATE_API_KEY }}
 
-      # Commodity data providers
+      # Commodity data providers (optional)
       QUANDL_API_KEY: ${{ secrets.QUANDL_API_KEY }}
-      NASDAQ_DATA_LINK_API_KEY: ${{ secrets.NASDAQ_DATA_LINK_API_KEY }}
 
       # Macro/rates data providers
       FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
@@ -227,9 +272,9 @@ jobs:
       - name: 📊 Execution Summary
         if: always()
         run: |
-          echo "════════════════════════════════════════════════════════════"
+          echo "╔══════════════════════════════════════════════════════════════╗"
           echo "⏰ Sync completed at $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z')"
-          echo "────────────────────────────────────────────────────────────"
+          echo "──────────────────────────────────────────────────────────────"
           echo "Updates executed:"
           echo "  📈 Equity:    ${{ steps.strategy.outputs.update_equity }}"
           echo "  ₿ Crypto:     ${{ steps.strategy.outputs.update_crypto }}"
@@ -238,7 +283,7 @@ jobs:
           echo "  📊 Macro:     ${{ steps.strategy.outputs.update_macro }}"
           echo "  ⚡ Stress:    ${{ steps.strategy.outputs.update_stress }}"
           echo "  🌞 Ingress:   ${{ steps.strategy.outputs.check_ingress }}"
-          echo "════════════════════════════════════════════════════════════"
+          echo "╚══════════════════════════════════════════════════════════════╝"
 
       - name: 🚨 Notify on Critical Failure
         if: failure()

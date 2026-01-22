@@ -15,20 +15,16 @@ import { fileURLToPath } from "url"
 // ENVIRONMENT SETUP
 // ============================================================================
 
-// Get project root directory (ESM compatibility)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const projectRoot = path.resolve(__dirname, "..")
 
-// Load environment variables in order (later files override earlier ones)
-dotenv.config({ path: path.join(projectRoot, ".env.scripts") }) // Local paths/config
-dotenv.config({ path: path.join(projectRoot, ".env.local") }) // Local secrets
-dotenv.config({ path: path.join(projectRoot, ".env") }) // Shared defaults
+dotenv.config({ path: path.join(projectRoot, ".env.scripts") })
+dotenv.config({ path: path.join(projectRoot, ".env.local") })
+dotenv.config({ path: path.join(projectRoot, ".env") })
 
-// Data directory - use from .env.scripts or default to relative path
 const DATA_DIR = process.env.DATA_DIR || path.join(projectRoot, "csv-pull/market-data/data")
 
-// Validate required environment variables
 const requiredEnvVars = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
 
 for (const envVar of requiredEnvVars) {
@@ -39,13 +35,10 @@ for (const envVar of requiredEnvVars) {
   }
 }
 
-// Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
-
-// ... rest of your existing data-manager.ts code continues here ...
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -322,7 +315,6 @@ const API_PROVIDERS: APIProvider[] = [
     rateLimit: { calls: 10, period: 60000 },
     enabled: () => !!process.env.FRED_API_KEY,
     fetch: async (symbol: string) => {
-      // Map symbols to FRED series IDs
       const seriesMap: Record<string, string> = {
         FEDFUNDS: "DFF",
         CPI: "CPIAUCSL",
@@ -441,6 +433,408 @@ async function fetchPriceWithFallback(
     }
   }
   return null
+}
+
+// ============================================================================
+// TICKER UNIVERSE MANAGEMENT
+// ============================================================================
+
+async function loadTickerUniverseFromPolygon(limit: number = 1000): Promise<void> {
+  console.log(`📊 Loading ticker universe from Polygon (limit: ${limit})...\n`)
+
+  if (!process.env.POLYGON_API_KEY) {
+    console.error("❌ POLYGON_API_KEY not found")
+    return
+  }
+
+  try {
+    const url = `https://api.polygon.io/v3/reference/tickers?market=stocks&active=true&limit=${limit}&apiKey=${process.env.POLYGON_API_KEY}`
+    console.log(`🔗 Fetching from Polygon API...`)
+
+    const response = await axios.get(url, { timeout: 30000 })
+    console.log(`✅ API Response received`)
+
+    if (!response.data?.results) {
+      console.error("❌ No results from Polygon API")
+      console.error("Response:", JSON.stringify(response.data).slice(0, 200))
+      return
+    }
+
+    console.log(`📦 Processing ${response.data.results.length} tickers...`)
+
+    const tickers = response.data.results.map((ticker: any) => ({
+      symbol: ticker.ticker,
+      name: ticker.name,
+      exchange: ticker.primary_exchange,
+      asset_type: "stock",
+      category: "equity",
+      market_cap: ticker.market_cap || null,
+      active: ticker.active,
+      data_source: "polygon",
+      metadata: {
+        locale: ticker.locale,
+        currency: ticker.currency_name,
+        type: ticker.type,
+      },
+    }))
+
+    const batchSize = 500
+    let inserted = 0
+
+    console.log(`💾 Inserting ${tickers.length} tickers in batches of ${batchSize}...`)
+
+    for (let i = 0; i < tickers.length; i += batchSize) {
+      const batch = tickers.slice(i, i + batchSize)
+      const { error } = await supabase
+        .from("ticker_universe")
+        .upsert(batch, { onConflict: "symbol" })
+
+      if (!error) {
+        inserted += batch.length
+        console.log(
+          `   ✅ Inserted batch ${Math.floor(i / batchSize) + 1}: ${batch.length} tickers`
+        )
+      } else {
+        console.error(`   ❌ Error in batch ${Math.floor(i / batchSize) + 1}:`, error.message)
+      }
+    }
+
+    console.log(`\n✅ Loaded ${inserted} tickers into universe\n`)
+  } catch (error: any) {
+    console.error("❌ Error loading ticker universe:", error.message)
+    if (error.response) {
+      console.error("API Response:", error.response.status, error.response.statusText)
+    }
+  }
+}
+
+async function addCryptoToUniverse(): Promise<void> {
+  console.log("₿ Adding crypto tickers to universe...\n")
+
+  const cryptoTickers = [
+    { symbol: "Bitcoin", name: "Bitcoin", id: "bitcoin" },
+    { symbol: "Ethereum", name: "Ethereum", id: "ethereum" },
+    { symbol: "Solana", name: "Solana", id: "solana" },
+    { symbol: "BNB", name: "BNB", id: "binancecoin" },
+    { symbol: "XRP", name: "XRP", id: "ripple" },
+    { symbol: "Cardano", name: "Cardano", id: "cardano" },
+    { symbol: "Polkadot", name: "Polkadot", id: "polkadot" },
+    { symbol: "Chainlink", name: "Chainlink", id: "chainlink" },
+    { symbol: "Stellar", name: "Stellar", id: "stellar" },
+  ]
+
+  const records = cryptoTickers.map((crypto) => ({
+    symbol: crypto.symbol,
+    name: crypto.name,
+    exchange: "CRYPTO",
+    asset_type: "crypto",
+    category: "crypto",
+    active: true,
+    data_source: "coingecko",
+    metadata: { coingecko_id: crypto.id },
+  }))
+
+  const { error } = await supabase.from("ticker_universe").upsert(records, { onConflict: "symbol" })
+
+  if (error) {
+    console.error("❌ Error:", error.message)
+  } else {
+    console.log(`✅ Added ${records.length} crypto tickers\n`)
+  }
+}
+
+async function addForexToUniverse(): Promise<void> {
+  console.log("💱 Adding forex pairs to universe...\n")
+
+  const forexPairs = [
+    "EUR/USD",
+    "USD/JPY",
+    "GBP/USD",
+    "GBP/JPY",
+    "AUD/USD",
+    "USD/CAD",
+    "NZD/USD",
+    "EUR/GBP",
+    "EUR/JPY",
+    "AUD/JPY",
+  ]
+
+  const records = forexPairs.map((pair) => ({
+    symbol: pair,
+    name: `${pair.split("/")[0]} to ${pair.split("/")[1]}`,
+    exchange: "FOREX",
+    asset_type: "forex",
+    category: "forex",
+    active: true,
+    data_source: "exchangerate",
+  }))
+
+  const { error } = await supabase.from("ticker_universe").upsert(records, { onConflict: "symbol" })
+
+  if (error) {
+    console.error("❌ Error:", error.message)
+  } else {
+    console.log(`✅ Added ${records.length} forex pairs\n`)
+  }
+}
+
+async function addCommoditiesToUniverse(): Promise<void> {
+  console.log("🥇 Adding commodities to universe...\n")
+
+  const commodities = [
+    { symbol: "GLD", name: "Gold ETF" },
+    { symbol: "USO", name: "Oil ETF" },
+    { symbol: "GC1!", name: "Gold Futures" },
+    { symbol: "CL1!", name: "Crude Oil Futures" },
+    { symbol: "HG1!", name: "Copper Futures" },
+    { symbol: "COTTON", name: "Cotton" },
+    { symbol: "WHEAT", name: "Wheat" },
+    { symbol: "CORN", name: "Corn" },
+    { symbol: "SUGAR", name: "Sugar" },
+    { symbol: "COFFEE", name: "Coffee" },
+  ]
+
+  const records = commodities.map((commodity) => ({
+    symbol: commodity.symbol,
+    name: commodity.name,
+    exchange: "COMMODITY",
+    asset_type: "commodity",
+    category: "commodity",
+    active: true,
+    data_source: "polygon",
+  }))
+
+  const { error } = await supabase.from("ticker_universe").upsert(records, { onConflict: "symbol" })
+
+  if (error) {
+    console.error("❌ Error:", error.message)
+  } else {
+    console.log(`✅ Added ${records.length} commodities\n`)
+  }
+}
+
+async function initializeTickerUniverse(): Promise<void> {
+  console.log("🚀 Initializing complete ticker universe...\n")
+  console.log("Step 1: Loading from Polygon...")
+
+  await loadTickerUniverseFromPolygon(1000)
+  console.log("Step 2: Polygon complete, adding crypto...")
+
+  await addCryptoToUniverse()
+  console.log("Step 3: Crypto complete, adding forex...")
+
+  await addForexToUniverse()
+  console.log("Step 4: Forex complete, adding commodities...")
+
+  await addCommoditiesToUniverse()
+  console.log("Step 5: All inserts complete, getting stats...")
+
+  const { count: totalCount } = await supabase
+    .from("ticker_universe")
+    .select("*", { count: "exact", head: true })
+
+  const { count: equityCount } = await supabase
+    .from("ticker_universe")
+    .select("*", { count: "exact", head: true })
+    .eq("category", "equity")
+
+  const { count: cryptoCount } = await supabase
+    .from("ticker_universe")
+    .select("*", { count: "exact", head: true })
+    .eq("category", "crypto")
+
+  console.log("\n📊 Universe Summary:")
+  console.log(`   Total:  ${totalCount?.toLocaleString()}`)
+  console.log(`   Equity: ${equityCount?.toLocaleString()}`)
+  console.log(`   Crypto: ${cryptoCount?.toLocaleString()}`)
+  console.log("\n✅ Ticker universe initialized!\n")
+}
+
+async function universeStats(): Promise<void> {
+  const { count: total } = await supabase
+    .from("ticker_universe")
+    .select("*", { count: "exact", head: true })
+
+  console.log(`\n📊 Ticker Universe: ${total?.toLocaleString()} tickers\n`)
+
+  for (const category of ["equity", "crypto", "forex", "commodity", "rates-macro", "stress"]) {
+    const { count } = await supabase
+      .from("ticker_universe")
+      .select("*", { count: "exact", head: true })
+      .eq("category", category)
+
+    console.log(`   ${category.padEnd(15)} ${(count || 0).toLocaleString()}`)
+  }
+  console.log()
+}
+
+// ============================================================================
+// ENHANCED PRICE FETCHING WITH UNIVERSE AWARENESS
+// ============================================================================
+
+async function fetchPolygonHistorical(symbol: string, days: number): Promise<any[]> {
+  const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const to = new Date().toISOString().split("T")[0]
+
+  const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${from}/${to}?adjusted=true&sort=asc&apiKey=${process.env.POLYGON_API_KEY}`
+  const res = await axios.get(url, { timeout: 15000 })
+
+  return (
+    res.data.results?.map((bar: any) => ({
+      symbol,
+      date: new Date(bar.t).toISOString().split("T")[0],
+      open: bar.o,
+      high: bar.h,
+      low: bar.l,
+      close: bar.c,
+      volume: bar.v,
+      category: "equity",
+      asset_type: "stock",
+      data_source: "polygon",
+    })) || []
+  )
+}
+
+async function fetchTwelveDataHistorical(symbol: string, days: number): Promise<any[]> {
+  const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=1day&outputsize=${days}&apikey=${process.env.TWELVE_DATA_API_KEY}`
+  const res = await axios.get(url, { timeout: 15000 })
+
+  return (
+    res.data.values
+      ?.map((bar: any) => ({
+        symbol,
+        date: bar.datetime.split(" ")[0],
+        open: parseFloat(bar.open),
+        high: parseFloat(bar.high),
+        low: parseFloat(bar.low),
+        close: parseFloat(bar.close),
+        volume: parseFloat(bar.volume || 0),
+        data_source: "twelvedata",
+      }))
+      .reverse() || []
+  )
+}
+
+async function fetchAlphaVantageHistorical(symbol: string, days: number): Promise<any[]> {
+  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=full&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`
+  const res = await axios.get(url, { timeout: 15000 })
+
+  const timeSeries = res.data["Time Series (Daily)"]
+  if (!timeSeries) return []
+
+  return Object.entries(timeSeries)
+    .slice(0, days)
+    .map(([date, values]: [string, any]) => ({
+      symbol,
+      date,
+      open: parseFloat(values["1. open"]),
+      high: parseFloat(values["2. high"]),
+      low: parseFloat(values["3. low"]),
+      close: parseFloat(values["4. close"]),
+      volume: parseFloat(values["5. volume"]),
+      data_source: "alphavantage",
+    }))
+    .reverse()
+}
+
+async function fetchHistoricalData(
+  symbol: string,
+  category: string,
+  days: number = 365
+): Promise<any[]> {
+  console.log(`📡 Fetching ${days}d history for ${symbol}...`)
+
+  const { data: tickerInfo } = await supabase
+    .from("ticker_universe")
+    .select("data_source")
+    .eq("symbol", symbol)
+    .single()
+
+  const preferredSource = tickerInfo?.data_source || "polygon"
+
+  const providers = API_PROVIDERS.filter(
+    (p) => p.categories.includes(category) && p.enabled()
+  ).sort((a, b) => {
+    if (a.name === preferredSource) return -1
+    if (b.name === preferredSource) return 1
+    return a.priority - b.priority
+  })
+
+  for (const provider of providers) {
+    try {
+      await rateLimiter.throttle(provider)
+
+      let bars: any[] = []
+
+      if (provider.name === "polygon") {
+        bars = await fetchPolygonHistorical(symbol, days)
+      } else if (provider.name === "twelve_data") {
+        bars = await fetchTwelveDataHistorical(symbol, days)
+      } else if (provider.name === "alpha_vantage") {
+        bars = await fetchAlphaVantageHistorical(symbol, days)
+      }
+
+      if (bars.length > 0) {
+        console.log(`   ✅ Got ${bars.length} bars from ${provider.name}`)
+        return bars
+      }
+    } catch (error: any) {
+      console.log(`   ⚠️  ${provider.name} failed: ${error.message}`)
+      continue
+    }
+  }
+
+  console.log(`   ❌ No data available for ${symbol}`)
+  return []
+}
+
+async function backfillHistoricalData(category?: string, days: number = 365): Promise<void> {
+  console.log(`📊 Backfilling ${days} days of historical data...\n`)
+
+  let query = supabase
+    .from("ticker_universe")
+    .select("symbol, category, data_source")
+    .eq("active", true)
+
+  if (category) {
+    query = query.eq("category", category)
+  }
+
+  const { data: tickers } = await query.limit(50)
+
+  if (!tickers || tickers.length === 0) {
+    console.log("❌ No tickers found in universe\n")
+    return
+  }
+
+  let processed = 0
+  let inserted = 0
+
+  for (const ticker of tickers) {
+    const bars = await fetchHistoricalData(ticker.symbol, ticker.category, days)
+
+    if (bars.length > 0) {
+      for (let i = 0; i < bars.length; i += 500) {
+        const batch = bars.slice(i, i + 500)
+        const { error } = await supabase
+          .from("financial_data")
+          .upsert(batch, { onConflict: "symbol,date" })
+
+        if (!error) {
+          inserted += batch.length
+        }
+      }
+      console.log(`   ✅ ${ticker.symbol}: ${bars.length} bars`)
+    }
+
+    processed++
+
+    if (processed % 5 === 0) {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+    }
+  }
+
+  console.log(`\n✅ Backfilled ${inserted.toLocaleString()} data points for ${processed} tickers\n`)
 }
 
 // ============================================================================
@@ -575,7 +969,7 @@ async function checkPriceFreshness(): Promise<void> {
         (Date.now() - new Date(latest.date).getTime()) / (1000 * 60 * 60 * 24)
       )
       console.log(
-        `${symbol.padEnd(10)} | $${latest.close.toFixed(2).padStart(8)} | ${latest.date} (${daysOld}d old)`
+        `${symbol.padEnd(10)} | ${latest.close.toFixed(2).padStart(8)} | ${latest.date} (${daysOld}d old)`
       )
     } else {
       console.log(`${symbol.padEnd(10)} | NO DATA`)
@@ -587,7 +981,6 @@ async function populateFeaturedTickers(): Promise<void> {
   console.log("🚀 Populating featured tickers from API...\n")
 
   try {
-    // Trigger the API endpoint that does the heavy lifting
     const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
 
     for (const category of categories) {
@@ -643,7 +1036,7 @@ async function cronUpdatePricesDelayTolerant(): Promise<void> {
           volume: 0,
         })
         console.log(
-          `   ✅ ${symbol.padEnd(12)} $${result.price.toFixed(2).padStart(10)} (${result.provider})`
+          `   ✅ ${symbol.padEnd(12)} ${result.price.toFixed(2).padStart(10)} (${result.provider})`
         )
       }
       await new Promise((resolve) => setTimeout(resolve, 200))
@@ -730,13 +1123,14 @@ async function getDataQualityReport(): Promise<void> {
 }
 
 async function verifyDatabaseSchema(): Promise<void> {
-  console.log("🔍 Verifying Database Schema...\n")
+  console.log("🔎 Verifying Database Schema...\n")
 
   const expectedTables = [
     "financial_data",
     "featured_tickers",
     "astro_events",
     "ticker_ratings_cache",
+    "ticker_universe",
   ]
 
   for (const table of expectedTables) {
@@ -806,7 +1200,7 @@ async function testAPIProviders(): Promise<void> {
     try {
       const price = await provider.fetch(testSymbol, testCategory)
       if (price) {
-        console.log(`   ✅ ${testSymbol} = $${price.toFixed(2)}\n`)
+        console.log(`   ✅ ${testSymbol} = ${price.toFixed(2)}\n`)
       }
     } catch (error: any) {
       console.log(`   ❌ ${error.message}\n`)
@@ -823,6 +1217,8 @@ async function testAPIProviders(): Promise<void> {
 async function main() {
   const command = process.argv[2]
 
+  process.stdout.write("")
+
   const commands: Record<string, () => Promise<void>> = {
     "load-all": loadAllCSVs,
     "update-prices": () => updatePricesFromCSV(process.argv[3]),
@@ -835,6 +1231,15 @@ async function main() {
     "verify-schema": verifyDatabaseSchema,
     "export-csv": () => exportToCSV(process.argv[3]),
     "test-providers": testAPIProviders,
+    "init-universe": initializeTickerUniverse,
+    "load-polygon-tickers": () => loadTickerUniverseFromPolygon(1000),
+    "add-crypto": addCryptoToUniverse,
+    "add-forex": addForexToUniverse,
+    "add-commodities": addCommoditiesToUniverse,
+    backfill: () => backfillHistoricalData(process.argv[3], 365),
+    "backfill-equity": () => backfillHistoricalData("equity", 365),
+    "backfill-crypto": () => backfillHistoricalData("crypto", 90),
+    "universe-stats": universeStats,
     "check-ingress": async () => {
       const today = new Date().toISOString().split("T")[0]
       const { data } = await supabase
@@ -869,10 +1274,21 @@ Core Commands:
   populate-featured              Populate featured tickers from scores
   check-ingress                  Check current astrological ingress status
 
-🔄 Cron Commands:
+📄 Cron Commands:
   cron-update-prices [--categories=equity,crypto,forex]
                                  Smart price update with API fallbacks
   cron-refresh-featured          Ingress-aware featured ticker refresh
+
+🌐 Ticker Universe:
+  init-universe                  Initialize complete ticker universe
+  load-polygon-tickers           Load equity tickers from Polygon
+  add-crypto                     Add crypto tickers to universe
+  add-forex                      Add forex pairs to universe
+  add-commodities                Add commodities to universe
+  universe-stats                 Show universe statistics
+  backfill [category]            Backfill 365d historical data
+  backfill-equity                Backfill equity historical data
+  backfill-crypto                Backfill crypto historical data
 
 🛠️  Maintenance Commands:
   quality-report                 Get comprehensive data quality report
@@ -882,9 +1298,9 @@ Core Commands:
   test-providers                 Test all API provider connections
 
 Examples:
-  npx tsx scripts/data-manager.ts check-freshness
- t
-  npx tsx scripts/data-manager.ts export-csv equity
+  npx tsx scripts/data-manager.ts init-universe
+  npx tsx scripts/data-manager.ts backfill-equity
+  npx tsx scripts/data-manager.ts universe-stats
     `)
     process.exit(1)
   }
@@ -899,4 +1315,11 @@ Examples:
   }
 }
 
-main()
+process.on("beforeExit", () => {
+  console.log("Process exiting...")
+})
+
+main().catch((error) => {
+  console.error("Uncaught error:", error)
+  process.exit(1)
+})

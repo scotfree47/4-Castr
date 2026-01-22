@@ -60,7 +60,8 @@ env-local-ref-full.txt
 **/saved-unused/**
 *.bak
 
-# Misc files for testing github models
+# Misc files for testing
 ai-analysis-report.md
 scripts/test-env.ts
-
+init-output.log
+test-universe.ts
