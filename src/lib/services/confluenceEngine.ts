@@ -355,6 +355,99 @@ export async function calculateTickerRating(
 }
 
 // ============================================================================
+// BULK DATA FETCHING (Consolidated from dataService)
+// ============================================================================
+
+export interface PriceDataPoint {
+  symbol: string
+  date: string
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
+}
+
+/**
+ * Fetch price history for multiple symbols in ONE query
+ * Use this for chart-data optimization
+ */
+export async function fetchBulkPriceHistory(
+  symbols: string[],
+  startDate: string,
+  endDate: string
+): Promise<Map<string, PriceDataPoint[]>> {
+  const supabase = getSupabaseAdmin()
+
+  const { data, error } = await supabase
+    .from("financial_data")
+    .select("symbol, date, open, high, low, close, volume")
+    .in("symbol", symbols)
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .order("date", { ascending: true })
+
+  if (error) throw new Error(`Price fetch failed: ${error.message}`)
+
+  // Group by symbol
+  const priceMap = new Map<string, PriceDataPoint[]>()
+
+  data?.forEach((point: PriceDataPoint) => {
+    if (!priceMap.has(point.symbol)) {
+      priceMap.set(point.symbol, [])
+    }
+    priceMap.get(point.symbol)!.push(point)
+  })
+
+  return priceMap
+}
+
+/**
+ * Get latest price for each symbol (used by sentinels)
+ */
+export async function fetchLatestPrices(symbols: string[]): Promise<Map<string, number>> {
+  const supabase = getSupabaseAdmin()
+
+  const { data } = await supabase
+    .from("financial_data")
+    .select("symbol, close, date")
+    .in("symbol", symbols)
+    .order("date", { ascending: false })
+
+  const priceMap = new Map<string, number>()
+
+  data?.forEach((point: { symbol: string; close: number; date: string }) => {
+    if (!priceMap.has(point.symbol)) {
+      priceMap.set(point.symbol, point.close)
+    }
+  })
+
+  return priceMap
+}
+
+/**
+ * Get active tickers from ticker_universe
+ */
+export async function fetchTickersByCategory(
+  category?: string,
+  limit: number = 100
+): Promise<any[]> {
+  const supabase = getSupabaseAdmin()
+
+  let query = supabase.from("ticker_universe").select("*").eq("active", true)
+
+  if (category) {
+    query = query.eq("category", category)
+  }
+
+  const { data, error } = await query.limit(limit)
+
+  if (error) throw new Error(`Ticker fetch failed: ${error.message}`)
+
+  return data || []
+}
+
+// ============================================================================
 // BATCH PROCESSING
 // ============================================================================
 

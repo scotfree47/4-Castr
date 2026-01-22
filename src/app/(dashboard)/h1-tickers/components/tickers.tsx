@@ -396,21 +396,43 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
     }
   }, [])
 
+  // tickers.tsx - UPDATED DATA LOADING (Line ~573)
   const loadTickersFromAPI = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch("/api/tickers", {
-        headers: { "Cache-Control": "no-cache" },
-      })
+      // ✅ Use existing ticker-ratings endpoint
+      const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
+      const allTickers: any[] = []
 
-      if (!response.ok) throw new Error("Failed to fetch tickers")
+      for (const category of categories) {
+        const response = await fetch(
+          `/api/ticker-ratings?mode=batch&category=${category}&minScore=0&maxResults=50`,
+          { headers: { "Cache-Control": "no-cache" } }
+        )
 
-      const result = await response.json()
-      if (!result.success) throw new Error(result.error)
+        if (!response.ok) continue
 
-      setData(result.data || [])
+        const result = await response.json()
+        if (result.success && result.data?.ratings) {
+          allTickers.push(...result.data.ratings)
+        }
+      }
+
+      // ✅ Transform to expected format
+      const formattedTickers = allTickers.map((rating, idx) => ({
+        id: idx + 1,
+        ticker: rating.symbol,
+        type: rating.category,
+        sector: rating.sector,
+        trend: rating.nextKeyLevel.type === "resistance" ? "bullish" : "bearish",
+        next: rating.nextKeyLevel.price.toFixed(2),
+        last: (rating.currentPrice * 0.95).toFixed(2), // Mock previous level
+        compare: "Ticker(s)",
+      }))
+
+      setData(formattedTickers)
     } catch (err: any) {
       console.error("Error loading tickers:", err)
       setError(err.message)
@@ -418,6 +440,7 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
       setLoading(false)
     }
   }
+
   // Filter by type for each tab
   const equity = React.useMemo(() => data.filter((item) => item.type === "equity"), [data])
 

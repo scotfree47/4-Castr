@@ -1,26 +1,11 @@
-// src/app/api/chart-data/route.ts
-// Orchestrates data from /api/ticker-ratings + /api/finance for charts
-
+// app/api/chart-data/route.ts - OPTIMIZED VERSION
 import type { CategoryType } from "@/app/(dashboard)/data"
+import {
+  fetchBulkPriceHistory,
+  fetchTickersByCategory,
+  type PriceDataPoint,
+} from "@/lib/services/confluenceEngine"
 import { NextRequest, NextResponse } from "next/server"
-
-interface ChartSeries {
-  ticker: string
-  data: number[]
-  color: string
-  isSentinel: boolean
-  isVisible: boolean
-  anchorPrice: number
-}
-
-interface ChartDataResponse {
-  success: boolean
-  data?: {
-    dates: string[]
-    series: ChartSeries[]
-  }
-  error?: string
-}
 
 const SENTINELS: Record<CategoryType, string[]> = {
   equity: ["SPY", "QQQ", "XLY"],
@@ -50,7 +35,7 @@ const SENTINEL_COLORS = [
   "rgba(75, 85, 99, 0.7)",
 ]
 
-export async function GET(request: NextRequest): Promise<NextResponse<ChartDataResponse>> {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const category = (searchParams.get("category") || "equity") as CategoryType
@@ -59,11 +44,11 @@ export async function GET(request: NextRequest): Promise<NextResponse<ChartDataR
     console.log(`📊 Chart Data: category=${category}, days=${days}`)
 
     // Generate date range
-    const dates: string[] = []
     const endDate = new Date()
     const startDate = new Date(endDate)
     startDate.setDate(startDate.getDate() - days + 1)
 
+    const dates: string[] = []
     for (let i = 0; i < days; i++) {
       const date = new Date(startDate)
       date.setDate(date.getDate() + i)
@@ -73,87 +58,66 @@ export async function GET(request: NextRequest): Promise<NextResponse<ChartDataR
     const startDateStr = dates[0]
     const endDateStr = dates[dates.length - 1]
 
-    // Step 1: Get featured tickers
-    const featuredResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/ticker-ratings?mode=featured&category=${category}`,
-      { cache: "no-store" }
-    )
+    // ✅ Get featured tickers directly from DB (no API call)
+    const featuredTickers = await fetchTickersByCategory(category, 10)
+    const featuredSymbols = featuredTickers.map((t) => t.symbol)
 
-    const featuredData = await featuredResponse.json()
-    const featuredTickers = featuredData.success
-      ? featuredData.data.ratings.slice(0, 10).map((r: any) => r.symbol)
-      : []
-
-    // Step 2: Get sentinels
+    // Get sentinels
     const sentinels = SENTINELS[category] || []
 
-    // Step 3: Remove duplicates
+    // Remove duplicates
     const sentinelSet = new Set(sentinels)
-    const uniqueFeatured = featuredTickers.filter((s: string) => !sentinelSet.has(s))
+    const uniqueFeatured = featuredSymbols.filter((s) => !sentinelSet.has(s))
     const allSymbols = [...sentinels, ...uniqueFeatured]
 
     console.log(`📊 Fetching prices for: ${allSymbols.length} symbols`)
 
-    // Step 4: Fetch price data for each symbol
-    const priceDataMap = new Map<string, number[]>()
+    // ✅ SINGLE bulk query instead of N individual requests
+    const priceDataMap = await fetchBulkPriceHistory(allSymbols, startDateStr, endDateStr)
 
-    await Promise.all(
-      allSymbols.map(async (symbol) => {
-        try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/finance?symbol=${symbol}&startDate=${startDateStr}&endDate=${endDateStr}`,
-            { cache: "no-store" }
-          )
+    // Fill gaps for missing dates
+    const fillPriceGaps = (prices: PriceDataPoint[]): number[] => {
+      const priceMap = new Map(prices.map((p) => [p.date, p.close]))
+      const filled: number[] = []
+      let lastPrice = 0
 
-          const result = await response.json()
-
-          if (result.success && result.data && Array.isArray(result.data)) {
-            const priceMap = new Map<string, number>()
-            result.data.forEach((item: any) => {
-              priceMap.set(item.date, item.close)
-            })
-
-            const prices: number[] = []
-            let lastPrice = 0
-
-            for (const date of dates) {
-              const price = priceMap.get(date)
-              if (price !== undefined) {
-                lastPrice = price
-                prices.push(price)
-              } else {
-                prices.push(lastPrice)
-              }
-            }
-
-            priceDataMap.set(symbol, prices)
-          }
-        } catch (err) {
-          console.error(`❌ Error fetching ${symbol}:`, err)
+      for (const date of dates) {
+        const price = priceMap.get(date)
+        if (price !== undefined) {
+          lastPrice = price
+          filled.push(price)
+        } else {
+          filled.push(lastPrice)
         }
-      })
-    )
+      }
 
-    // Step 5: Build featured series
-    const featuredSeries: ChartSeries[] = uniqueFeatured.map((symbol: string, index: number) => {
-      const data = priceDataMap.get(symbol) || Array(days).fill(0)
+      return filled
+    }
+
+    // Build featured series
+    const featuredSeries = uniqueFeatured.map((symbol, idx) => {
+      const prices = priceDataMap.get(symbol) || []
+      const data = fillPriceGaps(prices)
+
       return {
         ticker: symbol,
         data,
-        color: FEATURED_COLORS[index] || FEATURED_COLORS[4],
+        color: FEATURED_COLORS[idx] || FEATURED_COLORS[4],
         isSentinel: false,
         isVisible: true,
         anchorPrice: data[0] || 0,
       }
     })
 
-    // Step 6: Build sentinel series
-    const sentinelSeries: ChartSeries[] = sentinels.map((ticker, index) => {
-      const data = priceDataMap.get(ticker) || Array(days).fill(0)
+    // Build sentinel series
+    const sentinelSeries = sentinels.map((ticker, idx) => {
+      const prices = priceDataMap.get(ticker) || []
+      const data = fillPriceGaps(prices)
+
       return {
         ticker,
         data,
-        color: SENTINEL_COLORS[index] || SENTINEL_COLORS[2],
+        color: SENTINEL_COLORS[idx] || SENTINEL_COLORS[2],
         isSentinel: true,
         isVisible: true,
         anchorPrice: data[0] || 0,
@@ -171,14 +135,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<ChartDataR
         series: [...sentinelSeries, ...featuredSeries],
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Chart data error:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 }
