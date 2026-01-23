@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Eye, Star, Target, TrendingUp } from "lucide-react"
-import { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 
 interface NextKeyLevel {
   price: number
@@ -48,16 +48,12 @@ interface FeaturedTickersProps {
   category?: string
 }
 
-export function FeaturedTickers({ category = "equity" }: FeaturedTickersProps) {
+export const FeaturedTickers = React.memo(function FeaturedTickers({ category = "equity" }: FeaturedTickersProps) {
   const [tickers, setTickers] = useState<FeaturedTicker[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadFeaturedTickers()
-  }, [category])
-
-  const loadFeaturedTickers = async () => {
+  const loadFeaturedTickers = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -104,7 +100,11 @@ export function FeaturedTickers({ category = "equity" }: FeaturedTickersProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [category])
+
+  useEffect(() => {
+    loadFeaturedTickers()
+  }, [loadFeaturedTickers])
 
   if (loading) {
     return (
@@ -264,4 +264,4 @@ export function FeaturedTickers({ category = "equity" }: FeaturedTickersProps) {
       </CardContent>
     </Card>
   )
-}
+})

@@ -39,7 +39,7 @@ const CATEGORY_CONFIG: Record<CategoryType, { name: string; icon: any }> = {
   stress: { name: "Stress", icon: AlertTriangle },
 }
 
-export function TrendPath() {
+export const TrendPath = React.memo(function TrendPath() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -112,9 +112,9 @@ export function TrendPath() {
     setVisibleTickers(initial)
   }, [chartData.series])
 
-  const toggleTicker = (ticker: string) => {
+  const toggleTicker = React.useCallback((ticker: string) => {
     setVisibleTickers((prev) => ({ ...prev, [ticker]: !prev[ticker] }))
-  }
+  }, [])
 
   const visibleSeries = chartData.series.map((s) => ({
     ...s,
@@ -386,4 +386,4 @@ export function TrendPath() {
       </CardContent>
     </Card>
   )
-}
+})
