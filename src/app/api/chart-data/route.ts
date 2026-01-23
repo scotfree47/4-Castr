@@ -5,6 +5,7 @@ import {
   fetchTickersByCategory,
   type PriceDataPoint,
 } from "@/lib/services/confluenceEngine"
+import { createErrorResponse } from "@/lib/api/errors"
 import { NextRequest, NextResponse } from "next/server"
 
 const SENTINELS: Record<CategoryType, string[]> = {
@@ -135,8 +136,9 @@ export async function GET(request: NextRequest) {
         series: [...sentinelSeries, ...featuredSeries],
       },
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error("❌ Chart data error:", error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    const errorResponse = createErrorResponse(error, "Failed to load chart data")
+    return NextResponse.json(errorResponse, { status: errorResponse.status })
   }
 }

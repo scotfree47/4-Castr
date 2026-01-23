@@ -6,6 +6,7 @@ import {
   calculateAllFeaturedTickers,
   type TickerRating,
 } from "@/lib/services/confluenceEngine"
+import { createErrorResponse } from "@/lib/api/errors"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
@@ -139,12 +140,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("❌ Ticker rating error:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    )
+    const errorResponse = createErrorResponse(error, "Failed to calculate ticker ratings")
+    return NextResponse.json(errorResponse, { status: errorResponse.status })
   }
 }
