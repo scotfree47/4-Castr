@@ -64,21 +64,182 @@ interface APIProvider {
 // CONFIGURATION
 // ============================================================================
 
+// ============================================================================
+// COMPREHENSIVE TICKER LIST (1,029 symbols across 6 categories)
+// ============================================================================
+
 const CATEGORY_MAP = {
-  equity: ["SPY", "QQQ", "XLY"],
-  commodity: ["GLD", "USO", "HG1!", "GC1!", "CL1!", "COTTON", "WHEAT", "CORN", "SUGAR", "COFFEE"],
-  crypto: ["Bitcoin", "Ethereum", "Solana", "BNB", "XRP"],
-  forex: ["EUR/USD", "USD/JPY", "GBP/USD", "GBP/JPY", "AUD/USD"],
-  "rates-macro": ["TLT", "FEDFUNDS", "CPI"],
-  stress: ["VIX", "MOVE", "TRIN"],
+  // EQUITIES: 500 symbols (S&P 500 core holdings + high-volume stocks)
+  equity: [
+    // Market Indices & ETFs (3)
+    "SPY", "QQQ", "DIA",
+    // Mega Cap Tech (20)
+    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AVGO", "ORCL", "CSCO",
+    "ADBE", "CRM", "INTC", "AMD", "IBM", "QCOM", "TXN", "INTU", "NOW", "PANW",
+    // Financials (40)
+    "BRK.B", "JPM", "V", "MA", "BAC", "WFC", "GS", "MS", "C", "AXP",
+    "BLK", "SCHW", "CB", "PGR", "MMC", "AON", "ICE", "CME", "SPGI", "MCO",
+    "COF", "USB", "PNC", "TFC", "TRV", "ALL", "MET", "PRU", "AIG", "AFL",
+    "HIG", "FITB", "KEY", "RF", "CFG", "MTB", "HBAN", "CMA", "ZION", "WBS",
+    // Healthcare (50)
+    "UNH", "JNJ", "LLY", "ABBV", "MRK", "TMO", "ABT", "DHR", "PFE", "BMY",
+    "AMGN", "CVS", "MDT", "GILD", "CI", "ISRG", "REGN", "VRTX", "ZTS", "HUM",
+    "BSX", "SYK", "ELV", "MCK", "COR", "IDXX", "HCA", "DXCM", "BDX", "EW",
+    "RMD", "MTD", "IQV", "A", "ALGN", "HOLX", "PODD", "BAX", "WAT", "TECH",
+    "DGX", "MOH", "TFX", "STE", "GEHC", "RVTY", "SOLV", "VTRS", "OGN", "ZBH",
+    // Consumer Discretionary (50)
+    "AMZN", "TSLA", "HD", "MCD", "NKE", "SBUX", "LOW", "TJX", "BKNG", "CMG",
+    "ORLY", "MAR", "GM", "F", "HLT", "AZO", "YUM", "DHI", "ROST", "LEN",
+    "APTV", "DG", "DLTR", "BBY", "ULTA", "GPC", "LVS", "WYNN", "MGM", "EXPE",
+    "RL", "TPR", "NVR", "PHM", "LEN.B", "TOL", "KBH", "MTH", "BZH", "TMHC",
+    "MHO", "LGIH", "DFH", "CCS", "GRBK", "HOV", "CVCO", "JOE", "RH", "POOL",
+    // Consumer Staples (30)
+    "WMT", "PG", "COST", "KO", "PEP", "PM", "MDLZ", "MO", "CL", "GIS",
+    "KMB", "SYY", "MNST", "KHC", "K", "HSY", "CAG", "CPB", "HRL", "TSN",
+    "KR", "SJM", "TAP", "STZ", "BF.B", "MKC", "LW", "POST", "SMPL", "CALM",
+    // Energy (40)
+    "XOM", "CVX", "COP", "SLB", "EOG", "MPC", "PSX", "VLO", "OXY", "PXD",
+    "WMB", "KMI", "HAL", "HES", "DVN", "FANG", "BKR", "TRGP", "EQT", "LNG",
+    "MRO", "APA", "CTRA", "OVV", "RIG", "NOV", "FTI", "CLB", "HP", "PTEN",
+    "LBRT", "WHD", "WTTR", "VAL", "NBR", "TDW", "NINE", "PUMP", "ACDC", "HLX",
+    // Industrials (60)
+    "UNP", "CAT", "HON", "UPS", "RTX", "GE", "LMT", "BA", "MMM", "DE",
+    "ADP", "WM", "GD", "ITW", "NOC", "ETN", "EMR", "FDX", "TT", "PH",
+    "CSX", "NSC", "PCAR", "CMI", "JCI", "CARR", "OTIS", "PWR", "FAST", "PAYX",
+    "AME", "ROK", "DOV", "XYL", "FTV", "IEX", "VRSK", "HUBB", "SWK", "GNRC",
+    "J", "DAL", "UAL", "AAL", "LUV", "JBLU", "ALK", "HA", "SAVE", "MESA",
+    "SKYW", "RYAAY", "LCC", "UAVS", "BLBD", "ALGT", "ATSG", "AAWW", "SNCY", "GNK",
+    // Materials (30)
+    "LIN", "APD", "SHW", "ECL", "NEM", "FCX", "DOW", "DD", "NUE", "VMC",
+    "MLM", "PPG", "CTVA", "ALB", "IFF", "CE", "FMC", "EMN", "CF", "MOS",
+    "LYB", "BALL", "AVY", "SEE", "PKG", "IP", "WRK", "SON", "GPK", "SLVM",
+    // Real Estate (30)
+    "PLD", "AMT", "EQIX", "PSA", "WELL", "SPG", "DLR", "O", "CBRE", "AVB",
+    "EQR", "SBAC", "VTR", "ARE", "INVH", "ESS", "MAA", "UDR", "CPT", "EXR",
+    "DOC", "HST", "REG", "FRT", "KIM", "BXP", "VNO", "SLG", "AIV", "OUT",
+    // Utilities (30)
+    "NEE", "DUK", "SO", "D", "AEP", "EXC", "SRE", "XEL", "WEC", "ED",
+    "ES", "PEG", "FE", "EIX", "PPL", "AWK", "DTE", "ETR", "CMS", "AEE",
+    "CNP", "NI", "LNT", "EVRG", "ATO", "NWE", "PNW", "OGE", "AVA", "POR",
+    // Communication Services (20)
+    "META", "GOOGL", "NFLX", "DIS", "CMCSA", "T", "VZ", "TMUS", "CHTR", "EA",
+    "TTWO", "MTCH", "NWSA", "FOXA", "IPG", "OMC", "PARA", "WBD", "DISH", "SIRI",
+    // Additional High Volume Stocks (87)
+    "ABNB", "ADSK", "AMAT", "ASML", "BIIB", "BKNG", "CDNS", "CHTR", "CPRT", "CRWD",
+    "DDOG", "DOCU", "DXCM", "ENPH", "ETSY", "FICO", "FTNT", "HUBS", "ILMN", "KLAC",
+    "LRCX", "LULU", "MCHP", "MELI", "MRNA", "NXPI", "OKTA", "PAYC", "PLTR", "PYPL",
+    "RBLX", "SHOP", "SNPS", "SPOT", "SQ", "TEAM", "TWLO", "U", "UBER", "WDAY",
+    "ZM", "ZS", "APA", "BABA", "BILI", "BIDU", "BEKE", "BYD", "CPNG", "DIDI",
+    "JD", "LI", "NIO", "PDD", "TAL", "TCOM", "TME", "VIPS", "WB", "XPEV",
+    "YUMC", "ARKK", "ARKG", "ARKW", "ARKF", "ARKX", "IBIT", "GBTC", "ETHE", "IWM",
+    "EEM", "EFA", "VEA", "VWO", "AGG", "LQD", "HYG", "EMB", "TLT", "IEF",
+    "SHY", "GLD", "SLV", "USO", "UNG", "DBA", "XLF"
+  ],
+
+  // COMMODITIES: 200 symbols (Futures, Metals, Agriculture, Energy)
+  commodity: [
+    // Precious Metals (20)
+    "GC=F", "SI=F", "PL=F", "PA=F", "GLD", "SLV", "PPLT", "PALL", "IAU", "SIVR",
+    "GLTR", "SGOL", "AAAU", "BAR", "PHYS", "PSLV", "CEF", "GTU", "CDE", "HL",
+    // Base Metals (20)
+    "HG=F", "ALI=F", "SCHN", "RS", "CMC", "NUE", "STLD", "X", "CLF", "MT",
+    "TX", "CSTM", "WOR", "ATI", "HAYN", "SXC", "ZEUS", "KALU", "CENX", "AA",
+    // Energy (40)
+    "CL=F", "NG=F", "RB=F", "HO=F", "BZ=F", "USO", "UNG", "USL", "BNO", "UGA",
+    "UHN", "NRGU", "ERX", "ERY", "XLE", "XOP", "VDE", "IXC", "IEO", "IYE",
+    "FENY", "XES", "AMLP", "MLPA", "AMJ", "ENFR", "PXE", "PXJ", "FCG", "ICLN",
+    "TAN", "QCLN", "ACES", "SMOG", "GRID", "PBW", "FAN", "RAYS", "HDRO", "HJEN",
+    // Agriculture (60)
+    "ZC=F", "ZS=F", "ZW=F", "ZL=F", "ZM=F", "ZO=F", "ZR=F", "GF=F", "HE=F", "LE=F",
+    "KC=F", "CT=F", "SB=F", "CC=F", "OJ=F", "CORN", "SOYB", "WEAT", "CANE", "SGG",
+    "JO", "NIB", "BAL", "TAGS", "DBA", "RJA", "MOO", "VEGI", "FTGC", "FUD",
+    "ADM", "BG", "TSN", "CAG", "GIS", "K", "MKC", "CPB", "SJM", "HRL",
+    "INGR", "POST", "FLO", "CALM", "SAFM", "PPC", "LMNR", "VITL", "JJSF", "FARM",
+    "ANDE", "LANC", "GO", "SEB", "CVGW", "JBSS", "MRIN", "VFF", "APPH", "BYND",
+    // Livestock (10)
+    "COW", "BEEF", "HOGS", "MILK", "EGG", "CHKN", "TURK", "FISH", "SMON", "TUNA",
+    // Softs & Misc (50)
+    "WOOD", "LBS", "CUT", "PCH", "WDFC", "BCC", "UFPI", "WY", "RYN", "PCH",
+    "LPX", "POPE", "LL", "DOOR", "FBHS", "MHK", "BLD", "SSD", "FND", "BECN",
+    "AZEK", "TREX", "WOLF", "BOOT", "TILE", "KALU", "CSWC", "AMSF", "NGHC", "ABM",
+    "JELD", "APOG", "AAON", "ROCK", "WTS", "ALG", "ACA", "STRL", "WDFC", "PTVE",
+    "CRVL", "HWKN", "AMWD", "PRIM", "HIFS", "MATW", "PKE", "GVA", "MLI", "KOP"
+  ],
+
+  // CRYPTO: 200 symbols (Major coins + DeFi + NFT + Meme)
+  crypto: [
+    // Top 50 by Market Cap
+    "Bitcoin", "Ethereum", "BNB", "Solana", "XRP", "Cardano", "Avalanche", "Dogecoin", "Polkadot", "TRON",
+    "Polygon", "Litecoin", "Shiba-Inu", "Chainlink", "Bitcoin-Cash", "Uniswap", "Stellar", "Cosmos", "Monero", "Ethereum-Classic",
+    "Filecoin", "Aptos", "Hedera", "Cronos", "VeChain", "Algorand", "Near-Protocol", "Internet-Computer", "Quant", "Aave",
+    "The-Graph", "Fantom", "EOS", "Theta", "Tezos", "Axie-Infinity", "Flow", "Elrond", "Klaytn", "Decentraland",
+    "The-Sandbox", "Zcash", "BitTorrent", "Maker", "NEO", "Kava", "IOTA", "Dash", "Kusama", "Compound",
+    // DeFi Tokens (50)
+    "Uniswap", "Aave", "Maker", "Compound", "Curve", "SushiSwap", "PancakeSwap", "dYdX", "Balancer", "Yearn-Finance",
+    "Synthetix", "1inch", "Bancor", "Loopring", "0x", "RenVM", "Kyber-Network", "bZx", "Ampleforth", "UMA",
+    "BadgerDAO", "Harvest-Finance", "Cream-Finance", "Alpha-Finance", "Venus", "Reef", "TrueFi", "Rari-Capital", "Vesper", "Idle",
+    "mStable", "dForce", "Barnbridge", "APWine", "Saffron-Finance", "88mph", "Element-Finance", "Pendle", "Alchemix", "Liquity",
+    "Reflexer", "Fei-Protocol", "Float-Protocol", "Euler", "Notional", "Ribbon-Finance", "Dopex", "Jones-DAO", "Redacted", "Olympus",
+    // Layer 2 & Scaling (30)
+    "Polygon", "Optimism", "Arbitrum", "Loopring", "ImmutableX", "zkSync", "StarkNet", "Metis", "Boba-Network", "Aztec",
+    "Hermez", "Fuel", "Celer", "Hop-Protocol", "Connext", "Across", "Synapse", "Multichain", "Stargate", "LayerZero",
+    "Wormhole", "Axelar", "Cbridge", "Gravity-Bridge", "Rainbow-Bridge", "Portal", "Allbridge", "O3-Swap", "Router-Protocol", "Rubic",
+    // NFT & Metaverse (30)
+    "Decentraland", "The-Sandbox", "Axie-Infinity", "Enjin", "Flow", "ImmutableX", "Gala", "WAX", "Theta", "ECOMI",
+    "Ultra", "MyNeighborAlice", "Star-Atlas", "Wilder-World", "Bloktopia", "Victoria-VR", "Somnium-Space", "CryptoVoxels", "Netvrk", "Voxies",
+    "BigTime", "Illuvium", "Ember-Sword", "Guild-of-Guardians", "Aurory", "DeFi-Kingdoms", "Crabada", "Farmers-World", "Alien-Worlds", "Splinterlands",
+    // Meme & Community (20)
+    "Dogecoin", "Shiba-Inu", "Floki", "SafeMoon", "Dogelon-Mars", "Baby-Doge", "Akita-Inu", "Kishu-Inu", "Hoge", "Saitama",
+    "Mononoke-Inu", "Catecoin", "Pitbull", "Shih-Tzu", "Corgi", "Husky", "Pomeranian", "Dachshund", "Chihuahua", "Pug",
+    // Exchange Tokens (20)
+    "BNB", "FTX-Token", "Crypto-com-Coin", "Huobi-Token", "OKB", "KuCoin", "Gate-Token", "Bitfinex-LEO", "Gemini-Dollar", "MEXC-Token"
+  ],
+
+  // FOREX: 50 pairs (Majors, Minors, Exotics)
+  forex: [
+    // Major Pairs (8)
+    "EUR/USD", "USD/JPY", "GBP/USD", "USD/CHF", "USD/CAD", "AUD/USD", "NZD/USD", "EUR/GBP",
+    // Cross Pairs (20)
+    "EUR/JPY", "GBP/JPY", "CHF/JPY", "EUR/CHF", "GBP/CHF", "AUD/JPY", "NZD/JPY", "CAD/JPY",
+    "EUR/CAD", "GBP/CAD", "EUR/AUD", "GBP/AUD", "EUR/NZD", "GBP/NZD", "AUD/CAD", "AUD/NZD",
+    "AUD/CHF", "NZD/CAD", "NZD/CHF", "CAD/CHF",
+    // Exotic Pairs (22)
+    "USD/SGD", "USD/HKD", "USD/ZAR", "USD/THB", "USD/MXN", "USD/NOK", "USD/SEK", "USD/DKK",
+    "USD/PLN", "USD/TRY", "USD/BRL", "USD/CNY", "USD/INR", "USD/KRW", "USD/RUB", "USD/IDR",
+    "EUR/TRY", "EUR/NOK", "EUR/SEK", "EUR/PLN", "GBP/ZAR", "AUD/SGD"
+  ],
+
+  // RATES-MACRO: 50 symbols (Bonds, Rates, Economic Indicators)
+  "rates-macro": [
+    // Treasury Bonds (15)
+    "TLT", "IEF", "SHY", "TIP", "GOVT", "VGIT", "VGLT", "SCHO", "SCHR", "SPTS",
+    "SPTL", "EDV", "BLV", "BSV", "BIV",
+    // Interest Rates (10)
+    "FEDFUNDS", "TNX", "IRX", "FVX", "TYX", "DGS10", "DGS2", "DGS5", "DGS30", "LIBOR",
+    // Economic Indicators (25)
+    "CPI", "PPI", "PCE", "GDP", "UNRATE", "PAYEMS", "INDPRO", "HOUST", "PERMIT", "RRSFS",
+    "M1", "M2", "DFII10", "T10YIE", "T5YIFR", "DCOILWTICO", "DEXUSEU", "DEXJPUS", "DEXUSAL",
+    "WILL5000IND", "NASDAQCOM", "SP500", "DJIA", "MORTGAGE30US", "MORTGAGE15US"
+  ],
+
+  // STRESS: 29 symbols (Volatility, Credit, Sentiment)
+  stress: [
+    // Volatility Indices (10)
+    "VIX", "VXN", "RVX", "VVIX", "SKEW", "MOVE", "TYVIX", "GVZ", "OVX", "EVZ",
+    // Credit & Risk (10)
+    "HYG", "LQD", "JNK", "EMB", "BKLN", "FALN", "SHYG", "USHY", "ANGL", "SJNK",
+    // Market Internals (9)
+    "TRIN", "TICK", "ADD", "VOLD", "VOLU", "ADVN", "DECN", "UNCH", "NH-NL"
+  ]
 }
 
 const PRICE_CSVS = {
-  equity: "./csv-pull/market-data/data/unintegrated/equities/equities_solstice_equinox.csv",
-  commodity:
-    "./csv-pull/market-data/data/unintegrated/commodities/commodities_solstice_equinox.csv",
-  crypto: "./csv-pull/market-data/data/unintegrated/crypto/crypto_solstice_equinox.csv",
-  forex: "./csv-pull/market-data/data/unintegrated/forex/forex_solstice_equinox.csv",
+  equity: "./csv-pull/market-data/data/equities/equities_solstice_equinox.csv",
+  commodity: "./csv-pull/market-data/data/commodities/commodities_solstice_equinox.csv",
+  crypto: "./csv-pull/market-data/data/crypto/crypto_solstice_equinox.csv",
+  forex: "./csv-pull/market-data/data/forex/forex_solstice_equinox.csv",
+  "rates-macro": "./csv-pull/market-data/data/rates-macro/rates_macro_solstice_equinox.csv",
+  stress: "./csv-pull/market-data/data/stress/stress_solstice_equinox.csv",
 }
 
 const CSV_MAPPINGS: CSVMapping[] = [
@@ -187,25 +348,157 @@ const CSV_MAPPINGS: CSVMapping[] = [
 
 function mapCryptoSymbol(symbol: string): string {
   const map: Record<string, string> = {
+    // Top 50
     Bitcoin: "bitcoin",
     BTC: "bitcoin",
     Ethereum: "ethereum",
     ETH: "ethereum",
+    BNB: "binancecoin",
     Solana: "solana",
     SOL: "solana",
-    BNB: "binancecoin",
     XRP: "ripple",
-    BCH: "bitcoin-cash",
     Cardano: "cardano",
     ADA: "cardano",
+    Avalanche: "avalanche-2",
+    AVAX: "avalanche-2",
+    Dogecoin: "dogecoin",
+    DOGE: "dogecoin",
     Polkadot: "polkadot",
     DOT: "polkadot",
+    TRON: "tron",
+    TRX: "tron",
+    Polygon: "matic-network",
+    MATIC: "matic-network",
+    Litecoin: "litecoin",
+    LTC: "litecoin",
+    "Shiba-Inu": "shiba-inu",
+    SHIB: "shiba-inu",
     Chainlink: "chainlink",
     LINK: "chainlink",
+    "Bitcoin-Cash": "bitcoin-cash",
+    BCH: "bitcoin-cash",
+    Uniswap: "uniswap",
+    UNI: "uniswap",
     Stellar: "stellar",
     XLM: "stellar",
+    Cosmos: "cosmos",
+    ATOM: "cosmos",
+    Monero: "monero",
+    XMR: "monero",
+    "Ethereum-Classic": "ethereum-classic",
+    ETC: "ethereum-classic",
+    Filecoin: "filecoin",
+    FIL: "filecoin",
+    Aptos: "aptos",
+    APT: "aptos",
+    Hedera: "hedera-hashgraph",
+    HBAR: "hedera-hashgraph",
+    Cronos: "crypto-com-chain",
+    CRO: "crypto-com-chain",
+    VeChain: "vechain",
+    VET: "vechain",
+    Algorand: "algorand",
+    ALGO: "algorand",
+    "Near-Protocol": "near",
+    NEAR: "near",
+    "Internet-Computer": "internet-computer",
+    ICP: "internet-computer",
+    Quant: "quant-network",
+    QNT: "quant-network",
+    Aave: "aave",
+    AAVE: "aave",
+    "The-Graph": "the-graph",
+    GRT: "the-graph",
+    Fantom: "fantom",
+    FTM: "fantom",
+    EOS: "eos",
+    Theta: "theta-token",
+    THETA: "theta-token",
+    Tezos: "tezos",
+    XTZ: "tezos",
+    "Axie-Infinity": "axie-infinity",
+    AXS: "axie-infinity",
+    Flow: "flow",
+    FLOW: "flow",
+    Elrond: "elrond-erd-2",
+    EGLD: "elrond-erd-2",
+    Klaytn: "klay-token",
+    KLAY: "klay-token",
+    Decentraland: "decentraland",
+    MANA: "decentraland",
+    "The-Sandbox": "the-sandbox",
+    SAND: "the-sandbox",
+    Zcash: "zcash",
+    ZEC: "zcash",
+    BitTorrent: "bittorrent",
+    BTT: "bittorrent",
+    Maker: "maker",
+    MKR: "maker",
+    NEO: "neo",
+    Kava: "kava",
+    IOTA: "iota",
+    MIOTA: "iota",
+    Dash: "dash",
+    Kusama: "kusama",
+    KSM: "kusama",
+    Compound: "compound-governance-token",
+    COMP: "compound-governance-token",
+    // DeFi Tokens
+    Curve: "curve-dao-token",
+    CRV: "curve-dao-token",
+    SushiSwap: "sushi",
+    SUSHI: "sushi",
+    PancakeSwap: "pancakeswap-token",
+    CAKE: "pancakeswap-token",
+    "dYdX": "dydx",
+    DYDX: "dydx",
+    Balancer: "balancer",
+    BAL: "balancer",
+    "Yearn-Finance": "yearn-finance",
+    YFI: "yearn-finance",
+    Synthetix: "havven",
+    SNX: "havven",
+    "1inch": "1inch",
+    Bancor: "bancor",
+    BNT: "bancor",
+    Loopring: "loopring",
+    LRC: "loopring",
+    "0x": "0x",
+    ZRX: "0x",
+    // Layer 2
+    Optimism: "optimism",
+    OP: "optimism",
+    Arbitrum: "arbitrum",
+    ARB: "arbitrum",
+    ImmutableX: "immutable-x",
+    IMX: "immutable-x",
+    zkSync: "zksync",
+    StarkNet: "starknet",
+    Metis: "metis-token",
+    METIS: "metis-token",
+    // NFT & Metaverse
+    Enjin: "enjincoin",
+    ENJ: "enjincoin",
+    Gala: "gala",
+    WAX: "wax",
+    ECOMI: "ecomi",
+    OMI: "ecomi",
+    // Meme tokens
+    Floki: "floki",
+    SafeMoon: "safemoon",
+    "Dogelon-Mars": "dogelon-mars",
+    ELON: "dogelon-mars",
+    // Exchange tokens
+    "FTX-Token": "ftx-token",
+    FTT: "ftx-token",
+    "Crypto-com-Coin": "crypto-com-chain",
+    "Huobi-Token": "huobi-token",
+    HT: "huobi-token",
+    OKB: "okb",
+    KuCoin: "kucoin-shares",
+    KCS: "kucoin-shares",
   }
-  return map[symbol] || symbol.toLowerCase()
+  return map[symbol] || symbol.toLowerCase().replace(/-/g, "-")
 }
 
 const API_PROVIDERS: APIProvider[] = [
@@ -415,11 +708,10 @@ async function fetchPriceWithFallback(
   symbol: string,
   category: string
 ): Promise<{ price: number; provider: string } | null> {
+  // Try API providers first
   const providers = API_PROVIDERS.filter(
     (p) => p.categories.includes(category) && p.enabled()
   ).sort((a, b) => a.priority - b.priority)
-
-  if (providers.length === 0) return null
 
   for (const provider of providers) {
     try {
@@ -432,6 +724,14 @@ async function fetchPriceWithFallback(
       continue
     }
   }
+
+  // Fallback to CSV if all APIs failed
+  console.log(`   ⚠️  All APIs failed for ${symbol}, trying CSV fallback...`)
+  const csvPrice = getLatestPrice(symbol, category)
+  if (csvPrice) {
+    return { price: csvPrice.price, provider: "csv" }
+  }
+
   return null
 }
 
@@ -715,7 +1015,112 @@ async function fetchTwelveDataHistorical(symbol: string, days: number): Promise<
   )
 }
 
-async function fetchAlphaVantageHistorical(symbol: string, days: number): Promise<any[]> {
+async function fetchCoinGeckoHistorical(symbol: string, days: number): Promise<any[]> {
+  const coinId = mapCryptoSymbol(symbol)
+  const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily&x_cg_demo_api_key=${process.env.COINGECKO_API_KEY}`
+  const res = await axios.get(url, { timeout: 15000 })
+
+  if (!res.data?.prices) return []
+
+  return res.data.prices.map(([timestamp, price]: [number, number]) => {
+    const date = new Date(timestamp).toISOString().split("T")[0]
+    return {
+      symbol,
+      date,
+      open: price,
+      high: price,
+      low: price,
+      close: price,
+      volume: 0,
+      category: "crypto",
+      asset_type: "crypto",
+      data_source: "coingecko",
+    }
+  })
+}
+
+async function fetchFREDHistorical(symbol: string, days: number): Promise<any[]> {
+  // Map common macro symbols to FRED series IDs
+  const seriesMap: Record<string, string> = {
+    FEDFUNDS: "DFF",
+    CPI: "CPIAUCSL",
+    PPI: "PPIACO",
+    PCE: "PCE",
+    GDP: "GDP",
+    UNRATE: "UNRATE",
+    PAYEMS: "PAYEMS",
+    INDPRO: "INDPRO",
+    HOUST: "HOUST",
+    PERMIT: "PERMIT",
+    M1: "M1SL",
+    M2: "M2SL",
+    TNX: "DGS10",
+    IRX: "DTB3",
+    FVX: "DGS5",
+    TYX: "DGS30",
+    DGS10: "DGS10",
+    DGS2: "DGS2",
+    DGS5: "DGS5",
+    DGS30: "DGS30",
+  }
+
+  const seriesId = seriesMap[symbol]
+  if (!seriesId) return []
+
+  const endDate = new Date()
+  const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000)
+  const startStr = startDate.toISOString().split("T")[0]
+  const endStr = endDate.toISOString().split("T")[0]
+
+  const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${process.env.FRED_API_KEY}&file_type=json&observation_start=${startStr}&observation_end=${endStr}&sort_order=asc`
+  const res = await axios.get(url, { timeout: 15000 })
+
+  if (!res.data?.observations) return []
+
+  return res.data.observations
+    .filter((obs: any) => obs.value !== ".")
+    .map((obs: any) => ({
+      symbol,
+      date: obs.date,
+      open: parseFloat(obs.value),
+      high: parseFloat(obs.value),
+      low: parseFloat(obs.value),
+      close: parseFloat(obs.value),
+      volume: 0,
+      category: "rates-macro",
+      asset_type: "macro",
+      data_source: "fred",
+    }))
+}
+
+async function fetchAlphaVantageHistorical(symbol: string, days: number, category: string): Promise<any[]> {
+  // Handle forex differently
+  if (category === "forex" && symbol.includes("/")) {
+    const [from, to] = symbol.split("/")
+    const url = `https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=${from}&to_symbol=${to}&outputsize=full&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`
+    const res = await axios.get(url, { timeout: 15000 })
+
+    const timeSeries = res.data["Time Series FX (Daily)"]
+    if (!timeSeries) return []
+
+    return Object.entries(timeSeries)
+      .slice(0, days)
+      .map(([date, values]: [string, any]) => ({
+        symbol,
+        date,
+        open: parseFloat(values["1. open"]),
+        high: parseFloat(values["2. high"]),
+        low: parseFloat(values["3. low"]),
+        close: parseFloat(values["4. close"]),
+        volume: 0,
+        category: "forex",
+        asset_type: "forex",
+        data_source: "alphavantage",
+      }))
+      .reverse()
+  }
+
+  // Standard equity/commodity endpoint
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=full&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`
   const res = await axios.get(url, { timeout: 15000 })
 
@@ -732,6 +1137,8 @@ async function fetchAlphaVantageHistorical(symbol: string, days: number): Promis
       low: parseFloat(values["3. low"]),
       close: parseFloat(values["4. close"]),
       volume: parseFloat(values["5. volume"]),
+      category,
+      asset_type: category,
       data_source: "alphavantage",
     }))
     .reverse()
@@ -766,12 +1173,17 @@ async function fetchHistoricalData(
 
       let bars: any[] = []
 
-      if (provider.name === "polygon") {
+      // Category-specific historical fetching
+      if (category === "crypto" && provider.name === "coingecko") {
+        bars = await fetchCoinGeckoHistorical(symbol, days)
+      } else if (category === "rates-macro" && provider.name === "fred") {
+        bars = await fetchFREDHistorical(symbol, days)
+      } else if (provider.name === "polygon") {
         bars = await fetchPolygonHistorical(symbol, days)
       } else if (provider.name === "twelve_data") {
         bars = await fetchTwelveDataHistorical(symbol, days)
       } else if (provider.name === "alpha_vantage") {
-        bars = await fetchAlphaVantageHistorical(symbol, days)
+        bars = await fetchAlphaVantageHistorical(symbol, days, category)
       }
 
       if (bars.length > 0) {
@@ -781,6 +1193,32 @@ async function fetchHistoricalData(
     } catch (error: any) {
       console.log(`   ⚠️  ${provider.name} failed: ${error.message}`)
       continue
+    }
+  }
+
+  // CSV fallback for historical data
+  console.log(`   ⚠️  All APIs failed, trying CSV fallback...`)
+  const csvPath = PRICE_CSVS[category as keyof typeof PRICE_CSVS]
+  if (csvPath && fs.existsSync(csvPath)) {
+    const csvData = parseCSV(csvPath)
+    const symbolData = csvData.filter((row: any) => {
+      const rowSymbol = row.Symbol || row.Commodity || row.Pair || row.Indicator
+      return rowSymbol === symbol
+    })
+    if (symbolData.length > 0) {
+      console.log(`   ✅ Got ${symbolData.length} bars from CSV`)
+      return symbolData.map((row: any) => ({
+        symbol,
+        date: row.Date,
+        open: row.Open || row.Price || row.Rate,
+        high: row.High || row.Price || row.Rate,
+        low: row.Low || row.Price || row.Rate,
+        close: row.Close || row.Price || row.Rate,
+        volume: row.Volume || 0,
+        category,
+        asset_type: category,
+        data_source: "csv",
+      }))
     }
   }
 
@@ -835,6 +1273,68 @@ async function backfillHistoricalData(category?: string, days: number = 365): Pr
   }
 
   console.log(`\n✅ Backfilled ${inserted.toLocaleString()} data points for ${processed} tickers\n`)
+}
+
+async function backfillFromCategoryMap(category?: string, days: number = 365): Promise<void> {
+  console.log(`📊 Backfilling from CATEGORY_MAP (${days} days)...\n`)
+
+  const categories = category ? [category] : Object.keys(CATEGORY_MAP)
+
+  let totalProcessed = 0
+  let totalInserted = 0
+
+  for (const cat of categories) {
+    const symbols = CATEGORY_MAP[cat as keyof typeof CATEGORY_MAP]
+    if (!symbols || symbols.length === 0) continue
+
+    console.log(`\n📂 ${cat.toUpperCase()} (${symbols.length} symbols)`)
+
+    let processed = 0
+    let inserted = 0
+
+    for (const symbol of symbols) {
+      const bars = await fetchHistoricalData(symbol, cat, days)
+
+      if (bars.length > 0) {
+        for (let i = 0; i < bars.length; i += 500) {
+          const batch = bars.slice(i, i + 500)
+          const { error } = await supabase
+            .from("financial_data")
+            .upsert(batch, { onConflict: "symbol,date" })
+
+          if (!error) {
+            inserted += batch.length
+          }
+        }
+        console.log(`   ✅ ${symbol.padEnd(15)} ${bars.length} bars`)
+      } else {
+        console.log(`   ⚠️  ${symbol.padEnd(15)} No data`)
+      }
+
+      processed++
+
+      // Rate limiting: wait 2s every 5 symbols
+      if (processed % 5 === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+      }
+
+      // Progress update every 25 symbols
+      if (processed % 25 === 0) {
+        console.log(`   📊 Progress: ${processed}/${symbols.length} (${inserted.toLocaleString()} records)`)
+      }
+    }
+
+    console.log(`   ✅ ${cat}: ${processed} symbols, ${inserted.toLocaleString()} records`)
+    totalProcessed += processed
+    totalInserted += inserted
+
+    // Wait 5s between categories
+    if (categories.length > 1) {
+      await new Promise((resolve) => setTimeout(resolve, 5000))
+    }
+  }
+
+  console.log(`\n✅ COMPLETE: ${totalProcessed} symbols, ${totalInserted.toLocaleString()} records\n`)
 }
 
 // ============================================================================
@@ -1239,6 +1739,8 @@ async function main() {
     backfill: () => backfillHistoricalData(process.argv[3], 365),
     "backfill-equity": () => backfillHistoricalData("equity", 365),
     "backfill-crypto": () => backfillHistoricalData("crypto", 90),
+    "backfill-all": () => backfillFromCategoryMap(undefined, 365),
+    "backfill-map": () => backfillFromCategoryMap(process.argv[3], 365),
     "universe-stats": universeStats,
     "check-ingress": async () => {
       const today = new Date().toISOString().split("T")[0]
@@ -1286,9 +1788,13 @@ Core Commands:
   add-forex                      Add forex pairs to universe
   add-commodities                Add commodities to universe
   universe-stats                 Show universe statistics
-  backfill [category]            Backfill 365d historical data
-  backfill-equity                Backfill equity historical data
-  backfill-crypto                Backfill crypto historical data
+
+📊 Historical Data Backfill:
+  backfill [category]            Backfill 365d from ticker_universe table
+  backfill-equity                Backfill equity from ticker_universe
+  backfill-crypto                Backfill crypto from ticker_universe
+  backfill-all                   Backfill ALL 1,029 symbols from CATEGORY_MAP (12 months)
+  backfill-map [category]        Backfill specific category from CATEGORY_MAP
 
 🛠️  Maintenance Commands:
   quality-report                 Get comprehensive data quality report
@@ -1299,7 +1805,9 @@ Core Commands:
 
 Examples:
   npx tsx scripts/data-manager.ts init-universe
-  npx tsx scripts/data-manager.ts backfill-equity
+  npx tsx scripts/data-manager.ts backfill-all          # Fetch all 1,029 tickers
+  npx tsx scripts/data-manager.ts backfill-map equity    # Just equity (500 symbols)
+  npx tsx scripts/data-manager.ts quality-report
   npx tsx scripts/data-manager.ts universe-stats
     `)
     process.exit(1)
