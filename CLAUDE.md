@@ -4,7 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Environments
 
-This project is developed across two machines with different capabilities:
+This project is developed across two machines with different capabilities.
+
+### Auto-Detection Protocol
+**IMPORTANT**: At the start of each session, automatically detect which machine is being used:
+- Check username from paths: `/Users/jamalcarr/` = MacBook Pro, `/Users/s01222466/` = iMac
+- Check if `~/Dev/Essentials/` exists: YES = MacBook Pro, NO = iMac
+- Check hostname from commands: `ETLC-LIB-11` = iMac
+- **If unsure after initial context**, ask: "Are you on the MacBook Pro or iMac today?"
+- Once detected, adjust recommendations accordingly (see Machine-Specific Development Tips)
 
 ### MacBook Pro (Primary/Personal)
 - **Specs**: 2020 Intel i5, Quad-core, 8GB RAM, macOS 15.7.3
