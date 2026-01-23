@@ -3,6 +3,7 @@
 
 import { api } from "@/lib/api/client"
 import { handleApiError } from "@/lib/api/errors"
+import { type TickerRating } from "@/lib/services/confluenceEngine"
 import { useCallback, useEffect, useState } from "react"
 
 // ============================================================================
@@ -149,7 +150,7 @@ export function useTickersData(): UseTickersReturn {
       })
 
       const ratings = result.ratings || []
-      const transformedData: TickerData[] = ratings.map((rating: any, index: number) => ({
+      const transformedData: TickerData[] = ratings.map((rating: TickerRating, index: number) => ({
         id: index + 1,
         ticker: rating.symbol,
         sector: rating.sector,
@@ -167,7 +168,7 @@ export function useTickersData(): UseTickersReturn {
 
       console.log(`✅ Loaded ${transformedData.length} tickers`)
       setData(transformedData)
-    } catch (err: any) {
+    } catch (err) {
       console.error("❌ Error loading tickers:", err)
       setError(handleApiError(err))
     } finally {
@@ -236,7 +237,7 @@ export function useMarketData(options: UseMarketDataOptions = {}): UseMarketData
       const ratings = result.ratings || []
 
       // Transform to ticker data
-      const tickerData: TickerData[] = ratings.map((rating: any, index: number) => ({
+      const tickerData: TickerData[] = ratings.map((rating: TickerRating, index: number) => ({
         id: index + 1,
         ticker: rating.symbol,
         sector: rating.sector,
@@ -259,7 +260,7 @@ export function useMarketData(options: UseMarketDataOptions = {}): UseMarketData
         const levelsData: Record<string, ComprehensiveLevels> = {}
 
         const symbolsToFetch =
-          symbols.length > 0 ? symbols : ratings.slice(0, 10).map((r: any) => r.symbol)
+          symbols.length > 0 ? symbols : ratings.slice(0, 10).map((r: TickerRating) => r.symbol)
 
         await Promise.all(
           symbolsToFetch.map(async (symbol: string) => {
@@ -277,7 +278,7 @@ export function useMarketData(options: UseMarketDataOptions = {}): UseMarketData
 
         setLevels(levelsData)
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("❌ Error loading market data:", err)
       setError(handleApiError(err))
     } finally {
