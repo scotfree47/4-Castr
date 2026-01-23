@@ -6,6 +6,8 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Check what SPY data exists
     const { data, error } = await supabaseAdmin
       .from('financial_data')
@@ -36,6 +38,10 @@ export async function GET() {
       error
     });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message });
+    console.error('❌ Debug prices error:', error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }

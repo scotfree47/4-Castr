@@ -18,6 +18,7 @@ export async function GET(request) {
     console.log('Polygon Key exists:', !!process.env.POLYGON_API_KEY);
 
     // Check if data exists in DB first
+    const supabaseAdmin = getSupabaseAdmin();
     let query = supabaseAdmin
       .from('financial_data')
       .select('*')
@@ -68,9 +69,9 @@ export async function GET(request) {
     return NextResponse.json({ success: false, error: 'No data from Polygon' }, { status: 404 });
     
   } catch (error) {
-    console.error('Finance API error:', error);
+    console.error('❌ Finance API error:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

@@ -10,7 +10,8 @@ export async function GET(request) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
     const eventType = searchParams.get('eventType'); // 'aspect', 'lunar_phase', 'solar_ingress'
-    
+
+    const supabaseAdmin = getSupabaseAdmin();
     let query = supabaseAdmin
       .from('astro_events')
       .select('*')
@@ -26,8 +27,9 @@ export async function GET(request) {
     
     return NextResponse.json({ success: true, data });
   } catch (error) {
+    console.error('❌ Astro API error:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

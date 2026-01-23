@@ -1,4 +1,4 @@
-export const SYMBOLS = {
+  export const SYMBOLS = {
   equities: [
     "SPY","QQQ","XLY","AAL","AIG","AMZN","AXP","BA","BABA","BAC",
     "C","CLF","CLSK","COST","CSCO","CVX","DIS","DKNG","EQT","F",
