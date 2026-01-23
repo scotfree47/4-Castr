@@ -22,11 +22,19 @@ This project is developed across two machines with different capabilities:
 - **Hostname**: ETLC-LIB-11
 - **User**: s01222466
 - **Path**: `/Users/s01222466/Dev/Workspaces/Dec-2025/4castr`
+- **Primary Use**: Frontend component development (bigger screen + faster page loading)
+- **Restrictions**:
+  - ⚠️ **NO `~/Dev/Essentials/` directory** (admin restricted - cannot create)
+  - ⚠️ **NO centralized dotfiles** - `.gitconfig` and other configs are local to user directory
+  - ⚠️ **Limited package installation** - admin restrictions prevent many global installs
+  - **DO NOT** reference or suggest operations involving `~/Dev/Essentials/` on this machine
 - **Considerations**:
   - More memory available - can run multiple services simultaneously
+  - **Ideal for**: Frontend/UI work, component development, visual testing with split-screen (VS Code + Browser)
   - Better for heavy data operations (`npm run data:load`, `npm run precompute`)
   - Suitable for running full test suites and builds
   - Can handle browser DevTools + multiple tabs without issue
+  - Larger screen perfect for split-screen development workflow
 
 ### Git Workflow for Multi-Device Development
 
@@ -179,19 +187,27 @@ npm run dev  # Continue where you left off
 - Avoid absolute paths like `/Users/jamalcarr/...` in committed code
 - Verify working directory before running scripts: `pwd`
 
-### Memory-Aware Development Tips
+### Machine-Specific Development Tips
 
 **On MacBook Pro (8GB RAM):**
+- **Best for**: Backend work, data scripts, API development, Supabase operations
 - Run ONLY dev server: `npm run dev`
 - If memory is tight, restart dev server periodically
 - Use `npm run data:check` (lightweight) instead of `npm run data:load` (heavy)
-- Defer heavy operations like `precompute` to the iMac
+- Has access to centralized configs in `~/Dev/Essentials/`
+- Can install global packages and tools
 
-**On iMac (32GB RAM):**
+**On iMac (32GB RAM, Admin Restricted):**
+- **Best for**: Frontend/UI component work, visual testing, split-screen development
+- **Primary workflow**: VS Code (left) + Browser (right) for rapid component iteration
 - Can run dev server + data scripts concurrently
-- Ideal for: `npm run data:load`, `npm run precompute`, `npm run ai:analyze`
-- Good for full builds: `npm run build`
-- Can run Supabase local instance if needed
+- Ideal for: `npm run data:load`, `npm run precompute`, `npm run build`
+- Bigger screen = better for component styling and responsive design testing
+- Faster page loads for testing UI changes
+- **Limitations**:
+  - Cannot install global packages without admin
+  - No centralized dotfiles access
+  - Focus on project-local operations only
 
 ## Project Overview
 
@@ -388,12 +404,18 @@ Used by `/api/chart-data` and `/api/ticker-ratings` for performance.
 
 If changes are needed to these areas, discuss the approach first before implementing.
 
-### System Directories - ALWAYS ALLOWED
-**IMPORTANT**: The following directories contain system configuration and are always safe to access:
-- `~/Dev/Essentials/` and all its contents
-- `~/Dev/Essentials/Configs/dotfigs/` - Centralized dotfiles (`.gitconfig`, `.zshrc`, etc.)
+### System Directories - MACHINE SPECIFIC
+**IMPORTANT**: Configuration locations differ by machine:
 
-These contain global configurations that may need to be referenced or updated during development.
+**MacBook Pro ONLY:**
+- `~/Dev/Essentials/` and all its contents - ALWAYS ALLOWED
+- `~/Dev/Essentials/Configs/dotfigs/` - Centralized dotfiles (`.gitconfig`, `.zshrc`, etc.)
+- These contain global configurations that may need to be referenced or updated
+
+**iMac (ETLC-LIB-11):**
+- ⚠️ **Does NOT have `~/Dev/Essentials/`** - Admin restricted, cannot create
+- Dotfiles are local to `~/.gitconfig`, `~/.zshrc`, etc. (not symlinked)
+- When suggesting config changes on iMac, use standard home directory paths only
 
 ### Archived Files - DO NOT USE
 **CRITICAL**: Any files or directories with `_unused` or `saved-unused` in their name are archived and must be completely ignored. These are not part of the active codebase.
