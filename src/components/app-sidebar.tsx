@@ -212,7 +212,7 @@ export function AppSidebar({...props }: React.ComponentProps<typeof Sidebar>) {
                   <Logo size={24} className="text-current" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-large">4Castr</span>
+                  <span className="truncate font-xl">4Castr</span>
                   {/*
                   <span className="truncate text-xs">"Stars Impel, Not Compel"</span>
                   */}
