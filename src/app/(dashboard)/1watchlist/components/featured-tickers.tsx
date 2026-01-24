@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-import { Eye, Star, Target, TrendingUp } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Eye, Star, Target, TrendingUp, Award } from "lucide-react"
 import React, { useCallback, useEffect, useState } from "react"
 
 interface NextKeyLevel {
@@ -48,10 +49,29 @@ interface FeaturedTickersProps {
   category?: string
 }
 
-export const FeaturedTickers = React.memo(function FeaturedTickers({ category = "equity" }: FeaturedTickersProps) {
+export const FeaturedTickers = React.memo(function FeaturedTickers({
+  category = "equity",
+}: FeaturedTickersProps) {
   const [tickers, setTickers] = useState<FeaturedTicker[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [summary, setSummary] = useState<any>(null)
+
+  const getRatingColor = (rating: string) => {
+    switch (rating) {
+      case "A+":
+      case "A":
+        return "bg-green-500/5 text-green-400 border-green-500/30 shadow-green-500/10"
+      case "B+":
+      case "B":
+        return "bg-blue-500/5 text-blue-400 border-blue-500/30 shadow-blue-500/10"
+      case "C+":
+      case "C":
+        return "bg-yellow-500/5 text-yellow-400 border-yellow-500/30 shadow-yellow-500/10"
+      default:
+        return "bg-gray-500/5 text-gray-400 border-gray-500/30 shadow-gray-500/10"
+    }
+  }
 
   const loadFeaturedTickers = useCallback(async () => {
     try {
@@ -59,8 +79,6 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({ category = 
       setError(null)
 
       const timestamp = new Date().getTime()
-
-      // ✅ FIXED: Use your existing /api/ticker-ratings endpoint
       const response = await fetch(
         `/api/ticker-ratings?mode=featured&category=${category}&minScore=75&t=${timestamp}`,
         {
@@ -84,16 +102,28 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({ category = 
         throw new Error(result.error || "Failed to load featured tickers")
       }
 
-      // ✅ FIXED: Access ratings from result.data.ratings (matches your API structure)
       const ratings = result.data?.ratings || []
-
-      // Take top 10 and add rank
       const rankedTickers = ratings.slice(0, 10).map((ticker: FeaturedTicker, idx: number) => ({
         ...ticker,
         rank: idx + 1,
       }))
 
       setTickers(rankedTickers)
+
+      // Calculate summary stats
+      setSummary({
+        totalTickers: rankedTickers.length,
+        avgScore: (
+          rankedTickers.reduce((sum: number, t: FeaturedTicker) => sum + t.scores.total, 0) /
+          rankedTickers.length
+        ).toFixed(0),
+        strongBuys: rankedTickers.filter((t: FeaturedTicker) => t.recommendation === "strong_buy")
+          .length,
+        avgConfluence: (
+          rankedTickers.reduce((sum: number, t: FeaturedTicker) => sum + t.scores.confluence, 0) /
+          rankedTickers.length
+        ).toFixed(0),
+      })
     } catch (err: any) {
       console.error("Error loading featured tickers:", err)
       setError(err.message)
@@ -108,18 +138,35 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({ category = 
 
   if (loading) {
     return (
-      <Card className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5" />
+            Featured Tickers
+          </CardTitle>
+          <CardDescription>Loading top performers...</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-20 w-full bg-foreground/5" />
+          <Skeleton className="h-20 w-full bg-foreground/5" />
+          <Skeleton className="h-20 w-full bg-foreground/5" />
+        </CardContent>
       </Card>
     )
   }
 
   if (error) {
     return (
-      <Card className="border-destructive">
-        <CardContent className="pt-6">
-          <p className="text-destructive">Error: {error}</p>
-          <Button variant="outline" onClick={loadFeaturedTickers} className="mt-4">
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5" />
+            Featured Tickers
+          </CardTitle>
+          <CardDescription className="text-destructive">{error}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={loadFeaturedTickers}>
             Retry
           </Button>
         </CardContent>
@@ -129,24 +176,31 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({ category = 
 
   if (tickers.length === 0) {
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-muted-foreground">No featured tickers available for {category}</p>
-          <Button variant="outline" onClick={loadFeaturedTickers} className="mt-4">
-            Refresh
-          </Button>
-        </CardContent>
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5" />
+            Featured Tickers
+          </CardTitle>
+          <CardDescription>
+            <span className="text-4xl mb-2 block">📊</span>
+            No featured tickers available
+          </CardDescription>
+        </CardHeader>
       </Card>
     )
   }
 
   return (
-    <Card className="cursor-pointer hover:border-primary/50 hover:shadow-[0_0_20px_rgba(51,255,51,0.3)] transition-all">
+    <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg hover:shadow-[0_0_20px_rgba(51,255,51,0.3)] transition-all">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div>
-          <CardTitle>Featured Tickers</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5" />
+            Featured Tickers
+          </CardTitle>
           <CardDescription>
-            Top Performers - {category.charAt(0).toUpperCase() + category.slice(1)}
+            Top {tickers.length} performers - {category.charAt(0).toUpperCase() + category.slice(1)}
           </CardDescription>
         </div>
         <Button variant="outline" asChild size="sm" className="sm:flex">
@@ -158,107 +212,107 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({ category = 
       </CardHeader>
       <Separator orientation="horizontal" className="mx-8" />
 
-      <CardContent className="space-y-4">
+      {summary && (
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 p-3 rounded-lg bg-foreground/5">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-400">{summary.strongBuys}</div>
+              <div className="text-xs opacity-60">Strong Buys</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{summary.avgScore}</div>
+              <div className="text-xs opacity-60">Avg Score</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{summary.avgConfluence}</div>
+              <div className="text-xs opacity-60">Avg Confluence</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{summary.totalTickers}</div>
+              <div className="text-xs opacity-60">Total</div>
+            </div>
+          </div>
+        </CardContent>
+      )}
+
+      <CardContent className="space-y-3">
         {tickers.map((ticker) => (
           <div
             key={ticker.symbol}
-            className="flex items-center p-3 rounded-lg border gap-2 hover:border-primary/30 transition-colors"
+            className={`rounded-xl border backdrop-blur-lg p-4 transition-all hover:scale-[1.02] hover:shadow-xl ${getRatingColor(ticker.rating)}`}
           >
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-              #{ticker.rank}
-            </div>
-
-            <div className="flex gap-2 items-center justify-between space-x-3 flex-1 flex-wrap">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2 flex-wrap">
-                  <p className="text-sm font-medium truncate">{ticker.symbol}</p>
-
-                  <Badge
-                    variant={
-                      ticker.rating === "A+" || ticker.rating === "A"
-                        ? "default"
-                        : ticker.rating === "B+" || ticker.rating === "B"
-                          ? "secondary"
-                          : "outline"
-                    }
-                    className="text-xs"
-                  >
-                    {ticker.rating}
-                  </Badge>
-
-                  <Badge variant="outline" className="text-xs">
-                    {ticker.sector}
-                  </Badge>
-
-                  {ticker.scores.confluence >= 60 && (
-                    <Badge variant="default" className="text-xs">
-                      <Target className="h-3 w-3 mr-1" />
-                      {ticker.scores.confluence}
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                  #{ticker.rank}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline" className="font-mono text-xs">
+                      {ticker.symbol}
                     </Badge>
-                  )}
-                </div>
-
-                <div className="flex items-center space-x-2 mt-1 flex-wrap">
-                  <div className="flex items-center space-x-1">
-                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs text-muted-foreground">
-                      {(ticker.scores.total / 20).toFixed(1)}
-                    </span>
+                    <Badge
+                      variant={
+                        ticker.rating === "A+" || ticker.rating === "A" ? "default" : "secondary"
+                      }
+                      className="text-xs"
+                    >
+                      {ticker.rating}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {ticker.sector}
+                    </Badge>
                   </div>
-
-                  <span className="text-xs text-muted-foreground">•</span>
-
-                  <span
-                    className={`text-xs ${
-                      ticker.nextKeyLevel.type === "support" ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    ${ticker.nextKeyLevel.price.toFixed(2)} ({ticker.nextKeyLevel.type})
-                  </span>
-
-                  {ticker.reasons.length > 0 && (
-                    <>
-                      <span className="text-xs text-muted-foreground">•</span>
-                      <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                        {ticker.reasons[0]}
-                      </span>
-                    </>
-                  )}
+                  <div className="text-sm opacity-80 mt-1">
+                    ${ticker.currentPrice.toFixed(2)} → ${ticker.nextKeyLevel.price.toFixed(2)}
+                  </div>
                 </div>
               </div>
+              <Badge variant="outline" className="font-mono">
+                <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                {(ticker.scores.total / 20).toFixed(1)}
+              </Badge>
+            </div>
 
-              <div className="text-right space-y-1">
-                <div className="flex items-center space-x-2">
-                  <p className="text-sm font-medium">${ticker.currentPrice.toFixed(2)}</p>
-
-                  <Badge
-                    variant="outline"
-                    className={`${
-                      ticker.nextKeyLevel.type === "resistance"
-                        ? "text-green-600 border-green-200"
-                        : "text-red-600 border-red-200"
-                    } cursor-pointer`}
-                  >
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    {ticker.nextKeyLevel.distancePercent.toFixed(2)}%
-                  </Badge>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-muted-foreground">
-                    ~{ticker.nextKeyLevel.daysUntilEstimate}d
-                  </span>
-                  <Progress
-                    value={Math.min(ticker.nextKeyLevel.daysUntilEstimate, 30) * (100 / 30)}
-                    className="w-12 h-1"
-                  />
-                </div>
-
-                <div className="text-xs text-muted-foreground capitalize">
-                  {ticker.confidence.replace("_", " ")}
-                </div>
+            <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+              <div>
+                <span className="opacity-60">Confluence:</span>{" "}
+                <span className="font-medium">{ticker.scores.confluence}</span>
+              </div>
+              <div>
+                <span className="opacity-60">Momentum:</span>{" "}
+                <span className="font-medium">{ticker.scores.momentum}</span>
               </div>
             </div>
+
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-3 w-3" />
+                <span
+                  className={
+                    ticker.nextKeyLevel.type === "resistance" ? "text-green-600" : "text-red-600"
+                  }
+                >
+                  {ticker.nextKeyLevel.distancePercent.toFixed(2)}% to {ticker.nextKeyLevel.type}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="opacity-60">~{ticker.nextKeyLevel.daysUntilEstimate}d</span>
+                <Progress
+                  value={Math.min(ticker.nextKeyLevel.daysUntilEstimate, 30) * (100 / 30)}
+                  className="w-12 h-1"
+                />
+              </div>
+            </div>
+
+            {ticker.reasons.length > 0 && (
+              <div className="mt-2 pt-2 border-t border-current/10 text-xs opacity-80">
+                <div className="flex items-start gap-1">
+                  <span className="opacity-40">•</span>
+                  <span>{ticker.reasons[0]}</span>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </CardContent>

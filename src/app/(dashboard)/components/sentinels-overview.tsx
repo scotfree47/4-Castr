@@ -14,8 +14,10 @@ import {
   TrendingDown,
   TrendingUp,
   TrendingUpDown,
+  Calendar,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import type { TradingWindow } from "@/lib/services/confluenceEngine"
 
 const SENTINELS = {
   equity: ["SPY", "QQQ", "XLY"],
@@ -49,6 +51,8 @@ interface SentinelMetric {
   footer: string
   footerIcon: any
   sentinels: Array<{ symbol: string; display: string }>
+  tradingWindow: TradingWindow | null
+  categoryId: string
 }
 
 export function SentinelsOverview() {
@@ -113,16 +117,27 @@ export function SentinelsOverview() {
             const symbols = SENTINELS[group.id as keyof typeof SENTINELS]
             const symbolsParam = symbols.join(",")
 
-            // ✅ FIXED: Use your existing /api/ticker-ratings endpoint
-            const res = await fetch(
+            // Fetch ticker ratings
+            const ratingsRes = await fetch(
               `/api/ticker-ratings?mode=batch&symbols=${symbolsParam}&minScore=0`,
               { headers: { "Cache-Control": "no-cache" } }
             )
+            const ratingsResult = await ratingsRes.json()
 
-            const result = await res.json()
+            // Fetch trading windows for this category's sentinels
+            const windowsRes = await fetch(
+              `/api/trading-windows-bulk?symbols=${symbolsParam}&topN=1&daysAhead=90`,
+              { cache: "no-store" }
+            )
+            const windowsResult = await windowsRes.json()
 
-            if (result.success && result.data?.ratings && result.data.ratings.length > 0) {
-              return processGroupRatings(group, result.data.ratings, ingress)
+            const bestWindow =
+              windowsResult.success && windowsResult.data.windows.length > 0
+                ? windowsResult.data.windows[0]
+                : null
+
+            if (ratingsResult.success && ratingsResult.data?.ratings && ratingsResult.data.ratings.length > 0) {
+              return processGroupRatings(group, ratingsResult.data.ratings, ingress, bestWindow)
             }
 
             return createEmptyMetric(group)
@@ -140,7 +155,7 @@ export function SentinelsOverview() {
     }
   }
 
-  const processGroupRatings = (group: any, ratings: any[], ingress: any): SentinelMetric => {
+  const processGroupRatings = (group: any, ratings: any[], ingress: any, tradingWindow: TradingWindow | null = null): SentinelMetric => {
     if (!ratings || ratings.length === 0) return createEmptyMetric(group)
 
     const validRatings = ratings.filter((r) => r.currentPrice > 0)
@@ -174,6 +189,8 @@ export function SentinelsOverview() {
         symbol: r.symbol,
         display: `${r.symbol} ${r.currentPrice.toFixed(2)} [${r.rating}]`,
       })),
+      tradingWindow,
+      categoryId: group.id,
     }
   }
 
@@ -191,6 +208,8 @@ export function SentinelsOverview() {
     footer: "Awaiting data",
     footerIcon: TrendingUp,
     sentinels: [],
+    tradingWindow: null,
+    categoryId: group.id,
   })
 
   if (loading) {
@@ -199,6 +218,21 @@ export function SentinelsOverview() {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
+  }
+
+  const getWindowTypeColor = (type: string) => {
+    switch (type) {
+      case "high_probability":
+        return "bg-green-500/5 text-green-400 border-green-500/30 shadow-green-500/10"
+      case "moderate":
+        return "bg-blue-500/5 text-blue-400 border-blue-500/30 shadow-blue-500/10"
+      case "avoid":
+        return "bg-gray-500/5 text-gray-400 border-gray-500/30 shadow-gray-500/10"
+      case "extreme_volatility":
+        return "bg-orange-500/5 text-orange-400 border-orange-500/30 shadow-orange-500/10"
+      default:
+        return "bg-background/20 border-border/40"
+    }
   }
 
   return (
@@ -210,7 +244,7 @@ export function SentinelsOverview() {
 
           return (
             <CarouselItem key={metric.title}>
-              <Card className="cursor-pointer hover:overflow-visible border-2 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(51,255,51,1)] transition-colors h-full flex flex-col">
+              <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg hover:border-primary/50 transition-colors h-full flex flex-col">
                 <CardHeader className="relative flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -285,6 +319,39 @@ export function SentinelsOverview() {
                       </div>
                     )}
                   </div>
+
+                  {/* Trading Window Preview */}
+                  {metric.tradingWindow && (
+                    <div className={`mt-3 rounded-xl border backdrop-blur-lg p-3 transition-all ${getWindowTypeColor(metric.tradingWindow.type)}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          <span className="text-sm font-semibold">Trading Window</span>
+                        </div>
+                        <span className="text-xl">{metric.tradingWindow.emoji}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="opacity-60">Score:</span>{" "}
+                          <span className="font-semibold">{metric.tradingWindow.combinedScore}</span>
+                        </div>
+                        <div>
+                          <span className="opacity-60">Duration:</span>{" "}
+                          <span>{metric.tradingWindow.daysInWindow}d</span>
+                        </div>
+                      </div>
+                      <div className="text-xs opacity-60 mt-1">
+                        {new Date(metric.tradingWindow.startDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })} -{" "}
+                        {new Date(metric.tradingWindow.endDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </CardHeader>
 
                 <Separator className="my-1" />

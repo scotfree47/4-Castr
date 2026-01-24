@@ -1,10 +1,8 @@
 import { SentinelsOverview } from "../components/sentinels-overview"
 import { PreviouslyFeatured } from "./components/previously-featured"
 import { FeaturedTickers } from "./components/featured-tickers"
-import { MultiSymbolTradingWindows } from "./components/multi-symbol-trading-windows"
 import { SectionCards } from "./components/section-cards"
 import { FloatingActionMenu } from "@/components/floating-action-menu"
-import { AlertPreferences } from "@/components/alert-preferences"
 import { TradingWindowMonitor } from "@/components/trading-window-monitor"
 import { getHighConfidenceTickers } from "../data"
 
@@ -28,14 +26,8 @@ export default function Watchlist() {
 
         {/* Main Dashboard Grid */}
         <div className="@container/main space-y-6">
-          {/* Top Row - Key Metrics */}
+          {/* Top Row - Sentinels with Trading Windows */}
           <SentinelsOverview />
-
-          {/* Trading Windows - Weather Forecast (All Sentinels) */}
-          <MultiSymbolTradingWindows includeSentinels={true} topN={10} daysAhead={90} />
-
-          {/* Alert Preferences */}
-          <AlertPreferences />
 
           {/* Second Row - Charts in 6-6 columns */}
           <div className="grid gap-6 grid-cols-1 @5xl:grid-cols-2">
