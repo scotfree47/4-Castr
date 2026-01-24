@@ -29,6 +29,7 @@ import {
 import { CSS } from "@dnd-kit/utilities"
 
 import {
+  AlertTriangle,
   ArrowDown,
   ArrowUp,
   ChevronDown,
@@ -43,6 +44,7 @@ import {
   Minus,
   TrendingDown,
   TrendingUp,
+  Zap,
 } from "lucide-react"
 
 import {
@@ -266,31 +268,50 @@ const columns: ColumnDef<Ticker>[] = [
     cell: ({ row }) => {
       const trend = row.getValue("trend") as string
 
-      const trendConfig: Record<string, { label: string; icon: any; color: string }> = {
+      const trendConfig: Record<
+        string,
+        {
+          label: string
+          icon: any
+          color: string
+          bg: string
+          border: string
+        }
+      > = {
         favorable: {
           label: "Favorable",
           icon: TrendingUp,
           color: "text-green-600",
+          bg: "bg-green-500/10",
+          border: "border-green-500/20",
         },
         bullish: {
           label: "Bullish",
           icon: TrendingUp,
           color: "text-green-600",
+          bg: "bg-green-500/10",
+          border: "border-green-500/20",
         },
         unfavorable: {
           label: "Unfavorable",
           icon: TrendingDown,
           color: "text-red-600",
+          bg: "bg-red-500/10",
+          border: "border-red-500/20",
         },
         bearish: {
           label: "Bearish",
           icon: TrendingDown,
           color: "text-red-600",
+          bg: "bg-red-500/10",
+          border: "border-red-500/20",
         },
         neutral: {
           label: "Neutral",
           icon: Minus,
           color: "text-gray-600",
+          bg: "bg-gray-500/10",
+          border: "border-gray-500/20",
         },
       }
 
@@ -299,8 +320,10 @@ const columns: ColumnDef<Ticker>[] = [
 
       return (
         <div className="flex items-center gap-2">
-          <Icon className={`h-4 w-4 ${config.color}`} />
-          <span className={config.color}>{config.label}</span>
+          <div className={cn("p-1.5 rounded-md", config.bg, config.border, "border")}>
+            <Icon className={cn("h-3.5 w-3.5", config.color)} />
+          </div>
+          <span className={cn("font-medium", config.color)}>{config.label}</span>
         </div>
       )
     },
@@ -313,7 +336,7 @@ const columns: ColumnDef<Ticker>[] = [
     cell: ({ row }) => {
       const price = row.getValue("next") as string
       return (
-        <div className="flex items-center font-medium">
+        <div className="flex items-center font-medium font-mono">
           <span>${price}</span>
         </div>
       )
@@ -327,7 +350,7 @@ const columns: ColumnDef<Ticker>[] = [
     cell: ({ row }) => {
       const price = row.getValue("last") as string
       return (
-        <div className="flex items-center">
+        <div className="flex items-center font--mono">
           <span>${price}</span>
         </div>
       )
@@ -370,13 +393,54 @@ function DraggableRow({ row }: { row: Row<Ticker> }) {
   }
 
   return (
-    <TableRow ref={setNodeRef} style={style} data-state={row.getIsSelected() && "selected"}>
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      data-state={row.getIsSelected() && "selected"}
+      className="hover:bg-foreground/5 transition-colors"
+    >
       {row.getVisibleCells().map((cell) => (
         <TableCell key={cell.id}>
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </TableCell>
       ))}
     </TableRow>
+  )
+}
+
+function SkeletonLoader() {
+  return (
+    <div className="flex flex-col gap-4 px-4 lg:px-6">
+      <div className="h-12 bg-foreground/5 rounded-lg animate-pulse" />
+      <div className="space-y-3">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-16 bg-foreground/5 rounded-lg animate-pulse" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SummaryStats({ data }: { data: Ticker[] }) {
+  const bullishCount = data.filter((t) => t.trend === "bullish" || t.trend === "favorable").length
+  const bearishCount = data.filter((t) => t.trend === "bearish" || t.trend === "unfavorable").length
+  const neutralCount = data.filter((t) => t.trend === "neutral").length
+
+  return (
+    <div className="grid grid-cols-3 gap-4 p-4 bg-foreground/5 rounded-lg backdrop-blur-sm">
+      <div className="text-center">
+        <div className="text-2xl font-bold text-green-600">{bullishCount}</div>
+        <div className="text-xs text-muted-foreground">Bullish</div>
+      </div>
+      <div className="text-center">
+        <div className="text-2xl font-bold text-red-600">{bearishCount}</div>
+        <div className="text-xs text-muted-foreground">Bearish</div>
+      </div>
+      <div className="text-center">
+        <div className="text-2xl font-bold text-gray-600">{neutralCount}</div>
+        <div className="text-xs text-muted-foreground">Neutral</div>
+      </div>
+    </div>
   )
 }
 
@@ -757,13 +821,16 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
     currentTable,
     currentDataIds,
     handleCurrentDragEnd,
+    currentData, // ADD THIS
   }: {
     currentTable: ReturnType<typeof useReactTable<Ticker>>
     currentDataIds: UniqueIdentifier[]
     handleCurrentDragEnd: (event: DragEndEvent) => void
+    currentData: Ticker[] // ADD THIS
   }) => (
     <>
-      <div className="cursor-pointer overflow-hidden rounded-lg border hover:border-primary/50 hover:shadow-[0_0_20px_rgba(51,255,51,0.3)] transition-all">
+      <SummaryStats data={currentData} />
+      <div className="cursor-pointer overflow-hidden rounded-lg border bg-background/40 backdrop-blur-xl border-border/40 shadow-lg hover:border-primary/50 hover:shadow-[0_0_20px_rgba(51,255,51,0.3)] hover:scale-[1.01] transition-all duration-300">
         <DndContext
           collisionDetection={closestCenter}
           modifiers={[restrictToVerticalAxis]}
@@ -885,20 +952,20 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    )
+    return <SkeletonLoader />
   }
 
   // Error state
   if (error) {
     return (
-      <Card className="border-destructive">
+      <Card className="border-destructive bg-destructive/5">
         <CardContent className="pt-6">
-          <p className="text-destructive">Error: {error}</p>
-          <Button variant="outline" onClick={loadTickersFromAPI} className="mt-4">
+          <div className="flex items-center gap-2 text-destructive mb-2">
+            <AlertTriangle className="h-5 w-5" />
+            <p className="font-semibold">Error loading tickers</p>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">{error}</p>
+          <Button variant="outline" onClick={loadTickersFromAPI}>
             Retry
           </Button>
         </CardContent>
@@ -909,11 +976,16 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
   // Empty state
   if (data.length === 0) {
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-muted-foreground">No tickers available</p>
-          <Button variant="outline" onClick={loadTickersFromAPI} className="mt-4">
-            Refresh
+      <Card className="bg-foreground/5">
+        <CardContent className="pt-6 text-center">
+          <div className="text-4xl mb-3">📊</div>
+          <p className="text-lg font-semibold mb-1">No tickers available</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Load data to get started with market analysis
+          </p>
+          <Button variant="outline" onClick={loadTickersFromAPI}>
+            <Zap className="mr-2 h-4 w-4" />
+            Load Tickers
           </Button>
         </CardContent>
       </Card>
@@ -1145,6 +1217,7 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
           currentTable={equityTable}
           currentDataIds={equityIds}
           handleCurrentDragEnd={handleEquityDragEnd}
+          currentData={equity}
         />
       </TabsContent>
 
@@ -1156,6 +1229,7 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
           currentTable={commodityTable}
           currentDataIds={commodityIds}
           handleCurrentDragEnd={handlecommodityDragEnd}
+          currentData={commodity}
         />
       </TabsContent>
 
@@ -1164,9 +1238,10 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
         className="relative flex flex-col gap-4 overflow-visible px-4 lg:px-6"
       >
         <TableContent
-          currentTable={forexTable}
-          currentDataIds={forexIds}
-          handleCurrentDragEnd={handleForexDragEnd}
+          currentTable={commodityTable}
+          currentDataIds={commodityIds}
+          handleCurrentDragEnd={handlecommodityDragEnd}
+          currentData={forex}
         />
       </TabsContent>
 
@@ -1175,9 +1250,10 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
         className="relative flex flex-col gap-4 overflow-visible px-4 lg:px-6"
       >
         <TableContent
-          currentTable={cryptoTable}
-          currentDataIds={cryptoIds}
-          handleCurrentDragEnd={handleCryptoDragEnd}
+          currentTable={commodityTable}
+          currentDataIds={commodityIds}
+          handleCurrentDragEnd={handlecommodityDragEnd}
+          currentData={crypto}
         />
       </TabsContent>
 
@@ -1186,9 +1262,10 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
         className="relative flex flex-col gap-4 overflow-visible px-4 lg:px-6"
       >
         <TableContent
-          currentTable={ratesMacroTable}
-          currentDataIds={ratesMacroIds}
-          handleCurrentDragEnd={handleRatesMacroDragEnd}
+          currentTable={commodityTable}
+          currentDataIds={commodityIds}
+          handleCurrentDragEnd={handlecommodityDragEnd}
+          currentData={ratesMacro}
         />
       </TabsContent>
 
@@ -1197,9 +1274,10 @@ export function Tickers({ data: initialData }: { data: Ticker[] }) {
         className="relative flex flex-col gap-4 overflow-visible px-4 lg:px-6"
       >
         <TableContent
-          currentTable={stressTable}
-          currentDataIds={stressIds}
-          handleCurrentDragEnd={handleStressDragEnd}
+          currentTable={commodityTable}
+          currentDataIds={commodityIds}
+          handleCurrentDragEnd={handlecommodityDragEnd}
+          currentData={stress}
         />
       </TabsContent>
     </Tabs>
