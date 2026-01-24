@@ -2321,29 +2321,51 @@ export async function detectConvergenceForecastedSwings(
 > {
   console.log(`🔮 Detecting convergence forecasts for ${symbols.length} symbols...`)
 
-  // Fetch current ingress period from database
+  // Fetch current and next ingress periods from database
   const today = new Date().toISOString().split("T")[0]
-  const { data: ingressData, error: ingressError } = await getSupabaseAdmin()
+
+  // Get current ingress (most recent one on or before today)
+  const { data: currentIngressData } = await getSupabaseAdmin()
     .from("astro_events")
     .select("*")
     .eq("event_type", "solar_ingress")
     .lte("date", today)
     .order("date", { ascending: false })
-    .limit(2)
+    .limit(1)
 
-  if (ingressError || !ingressData || ingressData.length === 0) {
-    console.error("❌ Failed to fetch ingress data from database")
+  // Get next ingress (first one after today)
+  const { data: nextIngressData } = await getSupabaseAdmin()
+    .from("astro_events")
+    .select("*")
+    .eq("event_type", "solar_ingress")
+    .gt("date", today)
+    .order("date", { ascending: true })
+    .limit(1)
+
+  if (!currentIngressData || currentIngressData.length === 0) {
+    console.error("❌ Failed to fetch current ingress data from database")
     return []
   }
 
-  // Get current and next ingress
-  const currentIngress = ingressData[0]
-  const nextIngress = ingressData[1] || currentIngress
+  const currentIngress = currentIngressData[0]
+  const nextIngress = nextIngressData && nextIngressData.length > 0
+    ? nextIngressData[0]
+    : null
+
+  // Calculate end date (use next ingress date or add 30 days as fallback)
+  let endDate: string
+  if (nextIngress) {
+    endDate = nextIngress.date
+  } else {
+    const currentDate = new Date(currentIngress.date)
+    currentDate.setDate(currentDate.getDate() + 30)
+    endDate = currentDate.toISOString().split("T")[0]
+  }
 
   const ingress = {
-    sign: currentIngress.description?.split(" into ")[1] || currentIngress.body1 || "Unknown",
+    sign: currentIngress.sign || currentIngress.zodiac_sign || "Unknown",
     start: currentIngress.date,
-    end: nextIngress.date,
+    end: endDate,
     month: new Date(currentIngress.date).toLocaleString('default', { month: 'long' })
   }
   const ingressEnd = ingress.end
