@@ -65,3 +65,9 @@ ai-analysis-report.md
 scripts/test-env.ts
 init-output.log
 test-universe.ts
+
+# Session Notes (for Claude context preservation)
+session-notes/*.md
+session-notes/**/*.md
+!session-notes/README.md
+

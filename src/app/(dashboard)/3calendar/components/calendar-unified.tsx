@@ -129,7 +129,7 @@ export function CalendarMain({ events = [] }: CalendarMainProps) {
     const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
     return (
-      <div className="flex-1 bg-background">
+      <div className="flex-1 bg-background/20">
         <div className="grid grid-cols-7 border-b">
           {weekDays.map((day) => (
             <div
@@ -200,7 +200,7 @@ export function CalendarMain({ events = [] }: CalendarMainProps) {
   }
 
   const renderSidebar = () => (
-    <div className="w-full h-full bg-background border-r">
+    <div className="w-full h-full bg-background/20 border-r">
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold">Calendar</h2>
@@ -239,12 +239,12 @@ export function CalendarMain({ events = [] }: CalendarMainProps) {
   )
 
   return (
-    <div className="border rounded-lg bg-background relative">
+    <div className="border rounded-lg bg-background/40 backdrop-blur-xl border-border/40 shadow-lg relative">
       <div className="flex min-h-[800px]">
         <div className="hidden xl:block w-80 flex-shrink-0">{renderSidebar()}</div>
 
         <div className="flex-1 min-w-0">
-          <div className="border-b bg-background px-4 py-3">
+          <div className="border-b bg-background/20 px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Button

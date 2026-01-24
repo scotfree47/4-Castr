@@ -37,7 +37,7 @@ export function QuickActions({
   return (
     <div className="space-y-4">
       {/* Quick Stats */}
-      <Card>
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium">Overview</CardTitle>
         </CardHeader>
@@ -55,7 +55,7 @@ export function QuickActions({
       </Card>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
         </CardHeader>
@@ -120,7 +120,7 @@ export function QuickActions({
       </Card>
 
       {/* Upcoming Events */}
-      <Card>
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Clock className="w-4 h-4" />

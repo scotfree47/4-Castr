@@ -158,7 +158,7 @@ export function CalendarMain({
     const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
     return (
-      <div className="flex-1 bg-background">
+      <div className="flex-1 bg-background/20">
         <div className="grid grid-cols-7 border-b">
           {weekDays.map((day) => (
             <div
