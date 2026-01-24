@@ -23,7 +23,7 @@ export function BaseLayout({ children, title, description }: BaseLayoutProps) {
     <SidebarProvider
       style={
         {
-          "--sidebar-width": "10rem",
+          "--sidebar-width": "8rem",
           "--sidebar-width-icon": "3rem",
           "--header-height": "calc(var(--spacing) * 14)",
         } as React.CSSProperties
