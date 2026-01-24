@@ -213,7 +213,9 @@ export function AppSidebar({...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-large">4Castr</span>
+                  {/*
                   <span className="truncate text-xs">"Stars Impel, Not Compel"</span>
+                  */}
                 </div>
               </Link>
             </SidebarMenuButton>
