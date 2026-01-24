@@ -5,6 +5,7 @@ import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
 import Papa from 'papaparse'
+import yahooFinance from 'yahoo-finance2'
 
 // ============================================================================
 // CONFIGURATION
@@ -72,6 +73,35 @@ const SYMBOL_MAPS = {
     'NZD/CAD': 'NZD/CAD',
     'NZD/CHF': 'NZD/CHF',
     'AUD/NZD': 'AUD/NZD',
+  },
+  yahoo: {
+    'TNX': '^TNX',
+    'DXY': 'DX-Y.NYB',
+    'VIX': '^VIX',
+    'VVIX': '^VVIX',
+    'VXN': '^VXN',
+    'RVX': '^RVX',
+    'TYX': '^TYX',
+    'SPX': '^GSPC',
+    'NDX': '^NDX',
+    'CL1!': 'CL=F',
+    'GC1!': 'GC=F',
+    'HG1!': 'HG=F',
+    'ZW1!': 'ZW=F',
+    'ZC1!': 'ZC=F',
+    'CT1!': 'CT=F',
+    'SB1!': 'SB=F',
+    'KC1!': 'KC=F',
+    'NG1!': 'NG=F',
+    'SI1!': 'SI=F',
+    'ZS1!': 'ZS=F',
+    'ZL1!': 'ZL=F',
+    'LE1!': 'LE=F',
+    'EUR/USD': 'EURUSD=X',
+    'USD/JPY': 'JPY=X',
+    'GBP/USD': 'GBPUSD=X',
+    'GBP/JPY': 'GBPJPY=X',
+    'AUD/USD': 'AUDUSD=X',
   }
 }
 
@@ -131,9 +161,9 @@ export async function fetchFromTwelveData(symbol, startDate, endDate) {
   try {
     const mappedSymbol = getMappedSymbol(symbol, 'twelve')
     const url = 'https://api.twelvedata.com/time_series'
-    
+
     console.log(`Twelve Data: Fetching ${mappedSymbol} (original: ${symbol})`)
-    
+
     const response = await axios.get(url, {
       params: {
         symbol: mappedSymbol,
@@ -143,12 +173,12 @@ export async function fetchFromTwelveData(symbol, startDate, endDate) {
         apikey: process.env.TWELVE_DATA_API_KEY
       }
     })
-    
+
     if (response.data.status === 'error') {
       console.error(`Twelve Data error for ${symbol}:`, response.data.message)
       return null
     }
-    
+
     if (response.data.values && response.data.values.length > 0) {
       return response.data.values.map(bar => ({
         symbol,
@@ -165,6 +195,40 @@ export async function fetchFromTwelveData(symbol, startDate, endDate) {
   } catch (error) {
     console.error(`Twelve Data error for ${symbol}:`, error.message)
     return null
+  }
+}
+
+export async function fetchFromYahooFinance(symbol, startDate, endDate) {
+  try {
+    const mappedSymbol = getMappedSymbol(symbol, 'yahoo')
+
+    console.log(`Yahoo Finance: Fetching ${mappedSymbol} (original: ${symbol})`)
+
+    const result = await yahooFinance.historical(mappedSymbol, {
+      period1: startDate, // 'YYYY-MM-DD' or Date object
+      period2: endDate,
+      interval: '1d'
+    })
+
+    if (!result || result.length === 0) {
+      console.warn(`Yahoo Finance: No data for ${symbol}`)
+      return null
+    }
+
+    // Normalize to standard format
+    return result.map(bar => ({
+      symbol,  // Original symbol (unmapped)
+      date: bar.date.toISOString().split('T')[0],
+      open: bar.open,
+      high: bar.high,
+      low: bar.low,
+      close: bar.close,
+      volume: bar.volume || 0,
+      source: 'yahoo_finance'
+    }))
+  } catch (error) {
+    console.error(`Yahoo Finance error for ${symbol}:`, error.message)
+    return null // Critical: triggers fallback chain
   }
 }
 
