@@ -7,6 +7,7 @@ import {
   type OHLCVBar,
 } from "@/lib/indicators/keyLevels"
 import { getSupabaseAdmin } from "@/lib/supabase"
+import { RSI, MACD, BollingerBands, EMA, ATR, OBV } from "technicalindicators"
 
 // ============================================================================
 // CONFIGURATION
@@ -779,72 +780,296 @@ function calculateMomentumScore(
   targetPrice: number,
   targetType: "support" | "resistance"
 ): number {
-  if (bars.length < 5) return 50
+  // Minimum bars check: 26 for MACD, fallback to simple logic if insufficient
+  if (bars.length < 26) {
+    if (bars.length < 5) return 50
 
-  const recent = bars.slice(-5)
-  const currentPrice = recent[recent.length - 1].close
-  const startPrice = recent[0].close
-  const priceChange = currentPrice - startPrice
-  const direction = priceChange > 0 ? "up" : "down"
+    // Fallback: Use original simple momentum logic
+    const recent = bars.slice(-5)
+    const currentPrice = recent[recent.length - 1].close
+    const startPrice = recent[0].close
+    const priceChange = currentPrice - startPrice
+    const direction = priceChange > 0 ? "up" : "down"
 
-  if (
-    (targetType === "resistance" && direction === "up") ||
-    (targetType === "support" && direction === "down")
-  ) {
+    if (
+      (targetType === "resistance" && direction === "up") ||
+      (targetType === "support" && direction === "down")
+    ) {
+      const momentum = Math.abs(priceChange / startPrice) * 100
+      return Math.min(100, 50 + momentum * 10)
+    }
+
     const momentum = Math.abs(priceChange / startPrice) * 100
-    return Math.min(100, 50 + momentum * 10)
+    return Math.max(0, 50 - momentum * 10)
   }
 
-  const momentum = Math.abs(priceChange / startPrice) * 100
-  return Math.max(0, 50 - momentum * 10)
+  try {
+    const closes = bars.map((b) => b.close)
+    const currentPrice = closes[closes.length - 1]
+
+    // RSI: 0-100 scale (directly usable)
+    // 50 = neutral, >70 = overbought, <30 = oversold
+    const rsiValues = RSI.calculate({ values: closes, period: 14 })
+    if (!rsiValues || rsiValues.length === 0) {
+      console.warn("[Momentum] RSI calculation failed - using fallback")
+      return 50
+    }
+    const rsi = rsiValues[rsiValues.length - 1]
+
+    // MACD histogram: normalize to 0-100
+    const macdValues = MACD.calculate({
+      values: closes,
+      fastPeriod: 12,
+      slowPeriod: 26,
+      signalPeriod: 9,
+      SimpleMAOscillator: false,
+      SimpleMASignal: false,
+    })
+    if (!macdValues || macdValues.length === 0) {
+      console.warn("[Momentum] MACD calculation failed - using RSI only")
+      return Math.round(Math.max(0, Math.min(100, rsi)))
+    }
+
+    const macdLast = macdValues[macdValues.length - 1]
+    const histogram = macdLast.histogram ?? 0
+
+    // Normalize histogram to -2 to +2 range (as percentage of price)
+    const normalizedHist = Math.max(-2, Math.min(2, histogram / (currentPrice * 0.01)))
+    const macdScore = 50 + normalizedHist * 25 // Maps -2→0, 0→50, +2→100
+
+    // Combine: RSI 70% + MACD 30%
+    let rawScore = rsi * 0.7 + macdScore * 0.3
+
+    // Apply directional adjustment based on target type
+    const movingTowardTarget =
+      (targetType === "resistance" && currentPrice < targetPrice) ||
+      (targetType === "support" && currentPrice > targetPrice)
+
+    if (movingTowardTarget) {
+      rawScore = Math.min(100, rawScore * 1.15)
+    } else {
+      rawScore = Math.max(0, rawScore * 0.85)
+    }
+
+    return Math.round(Math.max(0, Math.min(100, rawScore)))
+  } catch (error) {
+    console.error("[Momentum] Calculation error:", error)
+    return 50 // Neutral fallback on error
+  }
 }
 
 function calculateVolatilityScore(bars: OHLCVBar[]): number {
-  if (bars.length < 10) return 50
+  // Minimum bars check: 20 for Bollinger Bands, fallback if insufficient
+  if (bars.length < 20) {
+    if (bars.length < 10) return 50
 
-  const recent = bars.slice(-10)
-  const avgTrueRange = recent.reduce((sum, bar) => sum + (bar.high - bar.low), 0) / recent.length
-  const currentPrice = recent[recent.length - 1].close
-  const atrPercent = (avgTrueRange / currentPrice) * 100
+    // Fallback: Use original simple high-low averaging
+    const recent = bars.slice(-10)
+    const avgTrueRange = recent.reduce((sum, bar) => sum + (bar.high - bar.low), 0) / recent.length
+    const currentPrice = recent[recent.length - 1].close
+    const atrPercent = (avgTrueRange / currentPrice) * 100
 
-  if (atrPercent < 0.5) return 30
-  if (atrPercent > 5) return 30
+    if (atrPercent < 0.5) return 30
+    if (atrPercent > 5) return 30
 
-  return Math.min(100, 50 + atrPercent * 20)
+    return Math.min(100, 50 + atrPercent * 20)
+  }
+
+  try {
+    const highs = bars.map((b) => b.high)
+    const lows = bars.map((b) => b.low)
+    const closes = bars.map((b) => b.close)
+    const currentPrice = closes[closes.length - 1]
+
+    // True ATR with gap/overnight handling
+    const atrValues = ATR.calculate({ high: highs, low: lows, close: closes, period: 14 })
+    if (!atrValues || atrValues.length === 0) {
+      console.warn("[Volatility] ATR calculation failed - using fallback")
+      return 50
+    }
+    const atr = atrValues[atrValues.length - 1]
+    const atrPercent = (atr / currentPrice) * 100
+
+    // ATR sweet spot: 0.5-5% optimal (existing logic)
+    let atrScore: number
+    if (atrPercent < 0.5 || atrPercent > 5) {
+      atrScore = 30
+    } else {
+      // Optimal range: 2.75% ± tolerance
+      atrScore = 100 - Math.abs(atrPercent - 2.75) * 22.2
+    }
+
+    // Bollinger %B: position within bands
+    const bbValues = BollingerBands.calculate({ values: closes, period: 20, stdDev: 2 })
+    if (!bbValues || bbValues.length === 0) {
+      console.warn("[Volatility] Bollinger Bands calculation failed - using ATR only")
+      return Math.round(Math.max(0, Math.min(100, atrScore)))
+    }
+
+    const bbLast = bbValues[bbValues.length - 1]
+    const bbWidth = bbLast.upper - bbLast.lower
+    const bbPercent = bbWidth / bbLast.middle
+
+    // %B score: extremes (near bands) = higher volatility opportunity
+    // Neutral (mid-range) = moderate score
+    let bbScore: number
+    if (bbPercent < 0.2 || bbPercent > 0.8) {
+      bbScore = 80 // Near bands = potential reversal opportunity
+    } else if (bbPercent >= 0.4 && bbPercent <= 0.6) {
+      bbScore = 50 // Neutral/consolidation
+    } else {
+      bbScore = 65 // Moderate volatility
+    }
+
+    // Combine: ATR 70% + BB 30%
+    const finalScore = atrScore * 0.7 + bbScore * 0.3
+
+    return Math.round(Math.max(0, Math.min(100, finalScore)))
+  } catch (error) {
+    console.error("[Volatility] Calculation error:", error)
+    return 50 // Neutral fallback on error
+  }
 }
 
 function calculateTrendScore(bars: OHLCVBar[]): number {
-  if (bars.length < 50) return 50
+  // Minimum bars check: 50 for EMA history + slope analysis, fallback if insufficient
+  if (bars.length < 50) {
+    return 50 // Neutral if insufficient data
+  }
 
-  const recent = bars.slice(-50)
-  const sma20 = recent.slice(-20).reduce((sum, b) => sum + b.close, 0) / 20
-  const sma50 = recent.reduce((sum, b) => sum + b.close, 0) / 50
-  const currentPrice = recent[recent.length - 1].close
+  try {
+    const closes = bars.map((b) => b.close)
+    const currentPrice = closes[closes.length - 1]
 
-  let score = 50
+    // EMA crossover logic (replaces SMA)
+    const ema12Values = EMA.calculate({ values: closes, period: 12 })
+    const ema26Values = EMA.calculate({ values: closes, period: 26 })
 
-  if (currentPrice > sma20 && currentPrice > sma50) score += 25
-  if (sma20 > sma50) score += 25
-  if (currentPrice < sma20 && currentPrice < sma50) score -= 25
-  if (sma20 < sma50) score -= 25
+    if (!ema12Values || ema12Values.length === 0 || !ema26Values || ema26Values.length === 0) {
+      console.warn("[Trend] EMA calculation failed - using fallback")
+      // Fallback to original SMA logic
+      const recent = bars.slice(-50)
+      const sma20 = recent.slice(-20).reduce((sum, b) => sum + b.close, 0) / 20
+      const sma50 = recent.reduce((sum, b) => sum + b.close, 0) / 50
 
-  return Math.max(0, Math.min(100, score))
+      let score = 50
+      if (currentPrice > sma20 && currentPrice > sma50) score += 25
+      if (sma20 > sma50) score += 25
+      if (currentPrice < sma20 && currentPrice < sma50) score -= 25
+      if (sma20 < sma50) score -= 25
+
+      return Math.max(0, Math.min(100, score))
+    }
+
+    const ema12 = ema12Values[ema12Values.length - 1]
+    const ema26 = ema26Values[ema26Values.length - 1]
+
+    let crossoverScore = 50
+
+    // Price position relative to EMAs
+    if (currentPrice > ema12 && currentPrice > ema26) crossoverScore += 20
+    if (currentPrice < ema12 && currentPrice < ema26) crossoverScore -= 20
+
+    // EMA crossover direction
+    if (ema12 > ema26) crossoverScore += 20
+    if (ema12 < ema26) crossoverScore -= 20
+
+    // EMA26 slope strength (measures trend momentum)
+    if (ema26Values.length >= 5) {
+      const ema26_5ago = ema26Values[ema26Values.length - 5]
+      const slope = ((ema26 - ema26_5ago) / ema26_5ago) * 100
+
+      let slopeScore: number
+      if (slope > 1.5) {
+        slopeScore = 85 // Strong uptrend
+      } else if (slope > 0.5) {
+        slopeScore = 70 // Moderate uptrend
+      } else if (slope > -0.5) {
+        slopeScore = 50 // Neutral/sideways
+      } else if (slope > -1.5) {
+        slopeScore = 30 // Moderate downtrend
+      } else {
+        slopeScore = 15 // Strong downtrend
+      }
+
+      // Combine: Crossover 60% + Slope 40%
+      const finalScore = crossoverScore * 0.6 + slopeScore * 0.4
+      return Math.round(Math.max(0, Math.min(100, finalScore)))
+    }
+
+    // If insufficient data for slope, use crossover only
+    return Math.round(Math.max(0, Math.min(100, crossoverScore)))
+  } catch (error) {
+    console.error("[Trend] Calculation error:", error)
+    return 50 // Neutral fallback on error
+  }
 }
 
 function calculateVolumeScore(bars: OHLCVBar[], targetType: "support" | "resistance"): number {
+  // Minimum bars check: 20 for OBV trend + averaging, fallback if insufficient
   if (bars.length < 20) return 50
 
-  const recent = bars.slice(-20)
-  const avgVolume = recent.reduce((sum, b) => sum + b.volume, 0) / 20
-  const lastVolume = recent[recent.length - 1].volume
+  try {
+    const recent = bars.slice(-20)
+    const closes = recent.map((b) => b.close)
+    const volumes = recent.map((b) => b.volume)
 
-  const volumeRatio = lastVolume / avgVolume
+    const avgVolume = volumes.reduce((sum, v) => sum + v, 0) / volumes.length
+    const lastVolume = volumes[volumes.length - 1]
+    const volumeRatio = lastVolume / avgVolume
 
-  if (volumeRatio > 1.5) return 90
-  if (volumeRatio > 1.2) return 75
-  if (volumeRatio > 0.8) return 60
+    // Volume spike ratio (EXISTING logic)
+    let ratioScore: number
+    if (volumeRatio > 1.5) {
+      ratioScore = 90
+    } else if (volumeRatio > 1.2) {
+      ratioScore = 75
+    } else if (volumeRatio > 0.8) {
+      ratioScore = 60
+    } else {
+      ratioScore = 40
+    }
 
-  return 40
+    // OBV trend analysis (NEW)
+    const obvValues = OBV.calculate({ close: closes, volume: volumes })
+
+    if (!obvValues || obvValues.length < 10) {
+      console.warn("[Volume] OBV calculation failed - using ratio only")
+      return Math.round(ratioScore)
+    }
+
+    // Calculate OBV trend over last 10 bars
+    const obvCurrent = obvValues[obvValues.length - 1]
+    const obv10ago = obvValues[obvValues.length - 10]
+    const obvTrend = ((obvCurrent - obv10ago) / Math.abs(obv10ago || 1)) * 100
+
+    let obvScore: number
+    if (obvTrend > 5) {
+      obvScore = 85 // Strong accumulation
+    } else if (obvTrend > 2) {
+      obvScore = 70 // Moderate accumulation
+    } else if (obvTrend > -2) {
+      obvScore = 50 // Neutral
+    } else if (obvTrend > -5) {
+      obvScore = 30 // Moderate distribution
+    } else {
+      obvScore = 15 // Strong distribution
+    }
+
+    // Directional adjustment for target type
+    // For resistance levels, distribution (negative OBV) is actually favorable
+    if (targetType === "resistance" && obvScore < 50) {
+      obvScore = 100 - obvScore // Invert for resistance + distribution scenario
+    }
+
+    // Combine: OBV 60% + Ratio 40%
+    const finalScore = obvScore * 0.6 + ratioScore * 0.4
+
+    return Math.round(Math.max(0, Math.min(100, finalScore)))
+  } catch (error) {
+    console.error("[Volume] Calculation error:", error)
+    return 50 // Neutral fallback on error
+  }
 }
 
 async function calculateSeasonalScore(currentTime: number, ingressEnd: string): Promise<number> {
@@ -1316,27 +1541,46 @@ export async function detectPostReversalMomentum(
 
   for (const symbol of symbols) {
     try {
-      // Get recent price data (last 60 days for reversal detection)
+      // Get recent price data (last 120 days for reversal detection + S/R calculation)
       const { data: priceData } = await getSupabaseAdmin()
         .from("financial_data")
         .select("date, open, high, low, close, volume")
         .eq("symbol", symbol)
         .order("date", { ascending: false })
-        .limit(60)
+        .limit(120)
 
-      if (!priceData || priceData.length < 30) continue
+      if (!priceData || priceData.length < 30) {
+        console.log(`   ⚠️ ${symbol}: Insufficient data (${priceData?.length || 0} bars)`)
+        continue
+      }
 
-      const bars: OHLCVBar[] = priceData.reverse()
+      const bars: OHLCVBar[] = priceData.reverse().map((bar: any) => ({
+        time: new Date(bar.date).getTime() / 1000,
+        open: bar.open,
+        high: bar.high,
+        low: bar.low,
+        close: bar.close,
+        volume: bar.volume || 0
+      }))
+
       const currentPrice = bars[bars.length - 1].close
-      const currentDate = new Date(bars[bars.length - 1].time).toISOString().split("T")[0]
+      const currentDate = priceData[priceData.length - 1].date
+
+      console.log(`   📊 ${symbol}: $${currentPrice.toFixed(2)} | ${bars.length} bars`)
 
       // Calculate key levels
       const levels = calculateEnhancedLevels(bars, currentPrice, { swingLength: 10, pivotBars: 5 })
+      console.log(`      S/R levels: ${levels.supportResistance.length}`)
 
       // Check if price recently reversed at a key level
       const reversalDetection = detectReversalAtKeyLevel(bars, levels, currentPrice)
 
-      if (!reversalDetection) continue
+      if (!reversalDetection) {
+        console.log(`      ❌ No reversal detected`)
+        continue
+      }
+
+      console.log(`      ✅ Reversal at ${reversalDetection.type} $${reversalDetection.level.toFixed(2)}, ${reversalDetection.momentum} momentum`)
 
       // Find next key level in direction of momentum
       const nextLevel = findNextKeyLevel(
@@ -1345,13 +1589,21 @@ export async function detectPostReversalMomentum(
         levels.supportResistance
       )
 
-      if (!nextLevel) continue
+      if (!nextLevel) {
+        console.log(`      ❌ No next level found`)
+        continue
+      }
 
       // Calculate % to next level
       const percentToNext = Math.abs((nextLevel.price - currentPrice) / currentPrice) * 100
 
+      console.log(`      📍 Next ${nextLevel.type}: $${nextLevel.price.toFixed(2)} (${percentToNext.toFixed(2)}% away)`)
+
       // Skip if next level is too far (> 10%)
-      if (percentToNext > 10) continue
+      if (percentToNext > 10) {
+        console.log(`      ⚠️ Next level too far (${percentToNext.toFixed(2)}% > 10%)`)
+        continue
+      }
 
       // Calculate lunar phase score
       const lunarPhase = getCurrentLunarPhase()
@@ -1567,4 +1819,634 @@ function getHeatMapColor(score: number): string {
     // Cold: transparent/background
     return "rgba(255, 255, 255, 0.1)"
   }
+}
+
+// ============================================================================
+// GANN/FIB CONVERGENCE FORECASTING SYSTEM
+// ============================================================================
+
+/**
+ * Forecast structure for a predicted swing high/low
+ */
+export interface ForecastedSwing {
+  type: "high" | "low"
+  price: number
+  date: string
+  convergingMethods: string[]
+  baseConfidence: number  // 0-1 based on # of converging methods
+  astroBoost: number      // 0-0.3 boost from lunar/planetary alignment
+  finalConfidence: number // baseConfidence + astroBoost
+}
+
+/**
+ * Last confirmed swing point
+ */
+interface SwingPoint {
+  type: "high" | "low"
+  price: number
+  date: string
+  barIndex: number
+}
+
+/**
+ * Individual forecast from a specific method
+ */
+interface MethodForecast {
+  method: string
+  price: number
+  date: string
+  confidence: number
+}
+
+/**
+ * Find the last confirmed swing high or low in price data
+ */
+function findLastSwing(bars: OHLCVBar[]): SwingPoint | null {
+  if (bars.length < 10) return null
+
+  const swingBars = 5 // lookback for swing confirmation
+  let lastSwing: SwingPoint | null = null
+
+  // Start from the end and look back for swings
+  for (let i = bars.length - swingBars - 1; i >= swingBars; i--) {
+    const bar = bars[i]
+    
+    // Check for swing high
+    let isSwingHigh = true
+    for (let j = i - swingBars; j <= i + swingBars; j++) {
+      if (j === i) continue
+      if (bars[j].high >= bar.high) {
+        isSwingHigh = false
+        break
+      }
+    }
+    
+    if (isSwingHigh) {
+      const date = new Date(bar.time * 1000).toISOString().split("T")[0]
+      return {
+        type: "high",
+        price: bar.high,
+        date,
+        barIndex: i
+      }
+    }
+    
+    // Check for swing low
+    let isSwingLow = true
+    for (let j = i - swingBars; j <= i + swingBars; j++) {
+      if (j === i) continue
+      if (bars[j].low <= bar.low) {
+        isSwingLow = false
+        break
+      }
+    }
+    
+    if (isSwingLow) {
+      const date = new Date(bar.time * 1000).toISOString().split("T")[0]
+      return {
+        type: "low",
+        price: bar.low,
+        date,
+        barIndex: i
+      }
+    }
+  }
+
+  return lastSwing
+}
+
+/**
+ * Forecast using Gann angles (1x1, 2x1)
+ * Projects from last swing based on time/price relationship
+ */
+function forecastGannAngles(
+  lastSwing: SwingPoint,
+  bars: OHLCVBar[],
+  currentPrice: number,
+  ingressEnd: string
+): MethodForecast[] {
+  const forecasts: MethodForecast[] = []
+  const lastSwingDate = new Date(lastSwing.date)
+  const ingressEndDate = new Date(ingressEnd)
+  
+  // Calculate ATR for scaling
+  const atr = calculateATR(bars, 14)
+  
+  // 1x1 angle: Time = Price (1 day = 1 ATR)
+  const daysToIngress = Math.floor((ingressEndDate.getTime() - lastSwingDate.getTime()) / (1000 * 60 * 60 * 24))
+  const angle1x1Price = lastSwing.type === "low" 
+    ? lastSwing.price + (daysToIngress * atr * 0.5)
+    : lastSwing.price - (daysToIngress * atr * 0.5)
+  
+  // Only forecast if within ingress period and reasonable
+  if (daysToIngress > 0 && daysToIngress <= 90) {
+    const angle1x1Date = new Date(lastSwingDate)
+    angle1x1Date.setDate(angle1x1Date.getDate() + Math.floor(daysToIngress / 2))
+    
+    if (angle1x1Date <= ingressEndDate) {
+      forecasts.push({
+        method: "Gann 1x1",
+        price: angle1x1Price,
+        date: angle1x1Date.toISOString().split("T")[0],
+        confidence: 0.7
+      })
+    }
+  }
+  
+  // 2x1 angle: 2 time units = 1 price unit (faster move)
+  const angle2x1Price = lastSwing.type === "low"
+    ? lastSwing.price + (daysToIngress * atr * 0.75)
+    : lastSwing.price - (daysToIngress * atr * 0.75)
+  
+  if (daysToIngress > 0 && daysToIngress <= 90) {
+    const angle2x1Date = new Date(lastSwingDate)
+    angle2x1Date.setDate(angle2x1Date.getDate() + Math.floor(daysToIngress / 3))
+    
+    if (angle2x1Date <= ingressEndDate) {
+      forecasts.push({
+        method: "Gann 2x1",
+        price: angle2x1Price,
+        date: angle2x1Date.toISOString().split("T")[0],
+        confidence: 0.6
+      })
+    }
+  }
+  
+  return forecasts
+}
+
+/**
+ * Calculate ATR (Average True Range) for volatility
+ */
+function calculateATR(bars: OHLCVBar[], period: number): number {
+  if (bars.length < period + 1) return 0
+  
+  const trueRanges: number[] = []
+  
+  for (let i = 1; i < bars.length; i++) {
+    const high = bars[i].high
+    const low = bars[i].low
+    const prevClose = bars[i - 1].close
+    
+    const tr = Math.max(
+      high - low,
+      Math.abs(high - prevClose),
+      Math.abs(low - prevClose)
+    )
+    trueRanges.push(tr)
+  }
+  
+  // Average the last 'period' true ranges
+  const recentTR = trueRanges.slice(-period)
+  return recentTR.reduce((sum, tr) => sum + tr, 0) / recentTR.length
+}
+
+/**
+ * Forecast using Square of 9
+ * Based on spiral geometry and 90°/180°/270° rotations
+ */
+function forecastSquareOf9(
+  lastSwing: SwingPoint,
+  currentPrice: number,
+  ingressEnd: string
+): MethodForecast[] {
+  const forecasts: MethodForecast[] = []
+  const lastSwingDate = new Date(lastSwing.date)
+  const ingressEndDate = new Date(ingressEnd)
+  
+  // Calculate square root and next rotation levels
+  const sqrt = Math.sqrt(lastSwing.price)
+  
+  // 90° rotation (1/4 turn)
+  const rotation90 = Math.pow(sqrt + 0.25, 2)
+  // 180° rotation (1/2 turn)
+  const rotation180 = Math.pow(sqrt + 0.5, 2)
+  // 270° rotation (3/4 turn)  
+  const rotation270 = Math.pow(sqrt + 0.75, 2)
+  
+  // Estimate dates based on natural cycle (30-45 days per quarter)
+  const daysPerQuarter = 35
+  
+  const dates = [
+    new Date(lastSwingDate.getTime() + daysPerQuarter * 24 * 60 * 60 * 1000),
+    new Date(lastSwingDate.getTime() + daysPerQuarter * 2 * 24 * 60 * 60 * 1000),
+    new Date(lastSwingDate.getTime() + daysPerQuarter * 3 * 24 * 60 * 60 * 1000),
+  ]
+  
+  const prices = [rotation90, rotation180, rotation270]
+  const methods = ["Square of 9 (90°)", "Square of 9 (180°)", "Square of 9 (270°)"]
+  
+  for (let i = 0; i < 3; i++) {
+    if (dates[i] <= ingressEndDate) {
+      forecasts.push({
+        method: methods[i],
+        price: prices[i],
+        date: dates[i].toISOString().split("T")[0],
+        confidence: 0.65
+      })
+    }
+  }
+  
+  return forecasts
+}
+
+/**
+ * Forecast using Time Squared principle
+ * When price moves X points, reversal expected in X time units
+ */
+function forecastTimeSquared(
+  lastSwing: SwingPoint,
+  bars: OHLCVBar[],
+  currentPrice: number,
+  ingressEnd: string
+): MethodForecast[] {
+  const forecasts: MethodForecast[] = []
+  const lastSwingDate = new Date(lastSwing.date)
+  const ingressEndDate = new Date(ingressEnd)
+  
+  // Calculate price move since last swing
+  const priceMove = Math.abs(currentPrice - lastSwing.price)
+  const avgDailyMove = priceMove / Math.max(1, bars.length - lastSwing.barIndex)
+  
+  // Time squared: if price moved X, expect reversal in X days from last swing
+  const timeUnits = Math.round(priceMove / avgDailyMove)
+  const forecastDate = new Date(lastSwingDate)
+  forecastDate.setDate(forecastDate.getDate() + timeUnits)
+  
+  if (forecastDate <= ingressEndDate && timeUnits > 0) {
+    // Forecast opposite type swing
+    const forecastPrice = lastSwing.type === "low"
+      ? lastSwing.price + priceMove * 1.5
+      : lastSwing.price - priceMove * 1.5
+    
+    forecasts.push({
+      method: "Time Squared",
+      price: forecastPrice,
+      date: forecastDate.toISOString().split("T")[0],
+      confidence: 0.6
+    })
+  }
+  
+  return forecasts
+}
+
+/**
+ * Forecast using Fibonacci extensions
+ * Projects common ratios: 61.8%, 100%, 161.8%
+ */
+function forecastFibonacciExtensions(
+  lastSwing: SwingPoint,
+  bars: OHLCVBar[],
+  currentPrice: number,
+  ingressEnd: string
+): MethodForecast[] {
+  const forecasts: MethodForecast[] = []
+  const lastSwingDate = new Date(lastSwing.date)
+  const ingressEndDate = new Date(ingressEnd)
+  
+  // Find previous swing before last swing
+  let prevSwing: SwingPoint | null = null
+  for (let i = lastSwing.barIndex - 5; i >= 5; i--) {
+    const bar = bars[i]
+    
+    // Look for opposite type swing
+    if (lastSwing.type === "high") {
+      // Look for swing low
+      let isSwingLow = true
+      for (let j = i - 5; j <= Math.min(i + 5, lastSwing.barIndex - 1); j++) {
+        if (j === i) continue
+        if (bars[j].low <= bar.low) {
+          isSwingLow = false
+          break
+        }
+      }
+      if (isSwingLow) {
+        prevSwing = {
+          type: "low",
+          price: bar.low,
+          date: new Date(bar.time * 1000).toISOString().split("T")[0],
+          barIndex: i
+        }
+        break
+      }
+    } else {
+      // Look for swing high
+      let isSwingHigh = true
+      for (let j = i - 5; j <= Math.min(i + 5, lastSwing.barIndex - 1); j++) {
+        if (j === i) continue
+        if (bars[j].high >= bar.high) {
+          isSwingHigh = false
+          break
+        }
+      }
+      if (isSwingHigh) {
+        prevSwing = {
+          type: "high",
+          price: bar.high,
+          date: new Date(bar.time * 1000).toISOString().split("T")[0],
+          barIndex: i
+        }
+        break
+      }
+    }
+  }
+  
+  if (!prevSwing) return forecasts
+  
+  // Calculate swing range
+  const swingRange = Math.abs(lastSwing.price - prevSwing.price)
+  const swingDays = lastSwing.barIndex - prevSwing.barIndex
+  
+  // Fibonacci extension levels
+  const fibLevels = [
+    { ratio: 0.618, label: "Fib 61.8%" },
+    { ratio: 1.0, label: "Fib 100%" },
+    { ratio: 1.618, label: "Fib 161.8%" }
+  ]
+  
+  for (const fib of fibLevels) {
+    const extension = lastSwing.type === "low"
+      ? lastSwing.price + (swingRange * fib.ratio)
+      : lastSwing.price - (swingRange * fib.ratio)
+    
+    // Estimate time based on swing duration
+    const timeDays = Math.round(swingDays * fib.ratio)
+    const forecastDate = new Date(lastSwingDate)
+    forecastDate.setDate(forecastDate.getDate() + timeDays)
+    
+    if (forecastDate <= ingressEndDate) {
+      forecasts.push({
+        method: fib.label,
+        price: extension,
+        date: forecastDate.toISOString().split("T")[0],
+        confidence: fib.ratio === 1.618 ? 0.75 : 0.65
+      })
+    }
+  }
+  
+  return forecasts
+}
+
+/**
+ * Forecast using natural cycles
+ * 30, 45, 60, 90-day intervals from last swing
+ */
+function forecastNaturalCycles(
+  lastSwing: SwingPoint,
+  bars: OHLCVBar[],
+  currentPrice: number,
+  ingressEnd: string
+): MethodForecast[] {
+  const forecasts: MethodForecast[] = []
+  const lastSwingDate = new Date(lastSwing.date)
+  const ingressEndDate = new Date(ingressEnd)
+  
+  const cycles = [30, 45, 60, 90]
+  const atr = calculateATR(bars, 14)
+  
+  for (const cycleDays of cycles) {
+    const forecastDate = new Date(lastSwingDate)
+    forecastDate.setDate(forecastDate.getDate() + cycleDays)
+    
+    if (forecastDate <= ingressEndDate) {
+      // Project price based on cycle length
+      const priceMove = atr * (cycleDays / 30) * 2
+      const forecastPrice = lastSwing.type === "low"
+        ? lastSwing.price + priceMove
+        : lastSwing.price - priceMove
+      
+      forecasts.push({
+        method: `${cycleDays}-day Cycle`,
+        price: forecastPrice,
+        date: forecastDate.toISOString().split("T")[0],
+        confidence: cycleDays === 30 || cycleDays === 45 ? 0.6 : 0.5
+      })
+    }
+  }
+  
+  return forecasts
+}
+
+/**
+ * Detect convergence: 3+ forecasting methods agreeing within tolerances
+ * Price tolerance: ±2%
+ * Time tolerance: ±3 days
+ */
+function detectForecastConvergence(
+  forecasts: MethodForecast[],
+  priceTolerance: number = 0.02,
+  timeTolerance: number = 3,
+  minLevels: number = 2
+): Array<{
+  price: number
+  date: string
+  methods: string[]
+  confidence: number
+}> {
+  const convergences: Array<{
+    price: number
+    date: string
+    methods: string[]
+    confidence: number
+  }> = []
+  
+  // Group forecasts by proximity
+  for (let i = 0; i < forecasts.length; i++) {
+    const cluster: MethodForecast[] = [forecasts[i]]
+    
+    for (let j = i + 1; j < forecasts.length; j++) {
+      const forecast1 = forecasts[i]
+      const forecast2 = forecasts[j]
+      
+      // Check price proximity (±2%)
+      const priceDiff = Math.abs(forecast1.price - forecast2.price) / forecast1.price
+      
+      // Check time proximity (±3 days)
+      const date1 = new Date(forecast1.date)
+      const date2 = new Date(forecast2.date)
+      const timeDiff = Math.abs(date1.getTime() - date2.getTime()) / (1000 * 60 * 60 * 24)
+      
+      if (priceDiff <= priceTolerance && timeDiff <= timeTolerance) {
+        cluster.push(forecast2)
+      }
+    }
+    
+    // Convergence requires minLevels+ methods
+    if (cluster.length >= minLevels) {
+      const avgPrice = cluster.reduce((sum, f) => sum + f.price, 0) / cluster.length
+      const avgConfidence = cluster.reduce((sum, f) => sum + f.confidence, 0) / cluster.length
+
+      // Use the most common date in cluster
+      const dates = cluster.map(f => f.date)
+      const dateCount = dates.reduce((acc, d) => {
+        acc[d] = (acc[d] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+      const mostCommonDate = Object.keys(dateCount).reduce((a, b) =>
+        dateCount[a] > dateCount[b] ? a : b
+      )
+
+      convergences.push({
+        price: avgPrice,
+        date: mostCommonDate,
+        methods: cluster.map(f => f.method),
+        confidence: Math.min(1, avgConfidence + (cluster.length - minLevels) * 0.05) // Bonus for each additional method
+      })
+    }
+  }
+  
+  // Remove duplicate convergences
+  return convergences.filter((conv, index) => {
+    return convergences.findIndex(c => 
+      c.date === conv.date && Math.abs(c.price - conv.price) / c.price < 0.01
+    ) === index
+  })
+}
+
+/**
+ * Main function: Detect Gann/Fib convergence forecasts for tickers
+ * Returns forecasted swings within current ingress period
+ */
+export async function detectConvergenceForecastedSwings(
+  symbols: string[],
+  category: string
+): Promise<
+  Array<{
+    symbol: string
+    currentPrice: number
+    lastSwing: SwingPoint
+    forecastedSwing: ForecastedSwing
+    ingressValidity: boolean
+  }>
+> {
+  console.log(`🔮 Detecting convergence forecasts for ${symbols.length} symbols...`)
+  
+  // Fetch current ingress period
+  const ingressRes = await fetch("http://localhost:3000/api/ingress", {
+    headers: { "Cache-Control": "no-cache" }
+  })
+  const ingressData = await ingressRes.json()
+  
+  if (!ingressData.success || !ingressData.data) {
+    console.error("❌ Failed to fetch ingress data")
+    return []
+  }
+  
+  const ingress = ingressData.data
+  const ingressEnd = ingress.end
+  
+  console.log(`📅 Current ingress: ${ingress.sign} (${ingress.start} → ${ingress.end})`)
+  
+  const results = []
+  
+  for (const symbol of symbols) {
+    try {
+      // Fetch price history (120 bars for swing detection)
+      const { data: priceData } = await getSupabaseAdmin()
+        .from("financial_data")
+        .select("date, open, high, low, close, volume")
+        .eq("symbol", symbol)
+        .order("date", { ascending: false })
+        .limit(120)
+      
+      if (!priceData || priceData.length < 30) {
+        console.log(`   ⚠️ ${symbol}: Insufficient data`)
+        continue
+      }
+      
+      const bars: OHLCVBar[] = priceData.reverse().map((bar: any) => ({
+        time: new Date(bar.date).getTime() / 1000,
+        open: bar.open,
+        high: bar.high,
+        low: bar.low,
+        close: bar.close,
+        volume: bar.volume || 0
+      }))
+      
+      const currentPrice = bars[bars.length - 1].close
+      
+      // Find last swing
+      const lastSwing = findLastSwing(bars)
+      if (!lastSwing) {
+        console.log(`   ⚠️ ${symbol}: No swing found`)
+        continue
+      }
+      
+      console.log(`   📊 ${symbol}: Last ${lastSwing.type} at $${lastSwing.price.toFixed(2)} on ${lastSwing.date}`)
+      
+      // Generate forecasts from all methods
+      const gannForecasts = forecastGannAngles(lastSwing, bars, currentPrice, ingressEnd)
+      const sq9Forecasts = forecastSquareOf9(lastSwing, currentPrice, ingressEnd)
+      const timeSqForecasts = forecastTimeSquared(lastSwing, bars, currentPrice, ingressEnd)
+      const fibForecasts = forecastFibonacciExtensions(lastSwing, bars, currentPrice, ingressEnd)
+      const cycleForecasts = forecastNaturalCycles(lastSwing, bars, currentPrice, ingressEnd)
+
+      const allForecasts: MethodForecast[] = [
+        ...gannForecasts,
+        ...sq9Forecasts,
+        ...timeSqForecasts,
+        ...fibForecasts,
+        ...cycleForecasts,
+      ]
+
+      console.log(`      Forecasts: Gann=${gannForecasts.length}, Sq9=${sq9Forecasts.length}, TimeSq=${timeSqForecasts.length}, Fib=${fibForecasts.length}, Cycles=${cycleForecasts.length}, Total=${allForecasts.length}`)
+
+      if (allForecasts.length === 0) {
+        console.log(`   ⚠️ ${symbol}: No forecasts within ingress period`)
+        continue
+      }
+
+      // Detect convergence (require 2+ methods instead of 3 for more results)
+      const convergences = detectForecastConvergence(allForecasts, 0.02, 3, 2)
+      
+      if (convergences.length === 0) {
+        console.log(`   ❌ ${symbol}: No convergence detected`)
+        continue
+      }
+      
+      // Use the strongest convergence (most methods agreeing)
+      const bestConvergence = convergences.reduce((best, conv) => 
+        conv.methods.length > best.methods.length ? conv : best
+      )
+      
+      console.log(`   ✅ ${symbol}: Convergence at $${bestConvergence.price.toFixed(2)} on ${bestConvergence.date}`)
+      console.log(`      Methods: ${bestConvergence.methods.join(", ")}`)
+      
+      // Calculate astro boost
+      const lunarPhase = getCurrentLunarPhase()
+      const expectedSwingType = lastSwing.type === "high" ? "low" : "high"
+      const momentum = expectedSwingType === "high" ? "bullish" : "bearish"
+      const lunarScore = calculateLunarEntryScore(lunarPhase, momentum)
+      const aspectScore = await calculateAspectScore(bestConvergence.date, 7)
+      
+      // Astro boost: 0 to 0.3 based on alignment
+      const normalizedLunar = (lunarScore - 40) / 55 // Maps 40-95 to 0-1
+      const normalizedAspect = aspectScore / 100 // Maps 0-100 to 0-1
+      const astroBoost = Math.max(0, Math.min(0.3, (normalizedLunar * 0.7 + normalizedAspect * 0.3) * 0.3))
+      
+      const forecastedSwing: ForecastedSwing = {
+        type: expectedSwingType,
+        price: bestConvergence.price,
+        date: bestConvergence.date,
+        convergingMethods: bestConvergence.methods,
+        baseConfidence: bestConvergence.confidence,
+        astroBoost,
+        finalConfidence: Math.min(1, bestConvergence.confidence + astroBoost)
+      }
+      
+      results.push({
+        symbol,
+        currentPrice,
+        lastSwing,
+        forecastedSwing,
+        ingressValidity: new Date(bestConvergence.date) <= new Date(ingressEnd)
+      })
+      
+    } catch (error) {
+      console.error(`   ❌ Error processing ${symbol}:`, error)
+    }
+  }
+  
+  console.log(`✅ Found ${results.length} convergence forecasts`)
+  return results
 }
