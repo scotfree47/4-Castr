@@ -2320,21 +2320,34 @@ export async function detectConvergenceForecastedSwings(
   }>
 > {
   console.log(`🔮 Detecting convergence forecasts for ${symbols.length} symbols...`)
-  
-  // Fetch current ingress period
-  const ingressRes = await fetch("http://localhost:3000/api/ingress", {
-    headers: { "Cache-Control": "no-cache" }
-  })
-  const ingressData = await ingressRes.json()
-  
-  if (!ingressData.success || !ingressData.data) {
-    console.error("❌ Failed to fetch ingress data")
+
+  // Fetch current ingress period from database
+  const today = new Date().toISOString().split("T")[0]
+  const { data: ingressData, error: ingressError } = await getSupabaseAdmin()
+    .from("astro_events")
+    .select("*")
+    .eq("event_type", "solar_ingress")
+    .lte("date", today)
+    .order("date", { ascending: false })
+    .limit(2)
+
+  if (ingressError || !ingressData || ingressData.length === 0) {
+    console.error("❌ Failed to fetch ingress data from database")
     return []
   }
-  
-  const ingress = ingressData.data
+
+  // Get current and next ingress
+  const currentIngress = ingressData[0]
+  const nextIngress = ingressData[1] || currentIngress
+
+  const ingress = {
+    sign: currentIngress.description?.split(" into ")[1] || currentIngress.body1 || "Unknown",
+    start: currentIngress.date,
+    end: nextIngress.date,
+    month: new Date(currentIngress.date).toLocaleString('default', { month: 'long' })
+  }
   const ingressEnd = ingress.end
-  
+
   console.log(`📅 Current ingress: ${ingress.sign} (${ingress.start} → ${ingress.end})`)
   
   const results = []

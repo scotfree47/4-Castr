@@ -118,14 +118,6 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
     loadFeaturedTickers()
   }, [loadFeaturedTickers])
 
-  // Calculate days to/from a date
-  const getDaysTo = (dateStr: string) => {
-    const today = new Date()
-    const target = new Date(dateStr)
-    const diff = Math.floor((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-    return diff
-  }
-
   // Calculate position percentage in ingress timeline
   const getTimelinePosition = (date: string, ingressStart: string, ingressEnd: string) => {
     const start = new Date(ingressStart).getTime()
@@ -141,9 +133,9 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
-            Gann/Fib Convergence Forecasts
+            Featured
           </CardTitle>
-          <CardDescription>Loading forecasts...</CardDescription>
+          <CardDescription>Top Performers</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <Skeleton className="h-20 w-full bg-foreground/5" />
@@ -160,11 +152,12 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
-            Gann/Fib Convergence Forecasts
+            Featured
           </CardTitle>
-          <CardDescription className="text-destructive">{error}</CardDescription>
+          <CardDescription>Top Performers</CardDescription>
         </CardHeader>
         <CardContent>
+          <p className="text-sm text-destructive mb-4">{error}</p>
           <Button variant="outline" onClick={loadFeaturedTickers}>
             Retry
           </Button>
@@ -179,14 +172,17 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
-            Gann/Fib Convergence Forecasts
+            Featured
           </CardTitle>
-          <CardDescription>
-            <span className="text-4xl mb-2 block">🔮</span>
+          <CardDescription>Top Performers</CardDescription>
+        </CardHeader>
+        <CardContent className="text-center py-8">
+          <span className="text-4xl mb-2 block">🔮</span>
+          <p className="text-sm text-muted-foreground">
             No convergence forecasts found within current ingress period
             {ingressData && ` (${ingressData.sign} - ${ingressData.month})`}
-          </CardDescription>
-        </CardHeader>
+          </p>
+        </CardContent>
       </Card>
     )
   }
@@ -214,7 +210,6 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
 
       <CardContent className="space-y-4">
         {tickers.map((ticker) => {
-          const daysToSwing = getDaysTo(ticker.forecastedSwing.date)
           const currentPos = ingressData ? getTimelinePosition(new Date().toISOString().split("T")[0], ingressData.start, ingressData.end) : 50
           const swingPos = ingressData ? getTimelinePosition(ticker.forecastedSwing.date, ingressData.start, ingressData.end) : 75
 
