@@ -560,7 +560,7 @@ export async function calculateAllFeaturedTickers(): Promise<{
 
     const ratings = await batchCalculateRatings({
       symbols: nonSentinels,
-      minScore: 75,
+      minScore: 50,
       maxResults: 10,
       parallelism: 5,
     })

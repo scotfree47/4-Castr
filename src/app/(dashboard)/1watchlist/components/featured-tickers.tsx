@@ -80,7 +80,7 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
 
       const timestamp = new Date().getTime()
       const response = await fetch(
-        `/api/ticker-ratings?mode=featured&category=${category}&minScore=75&t=${timestamp}`,
+        `/api/ticker-ratings?mode=featured&category=${category}&minScore=50&t=${timestamp}`,
         {
           method: "GET",
           headers: {
