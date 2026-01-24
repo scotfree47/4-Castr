@@ -25,7 +25,7 @@ export async function GET() {
     const today = new Date().toISOString().split("T")[0]
 
     // ✅ Fetch the last 2 solar ingress events
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await getSupabaseAdmin()
       .from("astro_events")
       .select("*")
       .eq("event_type", "solar_ingress")

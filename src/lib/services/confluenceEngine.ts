@@ -1283,3 +1283,288 @@ export async function detectTradingWindows(
     return []
   }
 }
+
+/**
+ * Detect tickers that have confirmed reversals at key Gann/Fib levels
+ * Returns tickers in post-reversal momentum with distance to next level
+ */
+export async function detectPostReversalMomentum(
+  symbols: string[],
+  category: string
+): Promise<
+  Array<{
+    symbol: string
+    reversalLevel: number
+    reversalType: "support" | "resistance"
+    reversalConfidence: number
+    currentPrice: number
+    nextLevel: number
+    nextLevelType: "support" | "resistance"
+    percentToNext: number
+    daysFromReversal: number
+    momentum: "bullish" | "bearish"
+    lunarPhase: string
+    lunarScore: number
+    aspectScore: number
+    entryTimingScore: number
+    heatMapColor: string
+  }>
+> {
+  console.log(`🎯 Detecting post-reversal momentum for ${symbols.length} symbols...`)
+
+  const results = []
+
+  for (const symbol of symbols) {
+    try {
+      // Get recent price data (last 60 days for reversal detection)
+      const { data: priceData } = await getSupabaseAdmin()
+        .from("financial_data")
+        .select("date, open, high, low, close, volume")
+        .eq("symbol", symbol)
+        .order("date", { ascending: false })
+        .limit(60)
+
+      if (!priceData || priceData.length < 30) continue
+
+      const bars: OHLCVBar[] = priceData.reverse()
+      const currentPrice = bars[bars.length - 1].close
+      const currentDate = new Date(bars[bars.length - 1].time).toISOString().split("T")[0]
+
+      // Calculate key levels
+      const levels = calculateEnhancedLevels(bars, currentPrice, { swingLength: 10, pivotBars: 5 })
+
+      // Check if price recently reversed at a key level
+      const reversalDetection = detectReversalAtKeyLevel(bars, levels, currentPrice)
+
+      if (!reversalDetection) continue
+
+      // Find next key level in direction of momentum
+      const nextLevel = findNextKeyLevel(
+        currentPrice,
+        reversalDetection.momentum,
+        levels.supportResistance
+      )
+
+      if (!nextLevel) continue
+
+      // Calculate % to next level
+      const percentToNext = Math.abs((nextLevel.price - currentPrice) / currentPrice) * 100
+
+      // Skip if next level is too far (> 10%)
+      if (percentToNext > 10) continue
+
+      // Calculate lunar phase score
+      const lunarPhase = getCurrentLunarPhase()
+      const lunarScore = calculateLunarEntryScore(lunarPhase, reversalDetection.momentum)
+
+      // Calculate astrological aspect score
+      const aspectScore = await calculateAspectScore(currentDate, 7)
+
+      // Combined entry timing score (70% lunar, 30% aspects)
+      const entryTimingScore = Math.round(lunarScore * 0.7 + aspectScore * 0.3)
+
+      // Calculate heat map color based on entry timing
+      const heatMapColor = getHeatMapColor(entryTimingScore)
+
+      results.push({
+        symbol,
+        reversalLevel: reversalDetection.level,
+        reversalType: reversalDetection.type,
+        reversalConfidence: reversalDetection.confidence,
+        currentPrice,
+        nextLevel: nextLevel.price,
+        nextLevelType: nextLevel.type,
+        percentToNext,
+        daysFromReversal: reversalDetection.daysAgo,
+        momentum: reversalDetection.momentum,
+        lunarPhase,
+        lunarScore,
+        aspectScore,
+        entryTimingScore,
+        heatMapColor,
+      })
+    } catch (error) {
+      console.error(`Error processing ${symbol}:`, error)
+    }
+  }
+
+  // Sort by entry timing score (best opportunities first)
+  results.sort((a, b) => b.entryTimingScore - a.entryTimingScore)
+
+  console.log(`✅ Found ${results.length} post-reversal opportunities`)
+
+  return results
+}
+
+/**
+ * Detect if price has recently reversed at a key Gann/Fib level
+ */
+function detectReversalAtKeyLevel(
+  bars: OHLCVBar[],
+  levels: any,
+  currentPrice: number
+): {
+  level: number
+  type: "support" | "resistance"
+  confidence: number
+  daysAgo: number
+  momentum: "bullish" | "bearish"
+} | null {
+  // Look back 5-15 days for reversal
+  const lookbackStart = Math.max(0, bars.length - 15)
+  const lookbackEnd = bars.length - 5
+
+  for (let i = lookbackStart; i < lookbackEnd; i++) {
+    const bar = bars[i]
+    const price = bar.close
+
+    // Check if price touched a key support level and reversed up
+    for (const sr of levels.supportResistance) {
+      if (sr.type === "support") {
+        const distanceToLevel = Math.abs((price - sr.price) / price) * 100
+
+        // Price touched support (within 0.5%)
+        if (distanceToLevel < 0.5 && bar.low <= sr.price * 1.005) {
+          // Check if price has since bounced up at least 2%
+          const bouncePercent = ((currentPrice - bar.low) / bar.low) * 100
+
+          if (bouncePercent >= 2 && currentPrice > sr.price) {
+            // Confirmed bullish reversal at support
+            return {
+              level: sr.price,
+              type: "support",
+              confidence: Math.min(95, 70 + bouncePercent * 3),
+              daysAgo: bars.length - 1 - i,
+              momentum: "bullish",
+            }
+          }
+        }
+      }
+
+      // Check if price touched a key resistance level and reversed down
+      if (sr.type === "resistance") {
+        const distanceToLevel = Math.abs((price - sr.price) / price) * 100
+
+        // Price touched resistance (within 0.5%)
+        if (distanceToLevel < 0.5 && bar.high >= sr.price * 0.995) {
+          // Check if price has since dropped at least 2%
+          const dropPercent = ((bar.high - currentPrice) / bar.high) * 100
+
+          if (dropPercent >= 2 && currentPrice < sr.price) {
+            // Confirmed bearish reversal at resistance
+            return {
+              level: sr.price,
+              type: "resistance",
+              confidence: Math.min(95, 70 + dropPercent * 3),
+              daysAgo: bars.length - 1 - i,
+              momentum: "bearish",
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return null
+}
+
+/**
+ * Find next key level in direction of momentum
+ */
+function findNextKeyLevel(
+  currentPrice: number,
+  momentum: "bullish" | "bearish",
+  supportResistanceLevels: any[]
+): { price: number; type: "support" | "resistance" } | null {
+  if (momentum === "bullish") {
+    // Looking for next resistance above current price
+    const resistances = supportResistanceLevels
+      .filter((sr) => sr.type === "resistance" && sr.price > currentPrice)
+      .sort((a, b) => a.price - b.price)
+
+    return resistances.length > 0
+      ? { price: resistances[0].price, type: "resistance" }
+      : null
+  } else {
+    // Looking for next support below current price
+    const supports = supportResistanceLevels
+      .filter((sr) => sr.type === "support" && sr.price < currentPrice)
+      .sort((a, b) => b.price - a.price)
+
+    return supports.length > 0 ? { price: supports[0].price, type: "support" } : null
+  }
+}
+
+/**
+ * Get current lunar phase
+ */
+function getCurrentLunarPhase(): string {
+  const now = new Date()
+  const dayOfYear = Math.floor(
+    (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)
+  )
+  const lunarCycle = 29.53 // days
+  const phasePosition = (dayOfYear % lunarCycle) / lunarCycle
+
+  if (phasePosition < 0.125) return "New Moon"
+  if (phasePosition < 0.375) return "Waxing Crescent"
+  if (phasePosition < 0.625) return "Full Moon"
+  if (phasePosition < 0.875) return "Waning Crescent"
+  return "New Moon"
+}
+
+/**
+ * Calculate lunar entry score based on phase and momentum
+ */
+function calculateLunarEntryScore(phase: string, momentum: "bullish" | "bearish"): number {
+  // Bullish trades favor waxing moon, bearish trades favor waning moon
+  if (momentum === "bullish") {
+    switch (phase) {
+      case "New Moon":
+        return 95 // Best for bullish entries
+      case "Waxing Crescent":
+        return 85
+      case "Full Moon":
+        return 50 // Neutral
+      case "Waning Crescent":
+        return 40 // Not ideal for bullish
+      default:
+        return 50
+    }
+  } else {
+    switch (phase) {
+      case "Full Moon":
+        return 95 // Best for bearish entries
+      case "Waning Crescent":
+        return 85
+      case "New Moon":
+        return 50 // Neutral
+      case "Waxing Crescent":
+        return 40 // Not ideal for bearish
+      default:
+        return 50
+    }
+  }
+}
+
+/**
+ * Get heat map color based on entry timing score
+ */
+function getHeatMapColor(score: number): string {
+  if (score >= 85) {
+    // Hot zone: #33ff33 (bright green)
+    return "rgba(51, 255, 51, 0.8)"
+  } else if (score >= 70) {
+    // Medium-hot: lime green
+    return "rgba(120, 255, 120, 0.6)"
+  } else if (score >= 55) {
+    // Medium: gray-green
+    return "rgba(160, 160, 160, 0.5)"
+  } else if (score >= 40) {
+    // Cool: light gray
+    return "rgba(200, 200, 200, 0.3)"
+  } else {
+    // Cold: transparent/background
+    return "rgba(255, 255, 255, 0.1)"
+  }
+}
