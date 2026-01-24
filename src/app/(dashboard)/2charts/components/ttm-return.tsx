@@ -44,6 +44,7 @@ export function TtmReturn() {
     }>
   }>({ dates: [], series: [] })
 
+  const [tickerRatings, setTickerRatings] = React.useState<Record<string, any>>({})
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -54,7 +55,9 @@ export function TtmReturn() {
         setError(null)
 
         const timestamp = new Date().getTime()
-        const response = await fetch(
+
+        // Fetch price chart data
+        const chartResponse = await fetch(
           `/api/chart-data?category=${category}&days=${days}&t=${timestamp}`,
           {
             method: "GET",
@@ -63,12 +66,34 @@ export function TtmReturn() {
           }
         )
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        if (!chartResponse.ok) throw new Error(`HTTP ${chartResponse.status}`)
 
-        const result = await response.json()
-        if (!result.success) throw new Error(result.error || "Failed to load")
+        const chartResult = await chartResponse.json()
+        if (!chartResult.success) throw new Error(chartResult.error || "Failed to load")
 
-        setChartData(result.data)
+        setChartData(chartResult.data)
+
+        // Fetch ticker ratings for scoring
+        const symbols = chartResult.data.series.map((s: any) => s.ticker).join(",")
+        const ratingsResponse = await fetch(
+          `/api/ticker-ratings?mode=batch&symbols=${symbols}&minScore=0`,
+          {
+            method: "GET",
+            headers: { "Cache-Control": "no-cache" },
+            cache: "no-store",
+          }
+        )
+
+        if (ratingsResponse.ok) {
+          const ratingsResult = await ratingsResponse.json()
+          if (ratingsResult.success && ratingsResult.data?.ratings) {
+            const ratingsMap: Record<string, any> = {}
+            ratingsResult.data.ratings.forEach((rating: any) => {
+              ratingsMap[rating.symbol] = rating
+            })
+            setTickerRatings(ratingsMap)
+          }
+        }
       } catch (err: any) {
         setError(err.message)
       } finally {
@@ -342,6 +367,7 @@ export function TtmReturn() {
                       if (!series) return null
 
                       const actualPrice = typeof value === "number" ? value : 0
+                      const rating = tickerRatings[name]
 
                       const featuredCount = sortedPayload.filter((p) => {
                         const s = visibleSeries.find((vs) => vs.ticker === p.dataKey)
@@ -366,6 +392,16 @@ export function TtmReturn() {
                             <span className="font-medium">{name}</span>
                             <span className="ml-auto font-mono">${actualPrice.toFixed(2)}</span>
                           </div>
+                          {rating && rating.scores && (
+                            <div className="flex gap-3 text-[10px] text-muted-foreground mt-1 ml-5">
+                              <span>C: {rating.scores.confluence}</span>
+                              <span>M: {rating.scores.momentum}</span>
+                              <span>P: {rating.scores.proximity}</span>
+                              <span className="font-semibold text-foreground">
+                                Total: {rating.scores.total}
+                              </span>
+                            </div>
+                          )}
                           {isLastFeatured && sentinelCount > 0 && (
                             <div className="border-t border-border my-1 -mx-2" />
                           )}
