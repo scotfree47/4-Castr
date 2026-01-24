@@ -903,6 +903,106 @@ export function calculateGannSquare(
 }
 
 // ============================================================================
+// GANN SQUARE OF NINE (SPIRAL FORMULA)
+// ============================================================================
+
+export interface GannSquareOfNineLevel {
+  price: number;
+  angle: number; // 0, 45, 90, 135, 180, 270, 360
+  type: 'cardinal' | 'ordinal';
+  strength: number; // 1-10 (cardinal angles stronger)
+}
+
+/**
+ * Calculate Gann Square of Nine levels using the classic spiral formula
+ * Formula: (N + angle_fraction)² × box_size
+ *
+ * This is W.D. Gann's most famous tool for calculating support/resistance
+ * based on price spiraling outward from a center point.
+ *
+ * @param anchorPrice - The significant price point (major high/low)
+ * @param boxSize - Price increment (1 for stocks, 0.0001 for forex, 0.01 for crypto)
+ * @param levelsAbove - Number of levels to calculate above anchor (default 8)
+ * @param levelsBelow - Number of levels to calculate below anchor (default 8)
+ */
+export function calculateGannSquareOfNine(
+  anchorPrice: number,
+  boxSize: number = 1,
+  levelsAbove: number = 8,
+  levelsBelow: number = 8
+): GannSquareOfNineLevel[] {
+  // Normalize the anchor price
+  const normalizedPrice = anchorPrice / boxSize;
+
+  // Find the square root
+  const rootPrice = Math.sqrt(normalizedPrice);
+  const N = Math.floor(rootPrice);
+
+  const levels: GannSquareOfNineLevel[] = [];
+
+  // Angular fractions for each degree
+  // 0° = 0, 45° = 0.125, 90° = 0.25, 135° = 0.375, 180° = 0.5, 270° = 0.75, 360° = 1.0
+  const angles = [
+    { degrees: 0, fraction: 0.0, type: 'cardinal' as const, strength: 10 },
+    { degrees: 45, fraction: 0.125, type: 'ordinal' as const, strength: 7 },
+    { degrees: 90, fraction: 0.25, type: 'cardinal' as const, strength: 10 },
+    { degrees: 135, fraction: 0.375, type: 'ordinal' as const, strength: 7 },
+    { degrees: 180, fraction: 0.5, type: 'cardinal' as const, strength: 10 },
+    { degrees: 270, fraction: 0.75, type: 'cardinal' as const, strength: 10 },
+    { degrees: 360, fraction: 1.0, type: 'cardinal' as const, strength: 10 },
+  ];
+
+  // Calculate levels below anchor price
+  for (let i = 0; i <= levelsBelow; i++) {
+    const baseN = N - i;
+    if (baseN < 0) continue;
+
+    angles.forEach(angle => {
+      const price = Math.pow(baseN + angle.fraction, 2) * boxSize;
+
+      // Only include if below anchor
+      if (price <= anchorPrice) {
+        levels.push({
+          price,
+          angle: angle.degrees,
+          type: angle.type,
+          strength: angle.strength,
+        });
+      }
+    });
+  }
+
+  // Calculate levels above anchor price
+  for (let i = 0; i <= levelsAbove; i++) {
+    const baseN = N + i;
+
+    angles.forEach(angle => {
+      const price = Math.pow(baseN + angle.fraction, 2) * boxSize;
+
+      // Only include if above anchor
+      if (price >= anchorPrice) {
+        levels.push({
+          price,
+          angle: angle.degrees,
+          type: angle.type,
+          strength: angle.strength,
+        });
+      }
+    });
+  }
+
+  // Sort by price and remove duplicates
+  const uniqueLevels = levels
+    .sort((a, b) => a.price - b.price)
+    .filter((level, index, array) => {
+      if (index === 0) return true;
+      return Math.abs(level.price - array[index - 1].price) > boxSize * 0.01;
+    });
+
+  return uniqueLevels;
+}
+
+// ============================================================================
 // CPR (CENTRAL PIVOT RANGE) CALCULATIONS
 // ============================================================================
 
@@ -1500,6 +1600,7 @@ export interface ComprehensiveLevels {
   gannOctaves: KeyLevel[];
   gannSquare?: GannSquare;
   gannSquare144?: GannSquare144;
+  gannSquareOfNine?: GannSquareOfNineLevel[];
   gannFan: GannFanLevel[];
   fibonacci: KeyLevel[];
   pivots: PivotLevels;
@@ -1556,7 +1657,25 @@ export function calculateComprehensiveLevels(
   if (includeGannSquare144 && anchorBar !== undefined) {
     gannSquare144 = calculateGannSquare144(data, anchorBar);
   }
-  
+
+  // Gann Square of Nine (spiral formula)
+  let gannSquareOfNine: GannSquareOfNineLevel[] | undefined;
+  if (anchorPrice !== undefined) {
+    // Determine box size based on price range
+    const priceRange = Math.max(...data.map(d => d.high)) - Math.min(...data.map(d => d.low));
+    const avgPrice = anchorPrice;
+
+    // Auto-determine box size
+    let boxSize = 1;
+    if (avgPrice < 1) boxSize = 0.0001; // Forex
+    else if (avgPrice < 10) boxSize = 0.01; // Small cap crypto
+    else if (avgPrice < 100) boxSize = 0.1; // Mid range
+    else if (avgPrice < 1000) boxSize = 1; // Stocks
+    else boxSize = 10; // High-priced stocks/crypto
+
+    gannSquareOfNine = calculateGannSquareOfNine(anchorPrice, boxSize, 8, 8);
+  }
+
   // Gann Fan
   const gannFan: GannFanLevel[] = [];
   if (anchorPrice !== undefined && anchorBar !== undefined) {
@@ -1611,6 +1730,7 @@ export function calculateComprehensiveLevels(
     gannOctaves,
     gannSquare,
     gannSquare144,
+    gannSquareOfNine,
     gannFan,
     fibonacci,
     pivots,

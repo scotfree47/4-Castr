@@ -65,6 +65,7 @@ export interface TickerRating {
     proximity: number
     momentum: number
     seasonal: number
+    aspectAlignment: number
     volatility: number
     trend: number
     volume: number
@@ -203,8 +204,10 @@ export async function calculateTickerRating(
     const volumeScore = calculateVolumeScore(bars, levelType)
 
     let seasonalScore = 50
+    let aspectScore = 50
     if (includeSeasonalData) {
       seasonalScore = await calculateSeasonalScore(Date.now(), ingressPeriod.end)
+      aspectScore = await calculateAspectScore(bars[bars.length - 1].date, 30)
     }
 
     const technicalScore =
@@ -214,7 +217,7 @@ export async function calculateTickerRating(
       trendScore * 0.15 +
       volatilityScore * 0.1
 
-    const fundamentalScore = seasonalScore * 0.6 + volumeScore * 0.4
+    const fundamentalScore = seasonalScore * 0.35 + aspectScore * 0.45 + volumeScore * 0.2
     const totalScore = technicalScore * 0.7 + fundamentalScore * 0.3
 
     const rating =
@@ -329,6 +332,7 @@ export async function calculateTickerRating(
         proximity: Math.round(proximityScore),
         momentum: Math.round(momentumScore),
         seasonal: Math.round(seasonalScore),
+        aspectAlignment: Math.round(aspectScore),
         volatility: Math.round(volatilityScore),
         trend: Math.round(trendScore),
         volume: Math.round(volumeScore),
@@ -854,5 +858,317 @@ async function calculateSeasonalScore(currentTime: number, ingressEnd: string): 
     return Math.min(100, avgStrength * 10)
   } catch {
     return 50
+  }
+}
+
+/**
+ * Calculate astrological aspect score for trading window timing
+ * Queries astro_aspects table for harmonious vs challenging planetary alignments
+ *
+ * Harmonious aspects (bullish):
+ * - Conjunction (0°): Planets amplify each other = high energy
+ * - Trine (120°): Easy flow of energy = opportunity
+ * - Sextile (60°): Cooperative energy = mild positive
+ *
+ * Challenging aspects (volatile/bearish):
+ * - Square (90°): Tension/conflict = high volatility
+ * - Opposition (180°): Polarity/extremes = trend reversals
+ *
+ * @returns Score 0-100 where:
+ *   90-100 = Very harmonious (multiple trines/sextiles, few squares)
+ *   75-89 = Harmonious (favorable aspects dominate)
+ *   50-74 = Neutral (mixed aspects)
+ *   25-49 = Challenging (squares/oppositions dominate)
+ *   0-24 = Very challenging (multiple hard aspects)
+ */
+async function calculateAspectScore(
+  currentDate: string,
+  lookAheadDays: number = 30
+): Promise<number> {
+  try {
+    const endDate = new Date(currentDate)
+    endDate.setDate(endDate.getDate() + lookAheadDays)
+    const endDateStr = endDate.toISOString().split("T")[0]
+
+    // Query all aspects in the date range
+    const { data: aspects, error } = await getSupabaseAdmin()
+      .from("astro_aspects")
+      .select("*")
+      .gte("date", currentDate)
+      .lte("date", endDateStr)
+
+    if (error || !aspects || aspects.length === 0) {
+      console.warn("No aspect data found, returning neutral score")
+      return 50
+    }
+
+    // Weighted scoring for aspect types
+    const aspectWeights: Record<string, { score: number; impact: number }> = {
+      // Harmonious (bullish)
+      conjunction: { score: 8, impact: 1.5 }, // High energy, amplification
+      trine: { score: 10, impact: 1.3 }, // Best aspect, easy flow
+      sextile: { score: 7, impact: 1.1 }, // Mild positive, opportunities
+
+      // Challenging (volatile/bearish)
+      square: { score: 2, impact: 1.4 }, // Tension, volatility
+      opposition: { score: 3, impact: 1.3 }, // Extremes, reversals
+    }
+
+    let totalScore = 0
+    let totalImpact = 0
+
+    aspects.forEach((aspect: any) => {
+      const weight = aspectWeights[aspect.aspect_type]
+      if (!weight) return
+
+      // Exact aspects have stronger influence
+      const exactMultiplier = aspect.exact ? 1.5 : 1.0
+
+      // Closer orbs = stronger (inverse of orb)
+      const orbMultiplier = aspect.orb !== null ? Math.max(0.5, 1 - aspect.orb / 10) : 1.0
+
+      // Influence weight from aspects table (if provided)
+      const influenceWeight = aspect.influence_weight || 1.0
+
+      const impactValue = weight.impact * exactMultiplier * orbMultiplier * influenceWeight
+
+      totalScore += weight.score * impactValue
+      totalImpact += impactValue
+    })
+
+    // Calculate weighted average score
+    const avgScore = totalImpact > 0 ? totalScore / totalImpact : 5
+
+    // Convert to 0-100 scale (avgScore range is 0-10)
+    const normalizedScore = Math.min(100, Math.max(0, avgScore * 10))
+
+    console.log(
+      `📅 Aspect Score: ${normalizedScore.toFixed(0)} (${aspects.length} aspects analyzed)`
+    )
+
+    return normalizedScore
+  } catch (error) {
+    console.error("Error calculating aspect score:", error)
+    return 50 // Neutral on error
+  }
+}
+
+// ============================================================================
+// TRADING WINDOW DETECTOR - "WEATHER FORECAST" CORE
+// ============================================================================
+
+export interface TradingWindow {
+  startDate: string
+  endDate: string
+  type: "high_probability" | "moderate" | "avoid" | "extreme_volatility"
+  technicalConfluence: number // Avg technical score in window
+  astrologicalAlignment: number // Avg astrological score in window
+  combinedScore: number // Weighted combination
+  daysInWindow: number
+  keyLevels: number[] // Price targets with high confluence
+  reasons: string[]
+  emoji: string // 🌞 | ⛅ | 🌧️ | ⚡
+}
+
+/**
+ * Detect optimal trading windows by combining technical + astrological analysis
+ * This is the "weather forecast" that tells users WHEN to trade
+ *
+ * Algorithm:
+ * 1. Calculate daily scores for next 90 days (technical + astrological)
+ * 2. Find consecutive days where combined score >= threshold
+ * 3. Group into windows and classify by quality
+ * 4. Return sorted by combined score (best first)
+ *
+ * @param symbol - Ticker to analyze
+ * @param category - Asset category
+ * @param daysAhead - How far to project (default 90)
+ * @returns Array of trading windows sorted by quality
+ */
+export async function detectTradingWindows(
+  symbol: string,
+  category: string,
+  daysAhead: number = 90
+): Promise<TradingWindow[]> {
+  try {
+    console.log(`🔮 Detecting trading windows for ${symbol} (next ${daysAhead} days)`)
+
+    // Get price data for technical analysis
+    const { data: priceData } = await getSupabaseAdmin()
+      .from("financial_data")
+      .select("date, open, high, low, close, volume")
+      .eq("symbol", symbol)
+      .order("date", { ascending: false })
+      .limit(500)
+
+    if (!priceData || priceData.length < 30) {
+      throw new Error(`Insufficient price data for ${symbol}`)
+    }
+
+    const bars: OHLCVBar[] = priceData.reverse()
+    const currentPrice = bars[bars.length - 1].close
+
+    // Calculate technical levels once (these don't change day-to-day)
+    const levels = calculateEnhancedLevels(bars, 10, 5)
+    const keyLevels = [
+      ...levels.support.slice(0, 3).map((s) => s.price),
+      ...levels.resistance.slice(0, 3).map((r) => r.price),
+    ]
+
+    // Get current ingress period
+    const ingressPeriod = await getCurrentIngressPeriod()
+
+    // Daily scoring for next N days
+    interface DailyScore {
+      date: string
+      technical: number
+      astrological: number
+      combined: number
+    }
+
+    const dailyScores: DailyScore[] = []
+    const startDate = new Date()
+
+    for (let i = 0; i < daysAhead; i++) {
+      const futureDate = new Date(startDate)
+      futureDate.setDate(futureDate.getDate() + i)
+      const dateStr = futureDate.toISOString().split("T")[0]
+
+      // Technical score (based on proximity to key levels)
+      const proximityScores = keyLevels.map((level) => {
+        const distance = Math.abs((level - currentPrice) / currentPrice) * 100
+        if (distance < 1) return 95
+        if (distance < 2) return 85
+        if (distance < 3) return 75
+        if (distance < 5) return 65
+        return 50
+      })
+      const technicalScore = Math.max(...proximityScores)
+
+      // Astrological score (aspects + seasonal)
+      const aspectScore = await calculateAspectScore(dateStr, 1) // Check just this day
+      const seasonalScore = await calculateSeasonalScore(
+        futureDate.getTime(),
+        ingressPeriod.end
+      )
+      const astrologicalScore = aspectScore * 0.7 + seasonalScore * 0.3
+
+      // Combined score (70% technical, 30% astrological)
+      const combinedScore = technicalScore * 0.7 + astrologicalScore * 0.3
+
+      dailyScores.push({
+        date: dateStr,
+        technical: technicalScore,
+        astrological: astrologicalScore,
+        combined: combinedScore,
+      })
+    }
+
+    // Group consecutive high-score days into windows
+    const windows: TradingWindow[] = []
+    let windowStart: DailyScore | null = null
+    let windowDays: DailyScore[] = []
+
+    for (const day of dailyScores) {
+      const isHighScore = day.combined >= 70
+
+      if (isHighScore) {
+        if (!windowStart) {
+          windowStart = day
+          windowDays = [day]
+        } else {
+          windowDays.push(day)
+        }
+      } else {
+        // End of window
+        if (windowStart && windowDays.length >= 2) {
+          const avgTechnical =
+            windowDays.reduce((sum, d) => sum + d.technical, 0) / windowDays.length
+          const avgAstrological =
+            windowDays.reduce((sum, d) => sum + d.astrological, 0) / windowDays.length
+          const avgCombined =
+            windowDays.reduce((sum, d) => sum + d.combined, 0) / windowDays.length
+
+          // Classify window type
+          let type: TradingWindow["type"]
+          let emoji: string
+          let reasons: string[] = []
+
+          if (avgCombined >= 85) {
+            type = "high_probability"
+            emoji = "🌞"
+            reasons.push("Exceptional alignment of technical + astrological factors")
+            if (avgTechnical >= 90) reasons.push("Price near critical confluence zone")
+            if (avgAstrological >= 85) reasons.push("Highly harmonious planetary aspects")
+          } else if (avgCombined >= 75) {
+            type = "moderate"
+            emoji = "⛅"
+            reasons.push("Good alignment, favorable conditions")
+            if (avgTechnical >= 80) reasons.push("Approaching key technical level")
+          } else if (avgTechnical < 50 && avgAstrological < 50) {
+            type = "avoid"
+            emoji = "🌧️"
+            reasons.push("Low technical + low astrological alignment")
+          } else if (avgAstrological < 40) {
+            type = "extreme_volatility"
+            emoji = "⚡"
+            reasons.push("Challenging planetary aspects indicate volatility")
+          } else {
+            type = "moderate"
+            emoji = "⛅"
+            reasons.push("Mixed signals, proceed with caution")
+          }
+
+          windows.push({
+            startDate: windowStart.date,
+            endDate: windowDays[windowDays.length - 1].date,
+            type,
+            technicalConfluence: Math.round(avgTechnical),
+            astrologicalAlignment: Math.round(avgAstrological),
+            combinedScore: Math.round(avgCombined),
+            daysInWindow: windowDays.length,
+            keyLevels,
+            reasons,
+            emoji,
+          })
+        }
+
+        windowStart = null
+        windowDays = []
+      }
+    }
+
+    // Handle final window if still open
+    if (windowStart && windowDays.length >= 2) {
+      const avgTechnical =
+        windowDays.reduce((sum, d) => sum + d.technical, 0) / windowDays.length
+      const avgAstrological =
+        windowDays.reduce((sum, d) => sum + d.astrological, 0) / windowDays.length
+      const avgCombined =
+        windowDays.reduce((sum, d) => sum + d.combined, 0) / windowDays.length
+
+      windows.push({
+        startDate: windowStart.date,
+        endDate: windowDays[windowDays.length - 1].date,
+        type: avgCombined >= 85 ? "high_probability" : "moderate",
+        technicalConfluence: Math.round(avgTechnical),
+        astrologicalAlignment: Math.round(avgAstrological),
+        combinedScore: Math.round(avgCombined),
+        daysInWindow: windowDays.length,
+        keyLevels,
+        reasons: ["Trading window detected"],
+        emoji: avgCombined >= 85 ? "🌞" : "⛅",
+      })
+    }
+
+    // Sort by combined score (best first)
+    windows.sort((a, b) => b.combinedScore - a.combinedScore)
+
+    console.log(`✅ Found ${windows.length} trading windows for ${symbol}`)
+
+    return windows
+  } catch (error) {
+    console.error("Error detecting trading windows:", error)
+    return []
   }
 }
