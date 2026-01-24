@@ -323,9 +323,10 @@ export function TtmReturn() {
                       })
                     }}
                     formatter={(value, name, props, index, payload) => {
-                      if (!payload || payload.length === 0) return null
+                      // Guard against non-array payload
+                      if (!payload || !Array.isArray(payload) || payload.length === 0) return null
 
-                      const sortedPayload = [...payload].sort((a, b) => {
+                      const sortedPayload = Array.from(payload).sort((a, b) => {
                         const seriesA = visibleSeries.find((s) => s.ticker === a.dataKey)
                         const seriesB = visibleSeries.find((s) => s.ticker === b.dataKey)
                         if (!seriesA || !seriesB) return 0
