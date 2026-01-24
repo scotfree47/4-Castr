@@ -207,7 +207,8 @@ export async function calculateTickerRating(
     let aspectScore = 50
     if (includeSeasonalData) {
       seasonalScore = await calculateSeasonalScore(Date.now(), ingressPeriod.end)
-      aspectScore = await calculateAspectScore(bars[bars.length - 1].date, 30)
+      const lastBarDate = new Date(bars[bars.length - 1].time).toISOString().split("T")[0]
+      aspectScore = await calculateAspectScore(lastBarDate, 30)
     }
 
     const technicalScore =

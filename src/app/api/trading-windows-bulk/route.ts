@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         // Try to find category from SENTINELS
         let foundCategory: CategoryType | null = null
         for (const [cat, syms] of Object.entries(SENTINELS)) {
-          if (syms.includes(symbol as any)) {
+          if ((syms as readonly string[]).includes(symbol)) {
             foundCategory = cat as CategoryType
             break
           }

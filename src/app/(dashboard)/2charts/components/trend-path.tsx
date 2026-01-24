@@ -27,8 +27,9 @@ import {
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import * as React from "react"
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
+import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts"
 import type { CategoryType } from "../../data"
+import { calculateGannSquareOfNine } from "@/lib/indicators/keyLevels"
 
 const CATEGORY_CONFIG: Record<CategoryType, { name: string; icon: any }> = {
   equity: { name: "Equity", icon: DollarSign },
@@ -47,6 +48,7 @@ export const TrendPath = React.memo(function TrendPath() {
   const [category, setCategory] = React.useState<CategoryType>(categoryParam)
   const [timeRange, setTimeRange] = React.useState("30d")
   const [visibleTickers, setVisibleTickers] = React.useState<Record<string, boolean>>({})
+  const [showGannLevels, setShowGannLevels] = React.useState(false)
 
   const updateCategory = (newCategory: CategoryType) => {
     setCategory(newCategory)
@@ -170,6 +172,32 @@ export const TrendPath = React.memo(function TrendPath() {
   const featuredTickers = visibleSeries.filter((s) => !s.isSentinel)
   const sentinelTickers = visibleSeries.filter((s) => s.isSentinel)
 
+  // Calculate Gann Square of Nine levels for featured tickers
+  const gannLevels = React.useMemo(() => {
+    if (!showGannLevels || featuredTickers.length === 0) return []
+
+    // Use the first visible featured ticker for Gann calculations
+    const primaryTicker = featuredTickers.find((t) => t.isVisible)
+    if (!primaryTicker) return []
+
+    const anchorPrice = primaryTicker.anchorPrice
+    if (!anchorPrice || anchorPrice <= 0) return []
+
+    // Auto-detect box size based on price range
+    let boxSize = 1 // default for stocks
+    if (category === "forex") boxSize = 0.0001
+    else if (category === "crypto") boxSize = anchorPrice > 1000 ? 10 : anchorPrice > 100 ? 1 : 0.01
+    else if (category === "commodity") boxSize = anchorPrice > 1000 ? 10 : 1
+
+    // Calculate Gann levels (show only cardinal angles for simplicity)
+    const allLevels = calculateGannSquareOfNine(anchorPrice, boxSize, 5, 5)
+    const cardinalLevels = allLevels.filter((l) => l.type === "cardinal")
+
+    // Filter levels within chart domain to avoid clutter
+    const [minPrice, maxPrice] = featuredDomain
+    return cardinalLevels.filter((l) => l.price >= minPrice && l.price <= maxPrice)
+  }, [showGannLevels, featuredTickers, category, featuredDomain])
+
   if (loading) {
     return (
       <Card className="@container/card">
@@ -218,6 +246,16 @@ export const TrendPath = React.memo(function TrendPath() {
                 </SelectItem>
               </SelectContent>
             </Select>
+
+            <Button
+              variant={showGannLevels ? "default" : "outline"}
+              size="sm"
+              className="cursor-pointer"
+              onClick={() => setShowGannLevels(!showGannLevels)}
+              title="Toggle Gann Square of Nine levels"
+            >
+              <span className="font-mono text-xs">G9</span>
+            </Button>
 
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
@@ -349,6 +387,27 @@ export const TrendPath = React.memo(function TrendPath() {
                 />
               }
             />
+
+            {/* Gann Square of Nine Reference Lines */}
+            {showGannLevels &&
+              gannLevels.map((level, idx) => (
+                <ReferenceLine
+                  key={`gann-${idx}`}
+                  y={level.price}
+                  yAxisId="featured"
+                  stroke="hsl(var(--primary))"
+                  strokeOpacity={0.2}
+                  strokeDasharray="3 3"
+                  strokeWidth={1}
+                  label={{
+                    value: `${level.price.toFixed(2)}°`,
+                    position: "right",
+                    fill: "hsl(var(--muted-foreground))",
+                    fontSize: 10,
+                    opacity: 0.5,
+                  }}
+                />
+              ))}
 
             {visibleSeries
               .filter((s) => s.isSentinel && s.isVisible)
