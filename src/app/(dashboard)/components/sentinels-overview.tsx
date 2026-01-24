@@ -106,9 +106,12 @@ export function SentinelsOverview() {
 
   const fetchAllMetrics = async (ingress: any) => {
     if (!ingress) {
+      console.warn("⚠️ No ingress data available")
       setMetrics(GROUP_CONFIG.map(createEmptyMetric))
       return
     }
+
+    console.log("📊 Fetching sentinels metrics for all categories...")
 
     try {
       const results = await Promise.all(
@@ -117,12 +120,16 @@ export function SentinelsOverview() {
             const symbols = SENTINELS[group.id as keyof typeof SENTINELS]
             const symbolsParam = symbols.join(",")
 
+            console.log(`🔍 Fetching ${group.id}: ${symbolsParam}`)
+
             // Fetch ticker ratings
             const ratingsRes = await fetch(
               `/api/ticker-ratings?mode=batch&symbols=${symbolsParam}&minScore=0`,
               { headers: { "Cache-Control": "no-cache" } }
             )
             const ratingsResult = await ratingsRes.json()
+
+            console.log(`   📈 ${group.id} ratings:`, ratingsResult.success ? `${ratingsResult.data?.ratings?.length || 0} tickers` : "FAILED")
 
             // Fetch trading windows for this category's sentinels
             const windowsRes = await fetch(
@@ -131,15 +138,20 @@ export function SentinelsOverview() {
             )
             const windowsResult = await windowsRes.json()
 
+            console.log(`   🪟 ${group.id} windows:`, windowsResult.success ? `${windowsResult.data?.windows?.length || 0} windows` : "FAILED")
+
             const bestWindow =
-              windowsResult.success && windowsResult.data.windows.length > 0
+              windowsResult.success && windowsResult.data?.windows?.length > 0
                 ? windowsResult.data.windows[0]
                 : null
 
             if (ratingsResult.success && ratingsResult.data?.ratings && ratingsResult.data.ratings.length > 0) {
-              return processGroupRatings(group, ratingsResult.data.ratings, ingress, bestWindow)
+              const metric = processGroupRatings(group, ratingsResult.data.ratings, ingress, bestWindow)
+              console.log(`   ✅ ${group.id} metric:`, metric.strongestSymbol, metric.strongestPrice)
+              return metric
             }
 
+            console.warn(`   ⚠️ ${group.id}: No ratings data, using empty metric`)
             return createEmptyMetric(group)
           } catch (err) {
             console.error(`❌ Error fetching ${group.id}:`, err)
@@ -148,9 +160,10 @@ export function SentinelsOverview() {
         })
       )
 
+      console.log("✅ All metrics fetched, setting state...")
       setMetrics(results)
     } catch (error) {
-      console.error("Error fetching metrics:", error)
+      console.error("❌ Critical error fetching metrics:", error)
       setMetrics(GROUP_CONFIG.map(createEmptyMetric))
     }
   }
