@@ -44,22 +44,96 @@ export async function GET() {
     if (!data || data.length === 0) {
       console.error("No ingress data found in database")
 
-      // ✅ FALLBACK: Return synthetic data so components don't break
+      // ✅ FALLBACK: Calculate current zodiac sign based on date
       const now = new Date()
-      const nextMonth = new Date(now)
-      nextMonth.setMonth(now.getMonth() + 1)
-      const prevMonth = new Date(now)
-      prevMonth.setMonth(now.getMonth() - 1)
+      const month = now.getMonth() + 1 // 1-12
+      const day = now.getDate()
+
+      let sign = "Aquarius"
+      let startDate = "2026-01-20"
+      let endDate = "2026-02-18"
+      let monthName = "January"
+
+      // Determine sign based on date ranges (approximate)
+      if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) {
+        sign = "Capricorn"
+        startDate = "2025-12-22"
+        endDate = "2026-01-19"
+        monthName = "January"
+      } else if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) {
+        sign = "Aquarius"
+        startDate = "2026-01-20"
+        endDate = "2026-02-18"
+        monthName = "February"
+      } else if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) {
+        sign = "Pisces"
+        startDate = "2026-02-19"
+        endDate = "2026-03-20"
+        monthName = "March"
+      } else if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) {
+        sign = "Aries"
+        startDate = "2026-03-21"
+        endDate = "2026-04-19"
+        monthName = "April"
+      } else if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) {
+        sign = "Taurus"
+        startDate = "2026-04-20"
+        endDate = "2026-05-20"
+        monthName = "May"
+      } else if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) {
+        sign = "Gemini"
+        startDate = "2026-05-21"
+        endDate = "2026-06-20"
+        monthName = "June"
+      } else if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) {
+        sign = "Cancer"
+        startDate = "2026-06-21"
+        endDate = "2026-07-22"
+        monthName = "July"
+      } else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) {
+        sign = "Leo"
+        startDate = "2026-07-23"
+        endDate = "2026-08-22"
+        monthName = "August"
+      } else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) {
+        sign = "Virgo"
+        startDate = "2026-08-23"
+        endDate = "2026-09-22"
+        monthName = "September"
+      } else if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) {
+        sign = "Libra"
+        startDate = "2026-09-23"
+        endDate = "2026-10-22"
+        monthName = "October"
+      } else if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) {
+        sign = "Scorpio"
+        startDate = "2026-10-23"
+        endDate = "2026-11-21"
+        monthName = "November"
+      } else if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) {
+        sign = "Sagittarius"
+        startDate = "2026-11-22"
+        endDate = "2026-12-21"
+        monthName = "December"
+      }
+
+      const start = new Date(startDate)
+      const end = new Date(endDate)
+      const daysRemaining = Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)))
+
+      // Calculate previous period end (start - 1 day)
+      const prevEnd = new Date(start)
+      prevEnd.setDate(prevEnd.getDate() - 1)
 
       return NextResponse.json({
         success: true,
         data: {
-          start: now.toISOString().split("T")[0],
-          end: nextMonth.toISOString().split("T")[0],
-          previousEnd: prevMonth.toISOString().split("T")[0],
-          sign: "Capricorn",
-          month: "January",
-          daysRemaining: 30,
+          start: startDate,
+          end: endDate,
+          previousEnd: prevEnd.toISOString().split("T")[0],
+          sign: sign,
+          month: monthName,
+          daysRemaining: daysRemaining,
           isFallback: true,
         },
       })

@@ -3,45 +3,34 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Eye, Star, Target, TrendingUp, Award } from "lucide-react"
+import { Eye, TrendingUp, TrendingDown, Award } from "lucide-react"
 import React, { useCallback, useEffect, useState } from "react"
 
-interface NextKeyLevel {
+interface SwingPoint {
+  type: "high" | "low"
   price: number
-  type: "support" | "resistance"
-  distancePercent: number
-  distancePoints: number
-  daysUntilEstimate: number
-  confidence: number
+  date: string
+  barIndex: number
 }
 
-interface TickerScores {
-  confluence: number
-  proximity: number
-  momentum: number
-  seasonal: number
-  volatility: number
-  trend: number
-  volume: number
-  technical: number
-  fundamental: number
-  total: number
+interface ForecastedSwing {
+  type: "high" | "low"
+  price: number
+  date: string
+  convergingMethods: string[]
+  baseConfidence: number
+  astroBoost: number
+  finalConfidence: number
 }
 
-interface FeaturedTicker {
+interface ForecastTicker {
   symbol: string
-  category: string
-  sector: string
   currentPrice: number
-  nextKeyLevel: NextKeyLevel
-  scores: TickerScores
-  rating: "A+" | "A" | "B+" | "B" | "C+" | "C" | "D" | "F"
-  confidence: "very_high" | "high" | "medium" | "low" | "very_low"
-  recommendation: "strong_buy" | "buy" | "hold" | "sell" | "strong_sell"
-  reasons: string[]
+  lastSwing: SwingPoint
+  forecastedSwing: ForecastedSwing
+  ingressValidity: boolean
   rank?: number
 }
 
@@ -52,25 +41,21 @@ interface FeaturedTickersProps {
 export const FeaturedTickers = React.memo(function FeaturedTickers({
   category = "equity",
 }: FeaturedTickersProps) {
-  const [tickers, setTickers] = useState<FeaturedTicker[]>([])
+  const [tickers, setTickers] = useState<ForecastTicker[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [summary, setSummary] = useState<any>(null)
+  const [ingressData, setIngressData] = useState<any>(null)
 
-  const getRatingColor = (rating: string) => {
-    switch (rating) {
-      case "A+":
-      case "A":
-        return "bg-green-500/5 text-green-400 border-green-500/30 shadow-green-500/10"
-      case "B+":
-      case "B":
-        return "bg-blue-500/5 text-blue-400 border-blue-500/30 shadow-blue-500/10"
-      case "C+":
-      case "C":
-        return "bg-yellow-500/5 text-yellow-400 border-yellow-500/30 shadow-yellow-500/10"
-      default:
-        return "bg-gray-500/5 text-gray-400 border-gray-500/30 shadow-gray-500/10"
-    }
+  const getCardColor = () => {
+    // Neutral color for all cards
+    return "bg-background/40 border-border/40"
+  }
+
+  const getSwingTypeColor = (type: "high" | "low") => {
+    return type === "high"
+      ? "bg-green-500/10 text-green-400 border-green-500/40"
+      : "bg-red-500/10 text-red-400 border-red-500/40"
   }
 
   const loadFeaturedTickers = useCallback(async () => {
@@ -78,9 +63,20 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
       setLoading(true)
       setError(null)
 
+      // Fetch ingress data
+      const ingressRes = await fetch("/api/ingress", {
+        headers: { "Cache-Control": "no-cache" }
+      })
+      const ingressResult = await ingressRes.json()
+
+      if (ingressResult.success && ingressResult.data) {
+        setIngressData(ingressResult.data)
+      }
+
+      // Fetch convergence forecasts
       const timestamp = new Date().getTime()
       const response = await fetch(
-        `/api/ticker-ratings?mode=featured&category=${category}&minScore=50&t=${timestamp}`,
+        `/api/convergence-forecasts?category=${category}&limit=10&t=${timestamp}`,
         {
           method: "GET",
           headers: {
@@ -99,33 +95,19 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || "Failed to load featured tickers")
+        throw new Error(result.error || "Failed to load convergence forecasts")
       }
 
-      const ratings = result.data?.ratings || []
-      const rankedTickers = ratings.slice(0, 10).map((ticker: FeaturedTicker, idx: number) => ({
+      const forecasts = result.data?.forecasts || []
+      const rankedTickers = forecasts.map((ticker: ForecastTicker, idx: number) => ({
         ...ticker,
         rank: idx + 1,
       }))
 
       setTickers(rankedTickers)
-
-      // Calculate summary stats
-      setSummary({
-        totalTickers: rankedTickers.length,
-        avgScore: (
-          rankedTickers.reduce((sum: number, t: FeaturedTicker) => sum + t.scores.total, 0) /
-          rankedTickers.length
-        ).toFixed(0),
-        strongBuys: rankedTickers.filter((t: FeaturedTicker) => t.recommendation === "strong_buy")
-          .length,
-        avgConfluence: (
-          rankedTickers.reduce((sum: number, t: FeaturedTicker) => sum + t.scores.confluence, 0) /
-          rankedTickers.length
-        ).toFixed(0),
-      })
+      setSummary(result.data?.summary || null)
     } catch (err: any) {
-      console.error("Error loading featured tickers:", err)
+      console.error("Error loading convergence forecasts:", err)
       setError(err.message)
     } finally {
       setLoading(false)
@@ -136,15 +118,32 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
     loadFeaturedTickers()
   }, [loadFeaturedTickers])
 
+  // Calculate days to/from a date
+  const getDaysTo = (dateStr: string) => {
+    const today = new Date()
+    const target = new Date(dateStr)
+    const diff = Math.floor((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    return diff
+  }
+
+  // Calculate position percentage in ingress timeline
+  const getTimelinePosition = (date: string, ingressStart: string, ingressEnd: string) => {
+    const start = new Date(ingressStart).getTime()
+    const end = new Date(ingressEnd).getTime()
+    const current = new Date(date).getTime()
+
+    return Math.max(0, Math.min(100, ((current - start) / (end - start)) * 100))
+  }
+
   if (loading) {
     return (
       <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
-            Featured Tickers
+            Gann/Fib Convergence Forecasts
           </CardTitle>
-          <CardDescription>Loading top performers...</CardDescription>
+          <CardDescription>Loading forecasts...</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <Skeleton className="h-20 w-full bg-foreground/5" />
@@ -161,7 +160,7 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
-            Featured Tickers
+            Gann/Fib Convergence Forecasts
           </CardTitle>
           <CardDescription className="text-destructive">{error}</CardDescription>
         </CardHeader>
@@ -180,11 +179,12 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
-            Featured Tickers
+            Gann/Fib Convergence Forecasts
           </CardTitle>
           <CardDescription>
-            <span className="text-4xl mb-2 block">📊</span>
-            No featured tickers available
+            <span className="text-4xl mb-2 block">🔮</span>
+            No convergence forecasts found within current ingress period
+            {ingressData && ` (${ingressData.sign} - ${ingressData.month})`}
           </CardDescription>
         </CardHeader>
       </Card>
@@ -197,10 +197,10 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
         <div>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
-            Featured Tickers
+            Featured
           </CardTitle>
           <CardDescription>
-            Top {tickers.length} performers - {category.charAt(0).toUpperCase() + category.slice(1)}
+            Top Performers
           </CardDescription>
         </div>
         <Button variant="outline" asChild size="sm" className="sm:flex">
@@ -210,111 +210,113 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
           </a>
         </Button>
       </CardHeader>
-      <Separator orientation="horizontal" className="mx-8" />
+      <Separator orientation="horizontal" className="mx-4 sm:mx-6 md:mx-8" />
 
-      {summary && (
-        <CardContent className="pt-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 p-3 rounded-lg bg-foreground/5">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">{summary.strongBuys}</div>
-              <div className="text-xs opacity-60">Strong Buys</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{summary.avgScore}</div>
-              <div className="text-xs opacity-60">Avg Score</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{summary.avgConfluence}</div>
-              <div className="text-xs opacity-60">Avg Confluence</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{summary.totalTickers}</div>
-              <div className="text-xs opacity-60">Total</div>
-            </div>
-          </div>
-        </CardContent>
-      )}
+      <CardContent className="space-y-4">
+        {tickers.map((ticker) => {
+          const daysToSwing = getDaysTo(ticker.forecastedSwing.date)
+          const currentPos = ingressData ? getTimelinePosition(new Date().toISOString().split("T")[0], ingressData.start, ingressData.end) : 50
+          const swingPos = ingressData ? getTimelinePosition(ticker.forecastedSwing.date, ingressData.start, ingressData.end) : 75
 
-      <CardContent className="space-y-3">
-        {tickers.map((ticker) => (
-          <div
-            key={ticker.symbol}
-            className={`rounded-xl border backdrop-blur-lg p-4 transition-all hover:scale-[1.02] hover:shadow-xl ${getRatingColor(ticker.rating)}`}
-          >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                  #{ticker.rank}
+          return (
+            <div
+              key={ticker.symbol}
+              className={`rounded-xl border backdrop-blur-lg p-4 transition-all hover:scale-[1.02] hover:shadow-xl ${getCardColor()}`}
+            >
+              {/* Header Row */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                    #{ticker.rank}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className="font-mono text-sm font-bold">
+                        {ticker.symbol}
+                      </Badge>
+                      <Badge className={getSwingTypeColor(ticker.forecastedSwing.type)}>
+                        {ticker.forecastedSwing.type === "high" ? "↗️" : "↘️"} {ticker.forecastedSwing.type.toUpperCase()}
+                      </Badge>
+                    </div>
+                    <div className="text-sm opacity-80 mt-1">
+                      ${ticker.currentPrice.toFixed(2)} → ${ticker.forecastedSwing.price.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+                <Badge variant="outline" className="font-mono font-bold text-base">
+                  {(ticker.forecastedSwing.finalConfidence * 100).toFixed(0)}%
+                </Badge>
+              </div>
+
+              {/* Ingress Timeline Heat Map */}
+              {ingressData && (
+                <div className="mb-3">
+                  <div className="relative h-3 rounded-full bg-gradient-to-r from-gray-500/20 via-transparent to-gray-500/20">
+                    {/* Hot spot at swing date */}
+                    <div
+                      className="absolute top-0 h-full rounded-full transition-all"
+                      style={{
+                        left: `${Math.max(0, swingPos - 5)}%`,
+                        width: '10%',
+                        background: 'rgba(51, 255, 51, 0.6)',
+                        boxShadow: '0 0 10px rgba(51, 255, 51, 0.5)'
+                      }}
+                    />
+                    {/* Current date marker */}
+                    <div
+                      className="absolute top-0 h-full w-0.5 bg-blue-400"
+                      style={{
+                        left: `${currentPos}%`,
+                      }}
+                    >
+                      <div className="absolute -top-1 -left-1 w-2 h-2 rounded-full bg-blue-400" />
+                    </div>
+                    {/* Swing date marker */}
+                    <div
+                      className="absolute top-0 h-full w-0.5 bg-green-400"
+                      style={{
+                        left: `${swingPos}%`,
+                      }}
+                    >
+                      <div className="absolute -top-1 -left-1 w-2 h-2 rounded-full bg-green-400" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] mt-0.5 opacity-60">
+                    <span>{ingressData.start}</span>
+                    <span>{ticker.forecastedSwing.date}</span>
+                    <span>{ingressData.end}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Last Swing Info */}
+              <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                <div>
+                  <span className="opacity-60">Last {ticker.lastSwing.type}:</span>{" "}
+                  <span className="font-medium">${ticker.lastSwing.price.toFixed(2)}</span>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {ticker.symbol}
-                    </Badge>
-                    <Badge
-                      variant={
-                        ticker.rating === "A+" || ticker.rating === "A" ? "default" : "secondary"
-                      }
-                      className="text-xs"
-                    >
-                      {ticker.rating}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {ticker.sector}
-                    </Badge>
-                  </div>
-                  <div className="text-sm opacity-80 mt-1">
-                    ${ticker.currentPrice.toFixed(2)} → ${ticker.nextKeyLevel.price.toFixed(2)}
-                  </div>
+                  <span className="opacity-60">On:</span>{" "}
+                  <span className="font-medium">{ticker.lastSwing.date}</span>
                 </div>
               </div>
-              <Badge variant="outline" className="font-mono">
-                <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
-                {(ticker.scores.total / 20).toFixed(1)}
-              </Badge>
-            </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-              <div>
-                <span className="opacity-60">Confluence:</span>{" "}
-                <span className="font-medium">{ticker.scores.confluence}</span>
-              </div>
-              <div>
-                <span className="opacity-60">Momentum:</span>{" "}
-                <span className="font-medium">{ticker.scores.momentum}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-3 w-3" />
-                <span
-                  className={
-                    ticker.nextKeyLevel.type === "resistance" ? "text-green-600" : "text-red-600"
-                  }
-                >
-                  {ticker.nextKeyLevel.distancePercent.toFixed(2)}% to {ticker.nextKeyLevel.type}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="opacity-60">~{ticker.nextKeyLevel.daysUntilEstimate}d</span>
-                <Progress
-                  value={Math.min(ticker.nextKeyLevel.daysUntilEstimate, 30) * (100 / 30)}
-                  className="w-12 h-1"
-                />
-              </div>
-            </div>
-
-            {ticker.reasons.length > 0 && (
-              <div className="mt-2 pt-2 border-t border-current/10 text-xs opacity-80">
-                <div className="flex items-start gap-1">
-                  <span className="opacity-40">•</span>
-                  <span>{ticker.reasons[0]}</span>
+              {/* Price Move */}
+              <div className="flex items-center justify-between text-xs mb-2">
+                <div className="flex items-center gap-2">
+                  {ticker.forecastedSwing.type === "high" ? (
+                    <TrendingUp className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-600" />
+                  )}
+                  <span className={ticker.forecastedSwing.type === "high" ? "text-green-600" : "text-red-600"}>
+                    {((Math.abs(ticker.forecastedSwing.price - ticker.currentPrice) / ticker.currentPrice) * 100).toFixed(2)}% move forecasted
+                  </span>
                 </div>
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          )
+        })}
       </CardContent>
     </Card>
   )

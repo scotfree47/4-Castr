@@ -14,11 +14,8 @@ import {
   TrendingDown,
   TrendingUp,
   TrendingUpDown,
-  Calendar,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import type { TradingWindow } from "@/lib/services/confluenceEngine"
-
 const SENTINELS = {
   equity: ["SPY", "QQQ", "XLY"],
   commodity: ["GLD", "USO", "HG"],
@@ -51,11 +48,14 @@ interface SentinelMetric {
   footer: string
   footerIcon: any
   sentinels: Array<{ symbol: string; display: string }>
-  tradingWindow: TradingWindow | null
   categoryId: string
 }
 
-export function SentinelsOverview() {
+interface SentinelsOverviewProps {
+  onCategoryChange?: (category: string) => void
+}
+
+export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps = {}) {
   const [api, setApi] = useState<any>()
   const [current, setCurrent] = useState(0)
   const [metrics, setMetrics] = useState<SentinelMetric[]>([])
@@ -69,8 +69,22 @@ export function SentinelsOverview() {
   useEffect(() => {
     if (!api) return
     setCurrent(api.selectedScrollSnap())
-    api.on("select", () => setCurrent(api.selectedScrollSnap()))
-  }, [api])
+    api.on("select", () => {
+      const index = api.selectedScrollSnap()
+      setCurrent(index)
+      // Notify parent of category change
+      if (onCategoryChange && metrics[index]) {
+        onCategoryChange(metrics[index].categoryId)
+      }
+    })
+  }, [api, metrics, onCategoryChange])
+
+  // Notify parent of initial category
+  useEffect(() => {
+    if (metrics.length > 0 && onCategoryChange) {
+      onCategoryChange(metrics[0].categoryId)
+    }
+  }, [metrics, onCategoryChange])
 
   const initializeData = async () => {
     try {
@@ -131,22 +145,8 @@ export function SentinelsOverview() {
 
             console.log(`   📈 ${group.id} ratings:`, ratingsResult.success ? `${ratingsResult.data?.ratings?.length || 0} tickers` : "FAILED")
 
-            // Fetch trading windows for this category's sentinels
-            const windowsRes = await fetch(
-              `/api/trading-windows-bulk?symbols=${symbolsParam}&topN=1&daysAhead=90`,
-              { cache: "no-store" }
-            )
-            const windowsResult = await windowsRes.json()
-
-            console.log(`   🪟 ${group.id} windows:`, windowsResult.success ? `${windowsResult.data?.windows?.length || 0} windows` : "FAILED")
-
-            const bestWindow =
-              windowsResult.success && windowsResult.data?.windows?.length > 0
-                ? windowsResult.data.windows[0]
-                : null
-
             if (ratingsResult.success && ratingsResult.data?.ratings && ratingsResult.data.ratings.length > 0) {
-              const metric = processGroupRatings(group, ratingsResult.data.ratings, ingress, bestWindow)
+              const metric = processGroupRatings(group, ratingsResult.data.ratings, ingress)
               console.log(`   ✅ ${group.id} metric:`, metric.strongestSymbol, metric.strongestPrice)
               return metric
             }
@@ -168,7 +168,7 @@ export function SentinelsOverview() {
     }
   }
 
-  const processGroupRatings = (group: any, ratings: any[], ingress: any, tradingWindow: TradingWindow | null = null): SentinelMetric => {
+  const processGroupRatings = (group: any, ratings: any[], ingress: any): SentinelMetric => {
     if (!ratings || ratings.length === 0) return createEmptyMetric(group)
 
     const validRatings = ratings.filter((r) => r.currentPrice > 0)
@@ -202,7 +202,6 @@ export function SentinelsOverview() {
         symbol: r.symbol,
         display: `${r.symbol} ${r.currentPrice.toFixed(2)} [${r.rating}]`,
       })),
-      tradingWindow,
       categoryId: group.id,
     }
   }
@@ -221,7 +220,6 @@ export function SentinelsOverview() {
     footer: "Awaiting data",
     footerIcon: TrendingUp,
     sentinels: [],
-    tradingWindow: null,
     categoryId: group.id,
   })
 
@@ -332,39 +330,6 @@ export function SentinelsOverview() {
                       </div>
                     )}
                   </div>
-
-                  {/* Trading Window Preview */}
-                  {metric.tradingWindow && (
-                    <div className={`mt-3 rounded-xl border backdrop-blur-lg p-3 transition-all ${getWindowTypeColor(metric.tradingWindow.type)}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          <span className="text-sm font-semibold">Trading Window</span>
-                        </div>
-                        <span className="text-xl">{metric.tradingWindow.emoji}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <span className="opacity-60">Score:</span>{" "}
-                          <span className="font-semibold">{metric.tradingWindow.combinedScore}</span>
-                        </div>
-                        <div>
-                          <span className="opacity-60">Duration:</span>{" "}
-                          <span>{metric.tradingWindow.daysInWindow}d</span>
-                        </div>
-                      </div>
-                      <div className="text-xs opacity-60 mt-1">
-                        {new Date(metric.tradingWindow.startDate).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })} -{" "}
-                        {new Date(metric.tradingWindow.endDate).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </div>
-                    </div>
-                  )}
                 </CardHeader>
 
                 <Separator className="my-1" />

@@ -1,3 +1,5 @@
+"use client"
+
 import { SentinelsOverview } from "../components/sentinels-overview"
 import { PreviouslyFeatured } from "./components/previously-featured"
 import { FeaturedTickers } from "./components/featured-tickers"
@@ -5,10 +7,11 @@ import { SectionCards } from "./components/section-cards"
 import { FloatingActionMenu } from "@/components/floating-action-menu"
 import { TradingWindowMonitor } from "@/components/trading-window-monitor"
 import { getHighConfidenceTickers } from "../data"
-
-
+import { useState } from "react"
 
 export default function Watchlist() {
+  const [selectedCategory, setSelectedCategory] = useState<string>("equity")
+
   return (
     <div className="flex-1 space-y-6 px-6 pt-0">
         {/* Background notification monitor */}
@@ -27,11 +30,11 @@ export default function Watchlist() {
         {/* Main Dashboard Grid */}
         <div className="@container/main space-y-6">
           {/* Top Row - Sentinels with Trading Windows */}
-          <SentinelsOverview />
+          <SentinelsOverview onCategoryChange={setSelectedCategory} />
 
           {/* Second Row - Charts in 6-6 columns */}
           <div className="grid gap-6 grid-cols-1 @5xl:grid-cols-2">
-            <FeaturedTickers />
+            <FeaturedTickers category={selectedCategory} />
             <PreviouslyFeatured />
           </div>
 
