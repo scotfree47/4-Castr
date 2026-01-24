@@ -217,6 +217,121 @@ npm run dev  # Continue where you left off
   - No centralized dotfiles access
   - Focus on project-local operations only
 
+### Automated Quality Assurance - "Clean Utensils While Cooking"
+
+**Philosophy**: Catch errors early through continuous validation, preventing token waste on accumulated bugs. Like a chef cleaning tools during meal prep, we run automated checks incrementally to maintain code quality.
+
+#### Auto-Linter System
+
+Run these commands **after each code change** to catch issues immediately:
+
+```bash
+# 1. TypeScript Type Checking (No token cost)
+npx tsc --noEmit
+
+# 2. ESLint (Catches common mistakes)
+npm run lint
+
+# 3. Quick API Test (Verify endpoints still work)
+curl -s http://localhost:3000/api/health | jq '.success'
+
+# 4. Dev Server Compilation Check
+# After saving files, check terminal for:
+# ✓ Compiled successfully
+# ✗ Failed to compile (fix immediately!)
+```
+
+#### Incremental Testing Workflow
+
+**Pattern**: Test → Fix → Commit → Test → Fix → Commit (repeat)
+
+```bash
+# After writing new function
+npx tsc --noEmit  # Check types
+npm run lint      # Check style
+git s             # Save if clean
+
+# After adding API endpoint
+curl -s "http://localhost:3000/api/your-endpoint" | jq '.success'
+git s             # Save if working
+
+# After UI component change
+# Open browser, verify visually
+# Check browser console for errors
+git s             # Save if good
+```
+
+#### Pre-Commit Validation Hook (Recommended)
+
+Create `.git/hooks/pre-commit` to auto-check before commits:
+
+```bash
+#!/bin/bash
+echo "🔍 Running pre-commit checks..."
+
+# TypeScript check
+if ! npx tsc --noEmit; then
+  echo "❌ TypeScript errors found. Fix before committing."
+  exit 1
+fi
+
+# Lint check
+if ! npm run lint; then
+  echo "❌ ESLint errors found. Fix before committing."
+  exit 1
+fi
+
+echo "✅ All checks passed!"
+exit 0
+```
+
+Make executable: `chmod +x .git/hooks/pre-commit`
+
+#### Real-time Error Monitoring
+
+**Dev Server Logs**: Keep terminal visible while coding. Watch for:
+- `✓ Compiled successfully` (good!)
+- `✗ Failed to compile` (fix now!)
+- `Error:` messages (investigate immediately)
+- `Warning:` messages (fix when convenient)
+
+**Browser DevTools**: Keep Console tab open:
+- Red errors = critical (fix now)
+- Yellow warnings = non-critical (fix when convenient)
+- Network tab = check API responses
+
+#### Cost-Saving Testing Strategies
+
+**Local Testing (Free):**
+1. `curl` for API endpoints
+2. Browser for UI testing
+3. TypeScript compiler for type checking
+4. ESLint for code quality
+
+**Token-Efficient Testing:**
+- Fix all compilation errors locally before asking for help
+- Test one feature at a time
+- Use `jq` to filter API responses: `curl ... | jq '.data.windows[0]'`
+- Check dev server logs proactively
+
+#### Quick Reference
+
+```bash
+# Daily quality checks (run often)
+npx tsc --noEmit && npm run lint
+
+# API endpoint testing template
+curl -s "http://localhost:3000/api/endpoint?param=value" | jq '.'
+
+# Check dev server health
+tail -20 /private/tmp/claude/-Users-jamalcarr/tasks/[TASK_ID].output
+
+# Git status + test + commit workflow
+git status && npx tsc --noEmit && git s
+```
+
+**Key Principle**: Test incrementally, fix immediately, commit frequently. Don't accumulate errors—clean as you cook!
+
 ## Project Overview
 
 **4Castr** is a financial market analysis platform that combines technical analysis with astronomical/astrological event correlations. It provides confluence-based scoring for multi-asset classes (equities, crypto, forex, commodities, macro indicators, and stress indicators) using a unique blend of Gann octaves, Fibonacci levels, and planetary alignments.

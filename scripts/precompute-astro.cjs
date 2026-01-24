@@ -7,9 +7,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Date range: Dec 21, 2004 → Present
+// Date range: Dec 21, 2004 → 2026-03-31 (extended for forward-looking analysis)
+// Note: astronomy-engine has limited future accuracy, keeping conservative 90-day lookahead
 const START_DATE = new Date('2004-12-21');
-const END_DATE = new Date();
+const END_DATE = new Date('2026-03-31');
 
 // All planets we care about
 const PLANETS = [

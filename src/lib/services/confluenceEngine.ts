@@ -862,8 +862,13 @@ async function calculateSeasonalScore(currentTime: number, ingressEnd: string): 
 }
 
 /**
- * Calculate astrological aspect score for trading window timing
- * Queries astro_aspects table for harmonious vs challenging planetary alignments
+ * ENHANCED: Calculate astrological aspect score with forward-looking confluence analysis
+ *
+ * Uses same mathematical principles as Gann fans/Fibonacci to measure timing influence:
+ * - Aspect clustering: Multiple aspects on same date = confluence (like Gann angle convergence)
+ * - Planetary body importance: Sun/Moon > inner planets > outer planets (market impact hierarchy)
+ * - Time-to-aspect proximity: Closer aspects = higher influence (exponential decay)
+ * - Exact date weighting: Precise alignments score higher than ranges
  *
  * Harmonious aspects (bullish):
  * - Conjunction (0°): Planets amplify each other = high energy
@@ -875,31 +880,67 @@ async function calculateSeasonalScore(currentTime: number, ingressEnd: string): 
  * - Opposition (180°): Polarity/extremes = trend reversals
  *
  * @returns Score 0-100 where:
- *   90-100 = Very harmonious (multiple trines/sextiles, few squares)
+ *   90-100 = Very harmonious (multiple trines/sextiles, high confluence)
  *   75-89 = Harmonious (favorable aspects dominate)
- *   50-74 = Neutral (mixed aspects)
+ *   50-74 = Neutral (mixed aspects, moderate confluence)
  *   25-49 = Challenging (squares/oppositions dominate)
- *   0-24 = Very challenging (multiple hard aspects)
+ *   0-24 = Very challenging (multiple hard aspects with high confluence)
  */
 async function calculateAspectScore(
   currentDate: string,
   lookAheadDays: number = 30
 ): Promise<number> {
   try {
-    const endDate = new Date(currentDate)
+    // Defensive date parsing
+    const startDateObj = new Date(currentDate)
+    if (isNaN(startDateObj.getTime())) {
+      console.error(`Invalid start date: ${currentDate}`)
+      return 50
+    }
+
+    const endDate = new Date(startDateObj)
     endDate.setDate(endDate.getDate() + lookAheadDays)
+
+    if (isNaN(endDate.getTime())) {
+      console.error(`Invalid end date calculation from: ${currentDate}`)
+      return 50
+    }
+
     const endDateStr = endDate.toISOString().split("T")[0]
 
     // Query all aspects in the date range
-    const { data: aspects, error } = await getSupabaseAdmin()
+    let { data: aspects, error } = await getSupabaseAdmin()
       .from("astro_aspects")
       .select("*")
       .gte("date", currentDate)
       .lte("date", endDateStr)
 
+    // ENHANCED: If no future data exists, use historical patterns from same time period last year
     if (error || !aspects || aspects.length === 0) {
-      console.warn("No aspect data found, returning neutral score")
-      return 50
+      console.warn(`No aspect data for ${currentDate}, using historical proxy from previous year`)
+
+      // Calculate same period from previous year
+      const historyStartObj = new Date(startDateObj)
+      historyStartObj.setFullYear(historyStartObj.getFullYear() - 1)
+      const historyEndObj = new Date(endDate)
+      historyEndObj.setFullYear(historyEndObj.getFullYear() - 1)
+
+      const historyStart = historyStartObj.toISOString().split("T")[0]
+      const historyEnd = historyEndObj.toISOString().split("T")[0]
+
+      const { data: historicalAspects, error: histError } = await getSupabaseAdmin()
+        .from("astro_aspects")
+        .select("*")
+        .gte("date", historyStart)
+        .lte("date", historyEnd)
+
+      if (histError || !historicalAspects || historicalAspects.length === 0) {
+        console.warn("No historical aspect data found either, returning neutral score")
+        return 50
+      }
+
+      aspects = historicalAspects
+      console.log(`📅 Using ${aspects.length} aspects from ${historyStart} to ${historyEnd} as proxy`)
     }
 
     // Weighted scoring for aspect types
@@ -914,26 +955,75 @@ async function calculateAspectScore(
       opposition: { score: 3, impact: 1.3 }, // Extremes, reversals
     }
 
+    // ENHANCED: Planetary body importance weights (Sun/Moon most influential)
+    const planetaryWeights: Record<string, number> = {
+      sun: 1.5,
+      moon: 1.4,
+      mercury: 1.1,
+      venus: 1.1,
+      mars: 1.2,
+      jupiter: 1.3,
+      saturn: 1.2,
+      uranus: 1.0,
+      neptune: 1.0,
+      pluto: 1.0,
+    }
+
+    // ENHANCED: Group aspects by date to detect confluence (multiple aspects same day)
+    const aspectsByDate: Record<string, any[]> = {}
+    aspects.forEach((aspect: any) => {
+      if (!aspectsByDate[aspect.date]) {
+        aspectsByDate[aspect.date] = []
+      }
+      aspectsByDate[aspect.date].push(aspect)
+    })
+
     let totalScore = 0
     let totalImpact = 0
 
-    aspects.forEach((aspect: any) => {
-      const weight = aspectWeights[aspect.aspect_type]
-      if (!weight) return
+    // Process each unique date for confluence analysis
+    Object.entries(aspectsByDate).forEach(([date, dayAspects]) => {
+      // ENHANCED: Confluence multiplier - multiple aspects on same day (like Gann fan convergence)
+      const confluenceMultiplier = 1 + Math.log10(dayAspects.length) * 0.3
 
-      // Exact aspects have stronger influence
-      const exactMultiplier = aspect.exact ? 1.5 : 1.0
+      // ENHANCED: Time proximity - closer aspects have higher influence (exponential decay)
+      const daysUntilAspect = Math.max(
+        0,
+        (new Date(date).getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24)
+      )
+      const proximityMultiplier = Math.max(0.5, 1 - daysUntilAspect / (lookAheadDays * 2))
 
-      // Closer orbs = stronger (inverse of orb)
-      const orbMultiplier = aspect.orb !== null ? Math.max(0.5, 1 - aspect.orb / 10) : 1.0
+      dayAspects.forEach((aspect: any) => {
+        const weight = aspectWeights[aspect.aspect_type]
+        if (!weight) return
 
-      // Influence weight from aspects table (if provided)
-      const influenceWeight = aspect.influence_weight || 1.0
+        // Exact aspects have stronger influence
+        const exactMultiplier = aspect.exact ? 1.5 : 1.0
 
-      const impactValue = weight.impact * exactMultiplier * orbMultiplier * influenceWeight
+        // Closer orbs = stronger (inverse of orb)
+        const orbMultiplier = aspect.orb !== null ? Math.max(0.5, 1 - aspect.orb / 10) : 1.0
 
-      totalScore += weight.score * impactValue
-      totalImpact += impactValue
+        // ENHANCED: Planetary body importance (Sun/Moon = highest market impact)
+        const body1Weight = planetaryWeights[aspect.body1?.toLowerCase()] || 1.0
+        const body2Weight = planetaryWeights[aspect.body2?.toLowerCase()] || 1.0
+        const planetaryMultiplier = (body1Weight + body2Weight) / 2
+
+        // Influence weight from aspects table (if provided)
+        const influenceWeight = aspect.influence_weight || 1.0
+
+        // ENHANCED: Combined impact with confluence, proximity, and planetary weights
+        const impactValue =
+          weight.impact *
+          exactMultiplier *
+          orbMultiplier *
+          influenceWeight *
+          planetaryMultiplier *
+          confluenceMultiplier *
+          proximityMultiplier
+
+        totalScore += weight.score * impactValue
+        totalImpact += impactValue
+      })
     })
 
     // Calculate weighted average score
@@ -942,9 +1032,20 @@ async function calculateAspectScore(
     // Convert to 0-100 scale (avgScore range is 0-10)
     const normalizedScore = Math.min(100, Math.max(0, avgScore * 10))
 
-    console.log(
-      `📅 Aspect Score: ${normalizedScore.toFixed(0)} (${aspects.length} aspects analyzed)`
-    )
+    // ENHANCED: Log confluence details for debugging
+    const confluenceDates = Object.entries(aspectsByDate)
+      .filter(([_, aspects]) => aspects.length > 1)
+      .map(([date, aspects]) => `${date}(${aspects.length})`)
+
+    if (confluenceDates.length > 0) {
+      console.log(
+        `📅 Aspect Score: ${normalizedScore.toFixed(0)} (${aspects.length} aspects, ${confluenceDates.length} confluence dates: ${confluenceDates.join(", ")})`
+      )
+    } else {
+      console.log(
+        `📅 Aspect Score: ${normalizedScore.toFixed(0)} (${aspects.length} aspects analyzed)`
+      )
+    }
 
     return normalizedScore
   } catch (error) {
