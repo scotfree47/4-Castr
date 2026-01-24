@@ -16,7 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { calculateGannSquareOfNine } from "@/lib/indicators/keyLevels"
 import {
   Activity,
   AlertTriangle,
@@ -24,12 +26,12 @@ import {
   Bitcoin,
   Coins,
   DollarSign,
+  TrendingUp as TrendIcon,
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import * as React from "react"
 import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts"
 import type { CategoryType } from "../../data"
-import { calculateGannSquareOfNine } from "@/lib/indicators/keyLevels"
 
 const CATEGORY_CONFIG: Record<CategoryType, { name: string; icon: any }> = {
   equity: { name: "Equity", icon: DollarSign },
@@ -172,37 +174,40 @@ export const TrendPath = React.memo(function TrendPath() {
   const featuredTickers = visibleSeries.filter((s) => !s.isSentinel)
   const sentinelTickers = visibleSeries.filter((s) => s.isSentinel)
 
-  // Calculate Gann Square of Nine levels for featured tickers
   const gannLevels = React.useMemo(() => {
     if (!showGannLevels || featuredTickers.length === 0) return []
 
-    // Use the first visible featured ticker for Gann calculations
     const primaryTicker = featuredTickers.find((t) => t.isVisible)
     if (!primaryTicker) return []
 
     const anchorPrice = primaryTicker.anchorPrice
     if (!anchorPrice || anchorPrice <= 0) return []
 
-    // Auto-detect box size based on price range
-    let boxSize = 1 // default for stocks
+    let boxSize = 1
     if (category === "forex") boxSize = 0.0001
     else if (category === "crypto") boxSize = anchorPrice > 1000 ? 10 : anchorPrice > 100 ? 1 : 0.01
     else if (category === "commodity") boxSize = anchorPrice > 1000 ? 10 : 1
 
-    // Calculate Gann levels (show only cardinal angles for simplicity)
     const allLevels = calculateGannSquareOfNine(anchorPrice, boxSize, 5, 5)
     const cardinalLevels = allLevels.filter((l) => l.type === "cardinal")
 
-    // Filter levels within chart domain to avoid clutter
     const [minPrice, maxPrice] = featuredDomain
     return cardinalLevels.filter((l) => l.price >= minPrice && l.price <= maxPrice)
   }, [showGannLevels, featuredTickers, category, featuredDomain])
 
   if (loading) {
     return (
-      <Card className="@container/card">
-        <CardContent className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendIcon className="h-5 w-5" />
+            Trend
+          </CardTitle>
+          <CardDescription>Loading performance data...</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-12 w-full bg-foreground/5" />
+          <Skeleton className="h-64 w-full bg-foreground/5" />
         </CardContent>
       </Card>
     )
@@ -210,10 +215,16 @@ export const TrendPath = React.memo(function TrendPath() {
 
   if (error) {
     return (
-      <Card className="@container/card border-destructive">
-        <CardContent className="pt-6">
-          <p className="text-destructive">Error: {error}</p>
-          <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendIcon className="h-5 w-5" />
+            Trend
+          </CardTitle>
+          <CardDescription className="text-destructive">{error}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={() => window.location.reload()}>
             Retry
           </Button>
         </CardContent>
@@ -222,11 +233,14 @@ export const TrendPath = React.memo(function TrendPath() {
   }
 
   return (
-    <Card className="@container/card hover:border-primary/50 transition-colors">
+    <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg hover:shadow-[0_0_20px_rgba(51,255,51,0.3)] transition-all">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Trend</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <TrendIcon className="h-5 w-5" />
+              Trend
+            </CardTitle>
             <CardDescription>Relative price performance</CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -370,9 +384,7 @@ export const TrendPath = React.memo(function TrendPath() {
                   formatter={(value, name) => {
                     const series = visibleSeries.find((s) => s.ticker === name)
                     if (!series) return null
-
                     const actualPrice = typeof value === "number" ? value : 0
-
                     return (
                       <div className="flex items-center gap-2 w-full">
                         <span
@@ -388,7 +400,6 @@ export const TrendPath = React.memo(function TrendPath() {
               }
             />
 
-            {/* Gann Square of Nine Reference Lines */}
             {showGannLevels &&
               gannLevels.map((level, idx) => (
                 <ReferenceLine

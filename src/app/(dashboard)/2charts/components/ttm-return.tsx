@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { AlignHorizontalDistributeCenter } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { AlignHorizontalDistributeCenter, BarChart3 } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import * as React from "react"
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
@@ -175,9 +176,16 @@ export function TtmReturn() {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Return
+          </CardTitle>
+          <CardDescription>Loading trailing performance...</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-64 w-full bg-foreground/5" />
         </CardContent>
       </Card>
     )
@@ -185,10 +193,16 @@ export function TtmReturn() {
 
   if (error) {
     return (
-      <Card className="border-destructive">
-        <CardContent className="pt-6">
-          <p className="text-destructive">Error: {error}</p>
-          <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Return
+          </CardTitle>
+          <CardDescription className="text-destructive">{error}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={() => window.location.reload()}>
             Retry
           </Button>
         </CardContent>
@@ -197,10 +211,13 @@ export function TtmReturn() {
   }
 
   return (
-    <Card className="cursor-pointer hover:border-primary/50 transition-colors">
+    <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg hover:shadow-[0_0_20px_rgba(51,255,51,0.3)] transition-all">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <CardTitle>Return</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Return
+          </CardTitle>
           <CardDescription>Trailing performance review</CardDescription>
         </div>
         <div className="flex items-center space-x-2">

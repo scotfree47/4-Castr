@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -16,6 +17,7 @@ import {
   ArrowUpIcon,
   BanknoteArrowUp,
   Landmark,
+  TrendingUp,
 } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { useMemo, useState } from "react"
@@ -39,22 +41,19 @@ export function MarketInsights() {
   const searchParams = useSearchParams()
   const category = (searchParams?.get("category") as CategoryType) || "equity"
   const [activeTab, setActiveTab] = useState("growth")
+  const [loading, setLoading] = useState(false)
 
-  // Get featured tickers for current category
   const featuredTickers = useMemo(() => {
     return getFeaturedByCategory(category, 10)
   }, [category])
 
-  // Calculate growth metrics
   const growthMetrics = useMemo(() => {
-    return calculateGrowthMetrics(category, 6) // Last 6 months
+    return calculateGrowthMetrics(category, 6)
   }, [category])
 
-  // Generate mock monthly growth data for bar chart
   const monthlyGrowthData = useMemo(() => {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
     return months.map((month, index) => {
-      // Mock data - replace with real data later
       const topTickers = featuredTickers.slice(0, 3)
       const data: Record<string, any> = { month }
       topTickers.forEach((ticker, i) => {
@@ -64,7 +63,6 @@ export function MarketInsights() {
     })
   }, [featuredTickers])
 
-  // Demographics tab data - featured ticker performance
   const tickerPerformanceData = useMemo(() => {
     return growthMetrics.map((metric, index) => {
       const ticker = featuredTickers[index]
@@ -81,7 +79,6 @@ export function MarketInsights() {
     })
   }, [growthMetrics, featuredTickers])
 
-  // Regions tab - sectors breakdown
   const sectorData = useMemo(() => {
     const categories = getAllCategories()
     return categories.map((cat) => {
@@ -103,7 +100,6 @@ export function MarketInsights() {
     })
   }, [])
 
-  // Calculate key metrics
   const keyMetrics = useMemo(() => {
     const totalTickers = featuredTickers.length
     const avgGrowth =
@@ -125,7 +121,6 @@ export function MarketInsights() {
     }
   }, [featuredTickers, growthMetrics])
 
-  // Create dynamic chart config for bar chart
   const barChartConfig = useMemo(() => {
     const config: Record<string, any> = {}
     featuredTickers.slice(0, 3).forEach((ticker, index) => {
@@ -137,10 +132,30 @@ export function MarketInsights() {
     return config
   }, [featuredTickers])
 
+  if (loading) {
+    return (
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Market Insights
+          </CardTitle>
+          <CardDescription>Loading analysis...</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-96 w-full bg-foreground/5" />
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <Card className="h-fit hover:border-primary/50 transition-colors">
+    <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg hover:shadow-[0_0_20px_rgba(51,255,51,0.3)] transition-all">
       <CardHeader>
-        <CardTitle>Market Insights</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5" />
+          Market Insights
+        </CardTitle>
         <CardDescription>Performance trends and analysis</CardDescription>
       </CardHeader>
       <CardContent>
@@ -169,11 +184,9 @@ export function MarketInsights() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Growth Tab */}
           <TabsContent value="growth" className="mt-8 space-y-6">
             <div className="grid gap-6">
               <div className="grid grid-cols-10 gap-6">
-                {/* Chart Area */}
                 <div className="col-span-10 xl:col-span-7">
                   <h3 className="text-sm font-medium text-muted-foreground mb-6">
                     Monthly Price Trends
@@ -211,11 +224,10 @@ export function MarketInsights() {
                   </ChartContainer>
                 </div>
 
-                {/* Key Metrics */}
                 <div className="col-span-10 xl:col-span-3 space-y-5">
                   <h3 className="text-sm font-medium text-muted-foreground mb-6">Key Metrics</h3>
                   <div className="grid grid-cols-3 gap-5">
-                    <div className="p-4 rounded-lg max-lg:col-span-3 xl:col-span-3 border">
+                    <div className="p-4 rounded-lg max-lg:col-span-3 xl:col-span-3 border bg-foreground/5">
                       <div className="flex items-center gap-2 mb-2">
                         <BanknoteArrowUp className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium">Featured Tickers</span>
@@ -233,7 +245,7 @@ export function MarketInsights() {
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-lg max-lg:col-span-3 xl:col-span-3 border">
+                    <div className="p-4 rounded-lg max-lg:col-span-3 xl:col-span-3 border bg-foreground/5">
                       <div className="flex items-center gap-2 mb-2">
                         <AlignHorizontalDistributeCenter className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">Positive Rate</span>
@@ -244,7 +256,7 @@ export function MarketInsights() {
                       <div className="text-xs text-muted-foreground mt-1">Tickers with gains</div>
                     </div>
 
-                    <div className="p-4 rounded-lg max-lg:col-span-3 xl:col-span-3 border">
+                    <div className="p-4 rounded-lg max-lg:col-span-3 xl:col-span-3 border bg-foreground/5">
                       <div className="flex items-center gap-2 mb-2">
                         <Landmark className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">Avg. Price</span>
@@ -260,7 +272,6 @@ export function MarketInsights() {
             </div>
           </TabsContent>
 
-          {/* Performance Tab (formerly Demographics) */}
           <TabsContent value="demographics" className="mt-8">
             <div className="rounded-lg border bg-card">
               <Table>
@@ -292,7 +303,6 @@ export function MarketInsights() {
             </div>
           </TabsContent>
 
-          {/* Sectors Tab (formerly Regions) */}
           <TabsContent value="regions" className="mt-8">
             <div className="rounded-lg border bg-card">
               <Table>

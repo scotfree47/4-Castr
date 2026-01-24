@@ -14,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
+import { PieChart as PieChartIcon } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import * as React from "react"
 import { Cell, Label, Pie, PieChart, Sector } from "recharts"
@@ -23,15 +25,13 @@ import { calculateGrowthMetrics, FEATURED_COLORS, type CategoryType } from "../.
 export function GrowthBreakdown() {
   const searchParams = useSearchParams()
 
-  // Sync with Trend component via URL params
   const category = (searchParams?.get("category") as CategoryType) || "equity"
   const [timeRange, setTimeRange] = React.useState("1m")
   const [activeTicker, setActiveTicker] = React.useState<string>("")
+  const [loading, setLoading] = React.useState(true)
 
-  // Get months from time range
   const months = timeRange === "1m" ? 1 : timeRange === "3m" ? 3 : 12
 
-  // Calculate growth metrics
   const growthData = React.useMemo(() => {
     const metrics = calculateGrowthMetrics(category, months)
     return metrics.map((m, index) => ({
@@ -44,11 +44,11 @@ export function GrowthBreakdown() {
     }))
   }, [category, months])
 
-  // Set initial active ticker
   React.useEffect(() => {
     if (growthData.length > 0 && !activeTicker) {
       setActiveTicker(growthData[0].ticker)
     }
+    setLoading(false)
   }, [growthData, activeTicker])
 
   const activeIndex = React.useMemo(
@@ -56,15 +56,10 @@ export function GrowthBreakdown() {
     [activeTicker, growthData]
   )
 
-  // Create chart config dynamically
   const chartConfig = React.useMemo(() => {
     const config: Record<string, any> = {
-      growth: {
-        label: "Growth",
-      },
-      value: {
-        label: "Value",
-      },
+      growth: { label: "Growth" },
+      value: { label: "Value" },
     }
     growthData.forEach((item) => {
       config[item.ticker] = {
@@ -77,27 +72,55 @@ export function GrowthBreakdown() {
 
   const id = "growth-breakdown"
 
+  if (loading) {
+    return (
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <PieChartIcon className="h-5 w-5" />
+            Growth Breakdown
+          </CardTitle>
+          <CardDescription>Loading performance data...</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-64 w-full bg-foreground/5" />
+        </CardContent>
+      </Card>
+    )
+  }
+
   if (growthData.length === 0) {
     return (
-      <Card className="flex flex-col cursor-pointer">
+      <Card className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg">
         <CardHeader>
-          <CardTitle>Growth Breakdown</CardTitle>
-          <CardDescription>No data available for this category</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <PieChartIcon className="h-5 w-5" />
+            Growth Breakdown
+          </CardTitle>
+          <CardDescription>
+            <span className="text-4xl mb-2 block">📊</span>
+            No data available for this category
+          </CardDescription>
         </CardHeader>
       </Card>
     )
   }
 
   return (
-    <Card data-chart={id} className="flex flex-col cursor-pointer">
+    <Card
+      data-chart={id}
+      className="bg-background/40 backdrop-blur-xl border-border/40 shadow-lg hover:shadow-[0_0_20px_rgba(51,255,51,0.3)] transition-all"
+    >
       <ChartStyle id={id} config={chartConfig} />
       <CardHeader className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 pb-2">
         <div>
-          <CardTitle>Growth Breakdown</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <PieChartIcon className="h-5 w-5" />
+            Growth Breakdown
+          </CardTitle>
           <CardDescription>Featured ticker performance</CardDescription>
         </div>
         <div className="flex items-center space-x-2">
-          {/* Time Period Selector */}
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="flex-w max-w-32 rounded-lg cursor-pointer">
               <SelectValue />
@@ -115,7 +138,6 @@ export function GrowthBreakdown() {
             </SelectContent>
           </Select>
 
-          {/* Ticker Selector Dropdown */}
           <Select value={activeTicker} onValueChange={setActiveTicker}>
             <SelectTrigger className="w-[140px] rounded-lg cursor-pointer">
               <SelectValue placeholder="Select ticker" />
@@ -143,7 +165,6 @@ export function GrowthBreakdown() {
 
       <CardContent className="flex flex-1 justify-center">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-          {/* Pie Chart */}
           <div className="flex justify-center">
             <ChartContainer
               id={id}
@@ -227,7 +248,6 @@ export function GrowthBreakdown() {
             </ChartContainer>
           </div>
 
-          {/* Ticker List */}
           <div className="flex flex-col justify-center space-y-4">
             {growthData.map((item, index) => {
               const isActive = index === activeIndex
@@ -236,25 +256,33 @@ export function GrowthBreakdown() {
               return (
                 <div
                   key={item.ticker}
-                  className={`flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer ${
-                    isActive ? "bg-muted" : "hover:bg-muted/50"
+                  className={`rounded-xl border backdrop-blur-lg p-3 transition-all cursor-pointer hover:scale-[1.02] ${
+                    isActive
+                      ? isPositive
+                        ? "bg-green-500/5 border-green-500/30"
+                        : "bg-red-500/5 border-red-500/30"
+                      : "hover:bg-muted/50"
                   }`}
                   onClick={() => setActiveTicker(item.ticker)}
                 >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="flex h-3 w-3 shrink-0 rounded-full"
-                      style={{ backgroundColor: item.fill }}
-                    />
-                    <span className="font-medium">{item.ticker}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className={`font-bold ${isPositive ? "text-green-600" : "text-red-600"}`}>
-                      {isPositive ? "+" : ""}${item.dollarChange.toFixed(2)}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="flex h-3 w-3 shrink-0 rounded-full"
+                        style={{ backgroundColor: item.fill }}
+                      />
+                      <span className="font-medium">{item.ticker}</span>
                     </div>
-                    <div className={`text-sm ${isPositive ? "text-green-600" : "text-red-600"}`}>
-                      {isPositive ? "+" : ""}
-                      {item.percentChange.toFixed(2)}%
+                    <div className="text-right">
+                      <div
+                        className={`font-bold ${isPositive ? "text-green-600" : "text-red-600"}`}
+                      >
+                        {isPositive ? "+" : ""}${item.dollarChange.toFixed(2)}
+                      </div>
+                      <div className={`text-sm ${isPositive ? "text-green-600" : "text-red-600"}`}>
+                        {isPositive ? "+" : ""}
+                        {item.percentChange.toFixed(2)}%
+                      </div>
                     </div>
                   </div>
                 </div>
