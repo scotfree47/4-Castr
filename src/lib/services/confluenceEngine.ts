@@ -1009,11 +1009,20 @@ export async function detectTradingWindows(
     const currentPrice = bars[bars.length - 1].close
 
     // Calculate technical levels once (these don't change day-to-day)
-    const levels = calculateEnhancedLevels(bars, 10, 5)
-    const keyLevels = [
-      ...levels.support.slice(0, 3).map((s) => s.price),
-      ...levels.resistance.slice(0, 3).map((r) => r.price),
-    ]
+    const levels = calculateEnhancedLevels(bars, currentPrice, { swingLength: 10, pivotBars: 5 })
+
+    // Extract key support/resistance levels
+    const supportLevels = levels.supportResistance
+      .filter((sr) => sr.type === "support")
+      .slice(0, 3)
+      .map((sr) => sr.price)
+
+    const resistanceLevels = levels.supportResistance
+      .filter((sr) => sr.type === "resistance")
+      .slice(0, 3)
+      .map((sr) => sr.price)
+
+    const keyLevels = [...supportLevels, ...resistanceLevels]
 
     // Get current ingress period
     const ingressPeriod = await getCurrentIngressPeriod()
