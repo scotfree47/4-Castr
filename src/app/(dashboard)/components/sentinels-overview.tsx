@@ -143,11 +143,24 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
             )
             const ratingsResult = await ratingsRes.json()
 
-            console.log(`   📈 ${group.id} ratings:`, ratingsResult.success ? `${ratingsResult.data?.ratings?.length || 0} tickers` : "FAILED")
+            console.log(
+              `   📈 ${group.id} ratings:`,
+              ratingsResult.success
+                ? `${ratingsResult.data?.ratings?.length || 0} tickers`
+                : "FAILED"
+            )
 
-            if (ratingsResult.success && ratingsResult.data?.ratings && ratingsResult.data.ratings.length > 0) {
+            if (
+              ratingsResult.success &&
+              ratingsResult.data?.ratings &&
+              ratingsResult.data.ratings.length > 0
+            ) {
               const metric = processGroupRatings(group, ratingsResult.data.ratings, ingress)
-              console.log(`   ✅ ${group.id} metric:`, metric.strongestSymbol, metric.strongestPrice)
+              console.log(
+                `   ✅ ${group.id} metric:`,
+                metric.strongestSymbol,
+                metric.strongestPrice
+              )
               return metric
             }
 
@@ -281,7 +294,7 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
                         {metric.strongestSymbol} ${metric.strongestPrice.toFixed(2)}
                       </div>
 
-                      {/*(metric.nearestSupport || metric.nearestResistance) && (
+                      {(metric.nearestSupport || metric.nearestResistance) && (
                         <div className="mt-2 flex items-center gap-3 text-xs">
                           {metric.nearestSupport && (
                             <div className="flex items-center gap-1">
@@ -300,7 +313,7 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
                             </div>
                           )}
                         </div>
-                      )*/}
+                      )}
                     </div>
 
                     <Badge
