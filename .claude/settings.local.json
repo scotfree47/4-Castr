@@ -17,7 +17,8 @@
       "Bash(curl:*)",
       "Bash(kill:*)",
       "Bash(wc:*)",
-      "Bash(npm run data:featured:*)"
+      "Bash(npm run data:featured:*)",
+      "Bash(ls:*)"
     ]
   }
 }

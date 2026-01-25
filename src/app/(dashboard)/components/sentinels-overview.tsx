@@ -281,7 +281,7 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
                         {metric.strongestSymbol} ${metric.strongestPrice.toFixed(2)}
                       </div>
 
-                      {(metric.nearestSupport || metric.nearestResistance) && (
+                      {/*(metric.nearestSupport || metric.nearestResistance) && (
                         <div className="mt-2 flex items-center gap-3 text-xs">
                           {metric.nearestSupport && (
                             <div className="flex items-center gap-1">
@@ -300,7 +300,7 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
                             </div>
                           )}
                         </div>
-                      )}
+                      )*/}
                     </div>
 
                     <Badge
