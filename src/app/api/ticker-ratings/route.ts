@@ -4,6 +4,7 @@
 import {
   batchCalculateRatings,
   calculateAllFeaturedTickers,
+  fetchFeaturedTickersFromCache,
   type TickerRating,
 } from "@/lib/services/confluenceEngine"
 import { createErrorResponse } from "@/lib/api/errors"
@@ -28,23 +29,84 @@ export async function GET(request: NextRequest) {
       mode,
     }
 
-    // MODE 1: Featured tickers (for dashboard)
+    // MODE 1: Featured tickers (for dashboard) - USE CACHE FIRST
     if (mode === "featured") {
-      console.log("📊 Calculating featured tickers across all categories...")
+      console.log("📊 Fetching featured tickers from cache...")
 
-      const featuredByCategory = await calculateAllFeaturedTickers()
+      // Try cache first for fast response
+      const cachedTickers = await fetchFeaturedTickersFromCache(categoryFilter || undefined)
 
-      // Flatten to single array if category filter provided
-      if (categoryFilter) {
-        ratings = featuredByCategory[categoryFilter as keyof typeof featuredByCategory] || []
+      if (cachedTickers.length > 0) {
+        console.log(`✅ Found ${cachedTickers.length} cached featured tickers`)
+
+        // Convert cached format back to TickerRating format
+        ratings = cachedTickers.map((cached: any) => ({
+          symbol: cached.symbol,
+          category: cached.category,
+          sector: cached.sector || "unknown",
+          currentPrice: cached.current_price,
+          priceDate: new Date().toISOString().split("T")[0],
+          dataPoints: 0,
+          nextKeyLevel: {
+            price: cached.next_key_level_price,
+            type: cached.next_key_level_type,
+            distancePercent: cached.distance_percent,
+            distancePoints: Math.abs(cached.next_key_level_price - cached.current_price),
+            daysUntilEstimate: cached.days_until,
+            confidence: 0.7,
+          },
+          scores: {
+            confluence: cached.confluence_score,
+            proximity: 0,
+            momentum: 0,
+            seasonal: 0,
+            aspectAlignment: 0,
+            volatility: 0,
+            trend: 0,
+            volume: 0,
+            technical: cached.tradeability_score * 0.7,
+            fundamental: cached.tradeability_score * 0.3,
+            total: cached.tradeability_score,
+          },
+          rating: "B",
+          confidence: "medium",
+          recommendation: "hold",
+          ingressAlignment: { sign: "Unknown", daysRemaining: 0, favorability: "neutral" },
+          reasons: [cached.reason || "Featured ticker"],
+          warnings: [],
+          projections: {
+            reachDate: new Date(Date.now() + cached.days_until * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+            probability: 0.7,
+            confidenceInterval: { earliest: "", mostLikely: "", latest: "" },
+          },
+          rank: cached.rank,
+          confluenceScore: cached.confluence_score,
+          tradeabilityScore: cached.tradeability_score,
+          reason: cached.reason || "Featured ticker",
+        }))
+
+        metadata.source = "cache"
+        metadata.cacheHit = true
       } else {
-        ratings = Object.values(featuredByCategory).flat()
-      }
+        // Cache miss - calculate fresh
+        console.log("⚠️ Cache miss, calculating featured tickers...")
 
-      metadata.categoriesProcessed = Object.keys(featuredByCategory)
-      metadata.byCategory = Object.fromEntries(
-        Object.entries(featuredByCategory).map(([cat, items]) => [cat, items.length])
-      )
+        const featuredByCategory = await calculateAllFeaturedTickers()
+
+        // Flatten to single array if category filter provided
+        if (categoryFilter) {
+          ratings = featuredByCategory[categoryFilter as keyof typeof featuredByCategory] || []
+        } else {
+          ratings = Object.values(featuredByCategory).flat()
+        }
+
+        metadata.categoriesProcessed = Object.keys(featuredByCategory)
+        metadata.byCategory = Object.fromEntries(
+          Object.entries(featuredByCategory).map(([cat, items]) => [cat, items.length])
+        )
+        metadata.source = "calculated"
+        metadata.cacheHit = false
+      }
     }
     // MODE 2: Batch ratings (for comprehensive analysis)
     else {

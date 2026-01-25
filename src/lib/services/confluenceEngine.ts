@@ -627,6 +627,34 @@ export async function calculateAllFeaturedTickers(): Promise<{
   return results as any
 }
 
+/**
+ * Fetch pre-computed featured tickers from database
+ */
+export async function fetchFeaturedTickersFromCache(category?: string): Promise<any[]> {
+  try {
+    let query = getSupabaseAdmin()
+      .from("featured_tickers")
+      .select("*")
+      .order("rank", { ascending: true })
+
+    if (category) {
+      query = query.eq("category", category)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error("Error fetching cached featured tickers:", error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error("Error fetching featured tickers from cache:", error)
+    return []
+  }
+}
+
 export async function storeFeaturedTickers(featured: TickerRating[]): Promise<void> {
   if (!featured || featured.length === 0) return
 
