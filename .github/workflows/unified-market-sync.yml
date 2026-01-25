@@ -20,10 +20,19 @@ on:
   workflow_dispatch:
     inputs:
       force_featured_refresh:
-        description: "Force featured tickers refresh"
+        description: "Force featured tickers refresh (ignores ingress schedule)"
         required: false
         type: boolean
         default: false
+      featured_refresh_mode:
+        description: "Featured refresh mode"
+        required: false
+        type: choice
+        options:
+          - "auto"      # Ingress-aware (day 1, 7, 14, 21, 28)
+          - "force"     # Always refresh
+          - "skip"      # Skip this run
+        default: "auto"
       categories:
         description: "Categories to update (comma-separated: equity,crypto,forex,commodity,rates-macro,stress)"
         required: false
@@ -142,6 +151,16 @@ jobs:
           UPDATE_MACRO=false
           UPDATE_STRESS=false
           CHECK_INGRESS=false
+          REFRESH_FEATURED=auto
+
+          # Check featured refresh mode
+          FEATURED_MODE="${{ github.event.inputs.featured_refresh_mode }}"
+          if [ "$FEATURED_MODE" = "" ]; then FEATURED_MODE="auto"; fi
+
+          # Force refresh if old boolean input used (backwards compatibility)
+          if [ "${{ github.event.inputs.force_featured_refresh }}" = "true" ]; then
+            FEATURED_MODE="force"
+          fi
 
           # Manual override
           if [ "$MANUAL_CATEGORIES" != "" ] && [ "$MANUAL_CATEGORIES" != "all" ]; then
@@ -159,8 +178,9 @@ jobs:
             echo "update_macro=$UPDATE_MACRO" >> $GITHUB_OUTPUT
             echo "update_stress=$UPDATE_STRESS" >> $GITHUB_OUTPUT
             echo "check_ingress=false" >> $GITHUB_OUTPUT
+            echo "refresh_featured=$FEATURED_MODE" >> $GITHUB_OUTPUT
 
-            echo "📊 Manual trigger - Categories: $MANUAL_CATEGORIES"
+            echo "📊 Manual trigger - Categories: $MANUAL_CATEGORIES, Featured: $FEATURED_MODE"
             exit 0
           fi
 
@@ -210,6 +230,11 @@ jobs:
             CHECK_INGRESS=true
           fi
 
+          # Daily featured refresh check (runs at 2 AM every day)
+          if [ $HOUR -eq 2 ] && [ $MINUTE -lt 10 ]; then
+            REFRESH_FEATURED="daily"
+          fi
+
           echo "update_equity=$UPDATE_EQUITY" >> $GITHUB_OUTPUT
           echo "update_crypto=$UPDATE_CRYPTO" >> $GITHUB_OUTPUT
           echo "update_forex=$UPDATE_FOREX" >> $GITHUB_OUTPUT
@@ -217,8 +242,9 @@ jobs:
           echo "update_macro=$UPDATE_MACRO" >> $GITHUB_OUTPUT
           echo "update_stress=$UPDATE_STRESS" >> $GITHUB_OUTPUT
           echo "check_ingress=$CHECK_INGRESS" >> $GITHUB_OUTPUT
+          echo "refresh_featured=$REFRESH_FEATURED" >> $GITHUB_OUTPUT
 
-          echo "📊 Strategy: Equity=$UPDATE_EQUITY Crypto=$UPDATE_CRYPTO Forex=$UPDATE_FOREX Commodity=$UPDATE_COMMODITY Macro=$UPDATE_MACRO Stress=$UPDATE_STRESS Ingress=$CHECK_INGRESS"
+          echo "📊 Strategy: Equity=$UPDATE_EQUITY Crypto=$UPDATE_CRYPTO Forex=$UPDATE_FOREX Commodity=$UPDATE_COMMODITY Macro=$UPDATE_MACRO Stress=$UPDATE_STRESS Ingress=$CHECK_INGRESS Featured=$REFRESH_FEATURED"
 
       - name: 📈 Update Equity Prices
         if: steps.strategy.outputs.update_equity == 'true'
@@ -262,11 +288,34 @@ jobs:
           npx tsx scripts/data-manager.ts cron-update-prices --categories=rates-macro
         continue-on-error: true
 
-      - name: 🌞 Check Ingress & Refresh Featured
-        if: steps.strategy.outputs.check_ingress == 'true' || github.event.inputs.force_featured_refresh == 'true'
+      - name: 🌟 Refresh Featured Tickers
+        if: |
+          steps.strategy.outputs.refresh_featured == 'force' ||
+          steps.strategy.outputs.refresh_featured == 'daily' ||
+          steps.strategy.outputs.check_ingress == 'true'
         run: |
-          echo "🌞 Checking ingress period and refreshing featured tickers if needed..."
-          npx tsx scripts/data-manager.ts cron-refresh-featured
+          REFRESH_MODE="${{ steps.strategy.outputs.refresh_featured }}"
+
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "🌟 Featured Tickers Refresh"
+          echo "───────────────────────────────────────────────────────────────"
+          echo "Mode: $REFRESH_MODE"
+          echo "Time: $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z')"
+          echo "═══════════════════════════════════════════════════════════════"
+
+          if [ "$REFRESH_MODE" = "force" ]; then
+            echo "🔄 FORCE MODE: Refreshing all categories..."
+            npx tsx scripts/data-manager.ts populate-featured
+          elif [ "$REFRESH_MODE" = "daily" ]; then
+            echo "📅 DAILY MODE: Smart refresh (ingress-aware)..."
+            npx tsx scripts/data-manager.ts cron-refresh-featured
+          else
+            echo "🌞 INGRESS CHECK: Conditional refresh..."
+            npx tsx scripts/data-manager.ts cron-refresh-featured
+          fi
+
+          echo ""
+          echo "✅ Featured tickers refresh complete"
         continue-on-error: true
 
       - name: 📊 Execution Summary
@@ -283,6 +332,7 @@ jobs:
           echo "  📊 Macro:     ${{ steps.strategy.outputs.update_macro }}"
           echo "  ⚡ Stress:    ${{ steps.strategy.outputs.update_stress }}"
           echo "  🌞 Ingress:   ${{ steps.strategy.outputs.check_ingress }}"
+          echo "  🌟 Featured:  ${{ steps.strategy.outputs.refresh_featured }}"
           echo "╚══════════════════════════════════════════════════════════════╝"
 
       - name: 🚨 Notify on Critical Failure
