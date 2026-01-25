@@ -42,6 +42,7 @@ interface ForecastTicker {
   forecastedSwing: ForecastedSwing
   ingressValidity: boolean
   rank?: number
+  atr14?: number  // 14-period ATR for volatility context
 }
 
 interface FeaturedTickersProps {
@@ -66,6 +67,75 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
     return type === "high"
       ? "bg-green-500/10 text-green-400 border-green-500/40"
       : "bg-red-500/10 text-red-400 border-red-500/40"
+  }
+
+  // Category-specific ATR threshold definitions
+  const getATRThresholds = (category: string, symbol?: string) => {
+    switch (category) {
+      case "equity":
+        // Rough heuristic: if price > $500, assume large cap
+        return {
+          minMultiple: 2,
+          maxMultiple: 3,
+          label: "ATR"
+        }
+      case "commodity":
+        return {
+          minMultiple: 2.5,
+          maxMultiple: 3,
+          label: "ATR"
+        }
+      case "forex":
+        return {
+          minMultiple: 2,
+          maxMultiple: 2,
+          label: "ATR"
+        }
+      case "crypto":
+        // BTC/ETH vs altcoins
+        const isMajorCrypto = symbol && ["BTC", "ETH", "Bitcoin", "Ethereum"].includes(symbol)
+        return {
+          minMultiple: isMajorCrypto ? 3 : 3.5,
+          maxMultiple: isMajorCrypto ? 3 : 4,
+          label: "ATR"
+        }
+      case "rates-macro":
+        return {
+          minMultiple: 2,
+          maxMultiple: 2,
+          label: "ATR"
+        }
+      case "stress":
+        return {
+          minMultiple: 2,
+          maxMultiple: 2,
+          label: "ATR"
+        }
+      default:
+        return {
+          minMultiple: 2,
+          maxMultiple: 3,
+          label: "ATR"
+        }
+    }
+  }
+
+  // Calculate ATR multiple and determine if it meets threshold
+  const calculateATRMetrics = (ticker: ForecastTicker, category: string) => {
+    const { currentPrice, forecastedSwing, atr14 } = ticker
+    const thresholds = getATRThresholds(category, ticker.symbol)
+
+    if (!atr14 || atr14 === 0) {
+      return { atrMultiple: 0, meetsThreshold: false, displayText: "N/A", thresholds }
+    }
+
+    const priceDiff = Math.abs(forecastedSwing.price - currentPrice)
+    const atrMultiple = priceDiff / atr14
+    const meetsThreshold = atrMultiple >= thresholds.minMultiple
+
+    const displayText = `${atrMultiple.toFixed(2)}× ${thresholds.label}`
+
+    return { atrMultiple, meetsThreshold, displayText, thresholds }
   }
 
   const loadFeaturedTickers = useCallback(async () => {
@@ -159,7 +229,8 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                   finalConfidence: rating.scores?.total ? rating.scores.total / 100 : 0
                 },
                 ingressValidity: true,
-                rank: idx + 1
+                rank: idx + 1,
+                atr14: undefined  // ATR not available in fallback ratings cache
               }))
               .filter((ticker: ForecastTicker) =>
                 ticker.currentPrice > 0 &&
@@ -376,7 +447,7 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                 </div>
               </div>
 
-              {/* Price Move */}
+              {/* ATR Multiple Display */}
               <div className="flex items-center justify-between text-xs mb-2">
                 <div className="flex items-center gap-2">
                   {ticker.forecastedSwing.type === "high" ? (
@@ -384,9 +455,25 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                   ) : (
                     <TrendingDown className="h-3 w-3 text-red-600" />
                   )}
-                  <span className={ticker.forecastedSwing.type === "high" ? "text-green-600" : "text-red-600"}>
-                    {((Math.abs((ticker.forecastedSwing.price || 0) - (ticker.currentPrice || 0)) / (ticker.currentPrice || 1)) * 100).toFixed(2)}% move forecasted
-                  </span>
+                  {(() => {
+                    const atrMetrics = calculateATRMetrics(ticker, category)
+                    return (
+                      <div className="flex items-center gap-1">
+                        <span className={
+                          atrMetrics.meetsThreshold
+                            ? ticker.forecastedSwing.type === "high" ? "text-green-600 font-semibold" : "text-red-600 font-semibold"
+                            : "text-muted-foreground"
+                        }>
+                          {atrMetrics.displayText}
+                        </span>
+                        {atrMetrics.meetsThreshold && (
+                          <span className="text-xs opacity-60">
+                            (≥{atrMetrics.thresholds.minMultiple}× threshold)
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </div>
               </div>
             </div>

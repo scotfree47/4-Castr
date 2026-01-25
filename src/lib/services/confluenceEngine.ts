@@ -2395,6 +2395,7 @@ export async function detectConvergenceForecastedSwings(
     lastSwing: SwingPoint
     forecastedSwing: ForecastedSwing
     ingressValidity: boolean
+    atr14: number  // 14-period ATR for volatility context
   }>
 > {
   console.log(`🔮 Detecting convergence forecasts for ${symbols.length} symbols...`)
@@ -2546,13 +2547,21 @@ export async function detectConvergenceForecastedSwings(
         astroBoost,
         finalConfidence: Math.min(1, bestConvergence.confidence + astroBoost)
       }
-      
+
+      // Calculate ATR(14) for volatility context
+      const highs = bars.map(b => b.high)
+      const lows = bars.map(b => b.low)
+      const closes = bars.map(b => b.close)
+      const atrValues = ATR.calculate({ high: highs, low: lows, close: closes, period: 14 })
+      const atr14 = atrValues.length > 0 ? atrValues[atrValues.length - 1] : 0
+
       results.push({
         symbol,
         currentPrice,
         lastSwing,
         forecastedSwing,
-        ingressValidity: new Date(bestConvergence.date) <= new Date(ingressEnd)
+        ingressValidity: new Date(bestConvergence.date) <= new Date(ingressEnd),
+        atr14
       })
       
     } catch (error) {
