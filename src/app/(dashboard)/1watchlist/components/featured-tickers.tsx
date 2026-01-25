@@ -8,6 +8,16 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Eye, TrendingUp, TrendingDown, Award } from "lucide-react"
 import React, { useCallback, useEffect, useState } from "react"
 
+// Sentinels - exclude from featured tickers
+const SENTINELS = {
+  equity: ["SPY", "QQQ", "XLY"],
+  commodity: ["GLD", "USO", "HG"],
+  forex: ["EURUSD", "USDJPY", "GBPUSD", "EUR/USD", "USD/JPY", "GBP/USD"],
+  crypto: ["BTC", "ETH", "SOL", "Bitcoin", "Ethereum", "Solana"],
+  "rates-macro": ["TLT", "DXY", "TNX"],
+  stress: ["VIX", "MOVE", "SKEW"],
+}
+
 interface SwingPoint {
   type: "high" | "low"
   price: number
@@ -100,8 +110,16 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
 
       const forecasts = result.data?.forecasts || []
 
+      // Get sentinel list for current category
+      const sentinelList = SENTINELS[category as keyof typeof SENTINELS] || []
+
+      // Filter out sentinels from convergence forecasts
+      const filteredForecasts = forecasts.filter((f: ForecastTicker) =>
+        !sentinelList.includes(f.symbol)
+      )
+
       // FALLBACK: If no convergence forecasts, use regular ticker ratings
-      if (forecasts.length === 0) {
+      if (filteredForecasts.length === 0) {
         console.log("No convergence forecasts found, falling back to ticker ratings...")
         const ratingsResponse = await fetch(
           `/api/ticker-ratings?category=${category}&mode=batch&minScore=70&t=${timestamp}`,
@@ -118,28 +136,35 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
         if (ratingsResponse.ok) {
           const ratingsResult = await ratingsResponse.json()
           if (ratingsResult.success && ratingsResult.data?.ratings?.length > 0) {
-            // Convert ratings to forecast-like format for display
-            const regularTickers = ratingsResult.data.ratings.slice(0, 10).map((rating: any, idx: number) => ({
-              symbol: rating.symbol,
-              currentPrice: rating.currentPrice,
-              lastSwing: {
-                type: rating.targetType === "resistance" ? "low" : "high",
-                price: rating.currentPrice * 0.98, // Approximate
-                date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-                barIndex: 0
-              },
-              forecastedSwing: {
-                type: rating.targetType === "resistance" ? "high" : "low",
-                price: rating.targetPrice,
-                date: rating.projection?.reachDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-                convergingMethods: ["Technical Analysis"],
-                baseConfidence: rating.scores.total / 100,
-                astroBoost: 0,
-                finalConfidence: rating.scores.total / 100
-              },
-              ingressValidity: true,
-              rank: idx + 1
-            }))
+            // Filter out sentinels and convert ratings to forecast-like format for display
+            const regularTickers = ratingsResult.data.ratings
+              .filter((rating: any) => !sentinelList.includes(rating.symbol))
+              .slice(0, 10)
+              .map((rating: any, idx: number) => ({
+                symbol: rating.symbol,
+                currentPrice: rating.currentPrice || 0,
+                lastSwing: {
+                  type: rating.nextKeyLevel?.type === "resistance" ? "low" : "high",
+                  price: rating.currentPrice ? rating.currentPrice * 0.98 : 0,
+                  date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                  barIndex: 0
+                },
+                forecastedSwing: {
+                  type: rating.nextKeyLevel?.type === "resistance" ? "high" : "low",
+                  price: rating.nextKeyLevel?.price || rating.currentPrice || 0,
+                  date: rating.projections?.reachDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                  convergingMethods: ["Technical Analysis"],
+                  baseConfidence: rating.scores?.total ? rating.scores.total / 100 : 0,
+                  astroBoost: 0,
+                  finalConfidence: rating.scores?.total ? rating.scores.total / 100 : 0
+                },
+                ingressValidity: true,
+                rank: idx + 1
+              }))
+              .filter((ticker: ForecastTicker) =>
+                ticker.currentPrice > 0 &&
+                ticker.forecastedSwing.price > 0
+              )
 
             setTickers(regularTickers)
             setSummary({ totalAnalyzed: ratingsResult.data.ratings.length, forecastsFound: regularTickers.length })
@@ -147,8 +172,8 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
           }
         }
       } else {
-        // Use convergence forecasts
-        const rankedTickers = forecasts.map((ticker: ForecastTicker, idx: number) => ({
+        // Use convergence forecasts (already filtered)
+        const rankedTickers = filteredForecasts.map((ticker: ForecastTicker, idx: number) => ({
           ...ticker,
           rank: idx + 1,
         }))
@@ -260,6 +285,11 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
 
       <CardContent className="space-y-4">
         {tickers.map((ticker) => {
+          // Skip tickers with invalid data
+          if (!ticker.currentPrice || !ticker.forecastedSwing?.price) {
+            return null
+          }
+
           const currentPos = ingressData ? getTimelinePosition(new Date().toISOString().split("T")[0], ingressData.start, ingressData.end) : 50
           const swingPos = ingressData ? getTimelinePosition(ticker.forecastedSwing.date, ingressData.start, ingressData.end) : 75
 
@@ -289,7 +319,7 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                   </div>
                 </div>
                 <Badge variant="outline" className="font-mono font-bold text-base">
-                  {(ticker.forecastedSwing.finalConfidence * 100).toFixed(0)}%
+                  {((ticker.forecastedSwing.finalConfidence || 0) * 100).toFixed(0)}%
                 </Badge>
               </div>
 
@@ -337,12 +367,12 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
               {/* Last Swing Info */}
               <div className="grid grid-cols-2 gap-2 text-xs mb-2">
                 <div>
-                  <span className="opacity-60">Last {ticker.lastSwing.type}:</span>{" "}
-                  <span className="font-medium">${ticker.lastSwing.price.toFixed(2)}</span>
+                  <span className="opacity-60">Last {ticker.lastSwing?.type || "swing"}:</span>{" "}
+                  <span className="font-medium">${(ticker.lastSwing?.price || 0).toFixed(2)}</span>
                 </div>
                 <div>
                   <span className="opacity-60">On:</span>{" "}
-                  <span className="font-medium">{ticker.lastSwing.date}</span>
+                  <span className="font-medium">{ticker.lastSwing?.date || "N/A"}</span>
                 </div>
               </div>
 
@@ -355,7 +385,7 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                     <TrendingDown className="h-3 w-3 text-red-600" />
                   )}
                   <span className={ticker.forecastedSwing.type === "high" ? "text-green-600" : "text-red-600"}>
-                    {((Math.abs(ticker.forecastedSwing.price - ticker.currentPrice) / ticker.currentPrice) * 100).toFixed(2)}% move forecasted
+                    {((Math.abs((ticker.forecastedSwing.price || 0) - (ticker.currentPrice || 0)) / (ticker.currentPrice || 1)) * 100).toFixed(2)}% move forecasted
                   </span>
                 </div>
               </div>
