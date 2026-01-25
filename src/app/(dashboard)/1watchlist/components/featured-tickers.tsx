@@ -73,7 +73,7 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
         setIngressData(ingressResult.data)
       }
 
-      // Fetch convergence forecasts
+      // Try convergence forecasts first
       const timestamp = new Date().getTime()
       const response = await fetch(
         `/api/convergence-forecasts?category=${category}&limit=10&t=${timestamp}`,
@@ -99,15 +99,65 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
       }
 
       const forecasts = result.data?.forecasts || []
-      const rankedTickers = forecasts.map((ticker: ForecastTicker, idx: number) => ({
-        ...ticker,
-        rank: idx + 1,
-      }))
 
-      setTickers(rankedTickers)
-      setSummary(result.data?.summary || null)
+      // FALLBACK: If no convergence forecasts, use regular ticker ratings
+      if (forecasts.length === 0) {
+        console.log("No convergence forecasts found, falling back to ticker ratings...")
+        const ratingsResponse = await fetch(
+          `/api/ticker-ratings?category=${category}&mode=batch&minScore=70&t=${timestamp}`,
+          {
+            method: "GET",
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              Pragma: "no-cache",
+            },
+            cache: "no-store",
+          }
+        )
+
+        if (ratingsResponse.ok) {
+          const ratingsResult = await ratingsResponse.json()
+          if (ratingsResult.success && ratingsResult.data?.ratings?.length > 0) {
+            // Convert ratings to forecast-like format for display
+            const regularTickers = ratingsResult.data.ratings.slice(0, 10).map((rating: any, idx: number) => ({
+              symbol: rating.symbol,
+              currentPrice: rating.currentPrice,
+              lastSwing: {
+                type: rating.targetType === "resistance" ? "low" : "high",
+                price: rating.currentPrice * 0.98, // Approximate
+                date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                barIndex: 0
+              },
+              forecastedSwing: {
+                type: rating.targetType === "resistance" ? "high" : "low",
+                price: rating.targetPrice,
+                date: rating.projection?.reachDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                convergingMethods: ["Technical Analysis"],
+                baseConfidence: rating.scores.total / 100,
+                astroBoost: 0,
+                finalConfidence: rating.scores.total / 100
+              },
+              ingressValidity: true,
+              rank: idx + 1
+            }))
+
+            setTickers(regularTickers)
+            setSummary({ totalAnalyzed: ratingsResult.data.ratings.length, forecastsFound: regularTickers.length })
+            return
+          }
+        }
+      } else {
+        // Use convergence forecasts
+        const rankedTickers = forecasts.map((ticker: ForecastTicker, idx: number) => ({
+          ...ticker,
+          rank: idx + 1,
+        }))
+
+        setTickers(rankedTickers)
+        setSummary(result.data?.summary || null)
+      }
     } catch (err: any) {
-      console.error("Error loading convergence forecasts:", err)
+      console.error("Error loading featured tickers:", err)
       setError(err.message)
     } finally {
       setLoading(false)

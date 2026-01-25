@@ -13,7 +13,9 @@
       "Bash(git push:*)",
       "Bash(git pull:*)",
       "Bash(git stash:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(curl:*)",
+      "Bash(kill:*)"
     ]
   }
 }
