@@ -118,11 +118,11 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
         !sentinelList.includes(f.symbol)
       )
 
-      // FALLBACK: If no convergence forecasts, use regular ticker ratings
+      // FALLBACK: If no convergence forecasts, use regular ticker ratings from ticker_universe
       if (filteredForecasts.length === 0) {
-        console.log("No convergence forecasts found, falling back to ticker ratings...")
+        console.log("No convergence forecasts found, falling back to ticker ratings from database...")
         const ratingsResponse = await fetch(
-          `/api/ticker-ratings?category=${category}&mode=batch&minScore=70&t=${timestamp}`,
+          `/api/ticker-ratings?category=${category}&mode=featured&minScore=70&t=${timestamp}`,
           {
             method: "GET",
             headers: {

@@ -483,23 +483,61 @@ export async function batchCalculateRatings(
   let tickersToAnalyze: Array<{ symbol: string; category: string }> = []
 
   if (symbols && symbols.length > 0) {
+    // Specific symbols provided - look up category from database or fallback to ALL_TICKERS
     for (const symbol of symbols) {
-      const category =
+      let category =
         Object.entries(ALL_TICKERS).find(([cat, syms]) => syms.includes(symbol))?.[0] || "unknown"
+
+      // Try to get category from ticker_universe table
+      try {
+        const { data } = await getSupabaseAdmin()
+          .from("ticker_universe")
+          .select("category")
+          .eq("symbol", symbol)
+          .single()
+
+        if (data?.category) {
+          category = data.category
+        }
+      } catch (e) {
+        // Fallback to hardcoded category or "unknown"
+      }
+
       tickersToAnalyze.push({ symbol, category })
     }
   } else if (categories && categories.length > 0) {
+    // Categories provided - fetch from database
     for (const category of categories) {
-      const syms = ALL_TICKERS[category as keyof typeof ALL_TICKERS] || []
-      tickersToAnalyze.push(...syms.map((s: string) => ({ symbol: s, category })))
+      try {
+        const tickersFromDb = await fetchTickersByCategory(category, maxResults)
+        const dbSymbols = tickersFromDb.map((t: any) => ({ symbol: t.symbol, category }))
+        tickersToAnalyze.push(...dbSymbols)
+        console.log(`   Loaded ${dbSymbols.length} ${category} tickers from database`)
+      } catch (error) {
+        console.warn(`   Failed to load ${category} from database, using fallback`)
+        // Fallback to hardcoded list if database query fails
+        const syms = ALL_TICKERS[category as keyof typeof ALL_TICKERS] || []
+        tickersToAnalyze.push(...syms.map((s: string) => ({ symbol: s, category })))
+      }
     }
   } else {
-    for (const [category, syms] of Object.entries(ALL_TICKERS)) {
-      tickersToAnalyze.push(...syms.map((s: string) => ({ symbol: s, category })))
+    // No filters - get all tickers from database
+    const allCategories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
+    for (const category of allCategories) {
+      try {
+        const tickersFromDb = await fetchTickersByCategory(category, maxResults)
+        const dbSymbols = tickersFromDb.map((t: any) => ({ symbol: t.symbol, category }))
+        tickersToAnalyze.push(...dbSymbols)
+        console.log(`   Loaded ${dbSymbols.length} ${category} tickers from database`)
+      } catch (error) {
+        console.warn(`   Failed to load ${category} from database, using fallback`)
+        const syms = ALL_TICKERS[category as keyof typeof ALL_TICKERS] || []
+        tickersToAnalyze.push(...syms.map((s: string) => ({ symbol: s, category })))
+      }
     }
   }
 
-  console.log(`📊 Batch rating ${tickersToAnalyze.length} tickers...`)
+  console.log(`📊 Batch rating ${tickersToAnalyze.length} tickers from ticker_universe...`)
 
   const results: TickerRating[] = []
 
@@ -545,33 +583,45 @@ export async function calculateAllFeaturedTickers(): Promise<{
   "rates-macro": TickerRating[]
   stress: TickerRating[]
 }> {
-  console.log("🚀 Calculating featured tickers across all categories...")
+  console.log("🚀 Calculating featured tickers across all categories from ticker_universe...")
 
   const results: Record<string, TickerRating[]> = {}
+  const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
 
-  for (const [category, symbols] of Object.entries(ALL_TICKERS)) {
-    const nonSentinels = symbols.filter((s: string) => !SENTINELS.has(s))
+  for (const category of categories) {
+    try {
+      // Fetch tickers from database instead of hardcoded list
+      const tickersFromDb = await fetchTickersByCategory(category, 1000)
 
-    if (nonSentinels.length === 0) {
+      // Get symbols and filter out sentinels
+      const symbols = tickersFromDb.map((t: any) => t.symbol)
+      const nonSentinels = symbols.filter((s: string) => !SENTINELS.has(s))
+
+      if (nonSentinels.length === 0) {
+        console.log(`\n⚠️ ${category}: No active tickers in database`)
+        results[category] = []
+        continue
+      }
+
+      console.log(`\n📈 Processing ${category}: ${nonSentinels.length} symbols from database`)
+
+      const ratings = await batchCalculateRatings({
+        symbols: nonSentinels,
+        minScore: 50,
+        maxResults: 10,
+        parallelism: 5,
+      })
+
+      results[category] = ratings.map((r, index) => ({
+        ...r,
+        rank: index + 1,
+      }))
+
+      console.log(`   ✅ ${category}: ${ratings.length} qualified`)
+    } catch (error: any) {
+      console.error(`   ❌ ${category} failed:`, error.message)
       results[category] = []
-      continue
     }
-
-    console.log(`\n📈 Processing ${category}: ${nonSentinels.length} symbols`)
-
-    const ratings = await batchCalculateRatings({
-      symbols: nonSentinels,
-      minScore: 50,
-      maxResults: 10,
-      parallelism: 5,
-    })
-
-    results[category] = ratings.map((r, index) => ({
-      ...r,
-      rank: index + 1,
-    }))
-
-    console.log(`   ✅ ${category}: ${ratings.length} qualified`)
   }
 
   return results as any
