@@ -1478,27 +1478,33 @@ async function checkPriceFreshness(): Promise<void> {
 }
 
 async function populateFeaturedTickers(): Promise<void> {
-  console.log("🚀 Populating featured tickers from API...\n")
+  console.log("🚀 Populating featured tickers directly from database...\n")
 
   try {
-    const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
+    // Import confluenceEngine functions
+    const { calculateAllFeaturedTickers, storeFeaturedTickers } = await import(
+      "../src/lib/services/confluenceEngine.js"
+    )
 
-    for (const category of categories) {
-      const url = `http://localhost:3000/api/ticker-ratings?mode=featured&category=${category}&minScore=75`
-      console.log(`📊 Calculating ${category}...`)
+    // Calculate featured tickers for all categories
+    console.log("📊 Calculating featured tickers across all categories...")
+    const featuredByCategory = await calculateAllFeaturedTickers()
 
-      const response = await fetch(url)
-      const data = await response.json()
+    // Store all featured tickers
+    const allFeatured = Object.values(featuredByCategory).flat()
+    console.log(`\n💾 Storing ${allFeatured.length} featured tickers...`)
+    await storeFeaturedTickers(allFeatured)
 
-      if (data.featured?.length > 0) {
-        console.log(`   ✅ ${category}: ${data.featured.length} tickers`)
-      }
+    // Summary
+    console.log("\n📊 Summary by category:")
+    for (const [category, tickers] of Object.entries(featuredByCategory)) {
+      console.log(`   ${category}: ${tickers.length} tickers`)
     }
 
-    console.log("\n✅ Featured tickers populated via API")
+    console.log("\n✅ Featured tickers populated successfully")
   } catch (error: any) {
     console.error("❌ Error:", error.message)
-    console.log("\n💡 Make sure dev server is running: npm run dev")
+    console.error(error.stack)
   }
 }
 
