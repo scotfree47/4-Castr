@@ -13,6 +13,63 @@ import { RSI, MACD, BollingerBands, EMA, ATR, OBV } from "technicalindicators"
 // CONFIGURATION
 // ============================================================================
 
+/**
+ * Get category-specific ATR threshold requirements
+ * Based on asset class volatility characteristics
+ */
+export function getATRThreshold(category: string, symbol?: string): number {
+  switch (category) {
+    case "equity":
+      // Large caps: 2-2.5× ATR, Mid/Small caps: 2.5-3× ATR
+      // Using 2 as baseline for all equities (conservative)
+      return 2
+
+    case "commodity":
+      // Higher volatility - require 2.5× minimum
+      return 2.5
+
+    case "forex":
+      // Lower volatility (150-300 pips) - 2× ATR
+      return 2
+
+    case "crypto":
+      // BTC/ETH: 3× ATR, Altcoins: 3.5-4× ATR
+      const isMajorCrypto = symbol && ["BTC", "ETH", "Bitcoin", "Ethereum"].includes(symbol)
+      return isMajorCrypto ? 3 : 3.5
+
+    case "rates-macro":
+      // Bonds, yields, DXY - 2× ATR (25-50 bps)
+      return 2
+
+    case "stress":
+      // VIX, MOVE, spreads - 2× ATR for confirmation
+      return 2
+
+    default:
+      // Global baseline
+      return 2
+  }
+}
+
+/**
+ * Check if a projected move meets the ATR threshold for its category
+ */
+export function meetsATRThreshold(
+  currentPrice: number,
+  targetPrice: number,
+  atr14: number,
+  category: string,
+  symbol?: string
+): boolean {
+  if (!atr14 || atr14 === 0) return false
+
+  const priceDiff = Math.abs(targetPrice - currentPrice)
+  const atrMultiple = priceDiff / atr14
+  const threshold = getATRThreshold(category, symbol)
+
+  return atrMultiple >= threshold
+}
+
 const ALL_TICKERS = {
   equity: ["SPY", "QQQ", "XLY", "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA"],
   commodity: ["GLD", "USO", "HG1!", "GC1!", "CL1!", "COTTON", "WHEAT", "CORN", "SUGAR", "COFFEE"],
@@ -97,6 +154,8 @@ export interface TickerRating {
   confluenceScore?: number
   tradeabilityScore?: number
   reason?: string
+  atr14?: number  // 14-period ATR for volatility-based filtering
+  atrMultiple?: number  // Projected move as multiple of ATR
 }
 
 // ============================================================================
@@ -314,6 +373,14 @@ export async function calculateTickerRating(
       favorability,
     }
 
+    // Calculate ATR(14) for volatility-based filtering
+    const highs = bars.map(b => b.high)
+    const lows = bars.map(b => b.low)
+    const closes = bars.map(b => b.close)
+    const atrValues = ATR.calculate({ high: highs, low: lows, close: closes, period: 14 })
+    const atr14 = atrValues.length > 0 ? atrValues[atrValues.length - 1] : 0
+    const atrMultiple = atr14 > 0 ? distancePoints / atr14 : 0
+
     return {
       symbol,
       category,
@@ -353,6 +420,8 @@ export async function calculateTickerRating(
       confluenceScore: Math.round(confluenceScore),
       tradeabilityScore: Math.round(totalScore),
       reason: reasons.length > 0 ? reasons.join("; ") : "Standard technical setup",
+      atr14,
+      atrMultiple,
     }
   } catch (error) {
     console.error(`Error calculating rating for ${symbol}:`, error)
@@ -561,14 +630,31 @@ export async function batchCalculateRatings(
     )
   }
 
-  const filtered = results
-    .filter((r) => r.scores.total >= minScore)
+  // Apply score-based filtering first
+  const scoreFiltered = results.filter((r) => r.scores.total >= minScore)
+
+  // FINAL FILTER: ATR threshold (featured tickers must meet volatility requirements)
+  const atrFiltered = scoreFiltered.filter((r) => {
+    // If no ATR data, exclude from featured (can't validate move quality)
+    if (!r.atr14 || r.atr14 === 0) return false
+
+    // Check if projected move meets category-specific ATR threshold
+    return meetsATRThreshold(
+      r.currentPrice,
+      r.nextKeyLevel.price,
+      r.atr14,
+      r.category,
+      r.symbol
+    )
+  })
+
+  const finalResults = atrFiltered
     .sort((a, b) => b.scores.total - a.scores.total)
     .slice(0, maxResults)
 
-  console.log(`✅ Completed: ${filtered.length} ratings`)
+  console.log(`✅ Completed: ${scoreFiltered.length} scored, ${atrFiltered.length} ATR-qualified, ${finalResults.length} final`)
 
-  return filtered
+  return finalResults
 }
 
 // ============================================================================
@@ -2555,20 +2641,34 @@ export async function detectConvergenceForecastedSwings(
       const atrValues = ATR.calculate({ high: highs, low: lows, close: closes, period: 14 })
       const atr14 = atrValues.length > 0 ? atrValues[atrValues.length - 1] : 0
 
-      results.push({
-        symbol,
+      // FINAL FILTER: Check ATR threshold before adding to results
+      const meetsThreshold = meetsATRThreshold(
         currentPrice,
-        lastSwing,
-        forecastedSwing,
-        ingressValidity: new Date(bestConvergence.date) <= new Date(ingressEnd),
-        atr14
-      })
-      
+        bestConvergence.price,
+        atr14,
+        category,
+        symbol
+      )
+
+      if (meetsThreshold) {
+        results.push({
+          symbol,
+          currentPrice,
+          lastSwing,
+          forecastedSwing,
+          ingressValidity: new Date(bestConvergence.date) <= new Date(ingressEnd),
+          atr14
+        })
+        console.log(`      ✅ ATR check passed: ${(Math.abs(bestConvergence.price - currentPrice) / atr14).toFixed(2)}× ATR`)
+      } else {
+        console.log(`      ❌ ATR check failed: ${(Math.abs(bestConvergence.price - currentPrice) / atr14).toFixed(2)}× ATR (threshold: ${getATRThreshold(category, symbol)}×)`)
+      }
+
     } catch (error) {
       console.error(`   ❌ Error processing ${symbol}:`, error)
     }
   }
-  
-  console.log(`✅ Found ${results.length} convergence forecasts`)
+
+  console.log(`✅ Found ${results.length} ATR-qualified convergence forecasts`)
   return results
 }

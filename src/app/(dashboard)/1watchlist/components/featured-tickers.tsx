@@ -69,54 +69,38 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
       : "bg-red-500/10 text-red-400 border-red-500/40"
   }
 
-  // Category-specific ATR threshold definitions
+  // Category-specific ATR threshold definitions (matches backend getATRThreshold)
   const getATRThresholds = (category: string, symbol?: string) => {
+    let threshold: number
+
     switch (category) {
       case "equity":
-        // Rough heuristic: if price > $500, assume large cap
-        return {
-          minMultiple: 2,
-          maxMultiple: 3,
-          label: "ATR"
-        }
+        threshold = 2
+        break
       case "commodity":
-        return {
-          minMultiple: 2.5,
-          maxMultiple: 3,
-          label: "ATR"
-        }
+        threshold = 2.5
+        break
       case "forex":
-        return {
-          minMultiple: 2,
-          maxMultiple: 2,
-          label: "ATR"
-        }
+        threshold = 2
+        break
       case "crypto":
-        // BTC/ETH vs altcoins
         const isMajorCrypto = symbol && ["BTC", "ETH", "Bitcoin", "Ethereum"].includes(symbol)
-        return {
-          minMultiple: isMajorCrypto ? 3 : 3.5,
-          maxMultiple: isMajorCrypto ? 3 : 4,
-          label: "ATR"
-        }
+        threshold = isMajorCrypto ? 3 : 3.5
+        break
       case "rates-macro":
-        return {
-          minMultiple: 2,
-          maxMultiple: 2,
-          label: "ATR"
-        }
+        threshold = 2
+        break
       case "stress":
-        return {
-          minMultiple: 2,
-          maxMultiple: 2,
-          label: "ATR"
-        }
+        threshold = 2
+        break
       default:
-        return {
-          minMultiple: 2,
-          maxMultiple: 3,
-          label: "ATR"
-        }
+        threshold = 2
+    }
+
+    return {
+      minMultiple: threshold,
+      maxMultiple: threshold,
+      label: "ATR"
     }
   }
 
