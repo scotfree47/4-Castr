@@ -1,18 +1,15 @@
-// app/api/chart-data/route.ts - OPTIMIZED VERSION
+// app/api/chart-data/route.ts
 import type { CategoryType } from "@/app/(dashboard)/data"
-import {
-  fetchBulkPriceHistory,
-  fetchTickersByCategory,
-  type PriceDataPoint,
-} from "@/lib/services/confluenceEngine"
 import { createErrorResponse } from "@/lib/api/errors"
+import { fetchBulkPriceHistory, type PriceDataPoint } from "@/lib/services/confluenceEngine"
+import { getSupabaseAdmin } from "@/lib/supabase"
 import { NextRequest, NextResponse } from "next/server"
 
 const SENTINELS: Record<CategoryType, string[]> = {
   equity: ["SPY", "QQQ", "XLY"],
   commodity: ["GLD", "USO", "HG1!"],
-  forex: ["EURUSD", "USDJPY", "GBPJPY"],
-  crypto: ["BTC", "ETH", "SOL"],
+  forex: ["EUR/USD", "USD/JPY", "GBP/USD"],
+  crypto: ["Bitcoin", "Ethereum", "Solana"],
   "rates-macro": ["TLT", "TNX", "DXY"],
   stress: ["VIX", "MOVE", "TRIN"],
 }
@@ -35,6 +32,29 @@ const SENTINEL_COLORS = [
   "rgba(107, 114, 128, 0.7)",
   "rgba(75, 85, 99, 0.7)",
 ]
+
+interface CachedTicker {
+  symbol: string
+  category: string
+  [key: string]: any
+}
+
+async function getFeaturedTickersFromCache(category?: string): Promise<CachedTicker[]> {
+  try {
+    let query = getSupabaseAdmin()
+      .from("featured_tickers")
+      .select("*")
+      .order("rank", { ascending: true })
+
+    if (category) query = query.eq("category", category)
+
+    const { data, error } = await query
+    if (error) return []
+    return data || []
+  } catch {
+    return []
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,24 +79,24 @@ export async function GET(request: NextRequest) {
     const startDateStr = dates[0]
     const endDateStr = dates[dates.length - 1]
 
-    // ✅ Get featured tickers directly from DB (no API call)
-    const featuredTickers = await fetchTickersByCategory(category, 10)
-    const featuredSymbols = featuredTickers.map((t) => t.symbol)
+    // Get featured tickers from cache
+    const featuredTickers = await getFeaturedTickersFromCache(category)
+    const featuredSymbols = featuredTickers.map((t: CachedTicker) => t.symbol)
 
     // Get sentinels
     const sentinels = SENTINELS[category] || []
 
     // Remove duplicates
     const sentinelSet = new Set(sentinels)
-    const uniqueFeatured = featuredSymbols.filter((s) => !sentinelSet.has(s))
+    const uniqueFeatured = featuredSymbols.filter((s: string) => !sentinelSet.has(s)).slice(0, 10)
     const allSymbols = [...sentinels, ...uniqueFeatured]
 
     console.log(`📊 Fetching prices for: ${allSymbols.length} symbols`)
 
-    // ✅ SINGLE bulk query instead of N individual requests
+    // Single bulk query
     const priceDataMap = await fetchBulkPriceHistory(allSymbols, startDateStr, endDateStr)
 
-    // Fill gaps for missing dates
+    // Fill gaps
     const fillPriceGaps = (prices: PriceDataPoint[]): number[] => {
       const priceMap = new Map(prices.map((p) => [p.date, p.close]))
       const filled: number[] = []
@@ -95,8 +115,8 @@ export async function GET(request: NextRequest) {
       return filled
     }
 
-    // Build featured series
-    const featuredSeries = uniqueFeatured.map((symbol, idx) => {
+    // Build series
+    const featuredSeries = uniqueFeatured.map((symbol: string, idx: number) => {
       const prices = priceDataMap.get(symbol) || []
       const data = fillPriceGaps(prices)
 
@@ -110,8 +130,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Build sentinel series
-    const sentinelSeries = sentinels.map((ticker, idx) => {
+    const sentinelSeries = sentinels.map((ticker: string, idx: number) => {
       const prices = priceDataMap.get(ticker) || []
       const data = fillPriceGaps(prices)
 

@@ -1,124 +1,117 @@
 // app/api/cron-refresh-ratings/route.ts
-// UNIFIED CRON: Uses consolidated confluenceEngine
-
-import {
-  calculateAllFeaturedTickers,
-  shouldRefreshFeatured,
-  storeFeaturedTickers,
-} from "@/lib/services/confluenceEngine"
+import { batchCalculateRatings, type TickerRating } from "@/lib/services/confluenceEngine"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { NextRequest, NextResponse } from "next/server"
 
-export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-const CRON_SECRET = process.env.CRON_SECRET
+async function storeFeaturedTickers(ratings: TickerRating[]): Promise<void> {
+  if (!ratings || ratings.length === 0) return
 
-export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret (with or without quotes)
-    const authHeader = request.headers.get("authorization")
-    const cleanSecret = CRON_SECRET?.replace(/^["']|["']$/g, "") // Remove quotes if present
+    const rows = ratings.map((r) => ({
+      symbol: r.symbol,
+      category: r.category,
+      sector: r.sector,
+      current_price: r.currentPrice,
+      next_key_level_price: r.nextKeyLevel.price,
+      next_key_level_type: r.nextKeyLevel.type,
+      distance_percent: r.nextKeyLevel.distancePercent,
+      days_until: r.nextKeyLevel.daysUntilEstimate,
+      confluence_score: r.scores.confluence,
+      tradeability_score: r.scores.total,
+      reason: r.reasons.join("; "),
+      rank: r.rank || 0,
+      updated_at: new Date().toISOString(),
+    }))
 
-    if (authHeader !== `Bearer ${cleanSecret}`) {
-      console.error("❌ Unauthorized cron attempt")
-      console.log("Expected:", `Bearer ${cleanSecret}`)
-      console.log("Received:", authHeader)
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    // Delete old entries for affected categories
+    const categories = [...new Set(ratings.map((r) => r.category))]
+    for (const category of categories) {
+      await getSupabaseAdmin().from("featured_tickers").delete().eq("category", category)
     }
 
-    console.log("🔄 Cron job triggered: Checking if refresh needed...")
-
-    // Check if refresh needed
-    const { shouldRefresh, reason } = await shouldRefreshFeatured()
-
-    if (!shouldRefresh) {
-      console.log(`⏭️  Skipping refresh: ${reason}`)
-      return NextResponse.json({
-        success: true,
-        message: `No refresh needed: ${reason}`,
-        refreshed: false,
-      })
+    // Insert new entries
+    for (const row of rows) {
+      await getSupabaseAdmin().from("featured_tickers").insert([row])
     }
 
-    console.log(`✅ Refresh triggered: ${reason}`)
-    console.log("📊 Calculating featured tickers across all categories...")
-
-    // Calculate featured tickers for all categories
-    const featuredByCategory = await calculateAllFeaturedTickers()
-
-    // Flatten to single array for storage
-    const allFeatured = Object.values(featuredByCategory).flat()
-
-    console.log(`📝 Storing ${allFeatured.length} featured tickers...`)
-
-    // Store to database
-    await storeFeaturedTickers(allFeatured)
-
-    // Optionally cache high-confidence ratings
-    const highConfidenceRatings = allFeatured.filter((r) => r.scores.total >= 70)
-
-    if (highConfidenceRatings.length > 0) {
-      console.log(`💾 Caching ${highConfidenceRatings.length} high-confidence ratings...`)
-      await cacheRatingsToSupabase(highConfidenceRatings)
-    }
-
-    // Generate summary
-    const summary = {
-      totalFeatured: allFeatured.length,
-      byCategory: Object.fromEntries(
-        Object.entries(featuredByCategory).map(([cat, items]) => [cat, items.length])
-      ),
-      highConfidence: highConfidenceRatings.length,
-      averageScore:
-        allFeatured.length > 0
-          ? Math.round(allFeatured.reduce((sum, r) => sum + r.scores.total, 0) / allFeatured.length)
-          : 0,
-    }
-
-    console.log("✅ Refresh completed successfully")
-    console.log(`   Total featured: ${summary.totalFeatured}`)
-    console.log(`   Average score: ${summary.averageScore}`)
-    console.log(`   Categories: ${Object.keys(summary.byCategory).join(", ")}`)
-
-    return NextResponse.json({
-      success: true,
-      message: `Refreshed: ${reason}`,
-      refreshed: true,
-      summary,
-    })
+    console.log(`✅ Stored ${ratings.length} featured tickers`)
   } catch (error) {
-    console.error("❌ Cron error:", error)
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    )
+    console.error("❌ Failed to store featured tickers:", error)
+    throw error
   }
 }
 
-/**
- * Cache high-confidence ratings to ticker_ratings_cache table
- */
-async function cacheRatingsToSupabase(ratings: any[]) {
+export async function POST(request: NextRequest) {
   try {
-    // Batch upsert all ratings in a single query (50-100x faster than sequential)
-    const calculatedAt = new Date().toISOString();
-    const records = ratings.map((rating) => ({
-      symbol: rating.symbol,
-      category: rating.category,
-      rating_data: rating,
-      calculated_at: calculatedAt,
-    }));
+    const authHeader = request.headers.get("authorization")
+    const cronSecret = process.env.CRON_SECRET
 
-    const { error } = await getSupabaseAdmin()
-      .from("ticker_ratings_cache")
-      .upsert(records, { onConflict: "symbol" });
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    }
 
-    if (error) throw error;
+    console.log("🔄 CRON: Starting featured tickers refresh...")
 
-    console.log(`✅ Cached ${ratings.length} ratings to ticker_ratings_cache (batch operation)`)
-  } catch (error) {
-    console.error("❌ Error caching ratings:", error)
+    const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
+    const allRatings: TickerRating[] = []
+
+    for (const category of categories) {
+      console.log(`📊 Processing ${category}...`)
+
+      const ratings = await batchCalculateRatings({
+        categories: [category],
+        minScore: 50,
+        maxResults: 10,
+        lookbackDays: 1095,
+        includeProjections: true,
+        includeSeasonalData: true,
+        parallelism: 5,
+      })
+
+      const rankedRatings = ratings.map((r, idx) => ({
+        ...r,
+        rank: idx + 1,
+      }))
+
+      allRatings.push(...rankedRatings)
+      console.log(`✅ ${category}: ${rankedRatings.length} tickers`)
+    }
+
+    // Store all ratings
+    await storeFeaturedTickers(allRatings)
+
+    // Build summary
+    const summary = {
+      totalStored: allRatings.length,
+      byCategory: {} as Record<string, number>,
+    }
+
+    for (const cat of categories) {
+      const items = allRatings.filter((r) => r.category === cat)
+      summary.byCategory[cat] = items.length
+    }
+
+    console.log(`✅ CRON complete: ${allRatings.length} featured tickers refreshed`)
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        summary,
+        timestamp: new Date().toISOString(),
+      },
+    })
+  } catch (error: any) {
+    console.error("❌ CRON refresh error:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      },
+      { status: 500 }
+    )
   }
 }

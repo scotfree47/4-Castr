@@ -72,165 +72,1069 @@ const CATEGORY_MAP = {
   // EQUITIES: 500 symbols (S&P 500 core holdings + high-volume stocks)
   equity: [
     // Market Indices & ETFs (3)
-    "SPY", "QQQ", "DIA",
+    "SPY",
+    "QQQ",
+    "DIA",
     // Mega Cap Tech (20)
-    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AVGO", "ORCL", "CSCO",
-    "ADBE", "CRM", "INTC", "AMD", "IBM", "QCOM", "TXN", "INTU", "NOW", "PANW",
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "NVDA",
+    "META",
+    "TSLA",
+    "AVGO",
+    "ORCL",
+    "CSCO",
+    "ADBE",
+    "CRM",
+    "INTC",
+    "AMD",
+    "IBM",
+    "QCOM",
+    "TXN",
+    "INTU",
+    "NOW",
+    "PANW",
     // Financials (40)
-    "BRK.B", "JPM", "V", "MA", "BAC", "WFC", "GS", "MS", "C", "AXP",
-    "BLK", "SCHW", "CB", "PGR", "MMC", "AON", "ICE", "CME", "SPGI", "MCO",
-    "COF", "USB", "PNC", "TFC", "TRV", "ALL", "MET", "PRU", "AIG", "AFL",
-    "HIG", "FITB", "KEY", "RF", "CFG", "MTB", "HBAN", "CMA", "ZION", "WBS",
+    "BRK.B",
+    "JPM",
+    "V",
+    "MA",
+    "BAC",
+    "WFC",
+    "GS",
+    "MS",
+    "C",
+    "AXP",
+    "BLK",
+    "SCHW",
+    "CB",
+    "PGR",
+    "MMC",
+    "AON",
+    "ICE",
+    "CME",
+    "SPGI",
+    "MCO",
+    "COF",
+    "USB",
+    "PNC",
+    "TFC",
+    "TRV",
+    "ALL",
+    "MET",
+    "PRU",
+    "AIG",
+    "AFL",
+    "HIG",
+    "FITB",
+    "KEY",
+    "RF",
+    "CFG",
+    "MTB",
+    "HBAN",
+    "CMA",
+    "ZION",
+    "WBS",
     // Healthcare (50)
-    "UNH", "JNJ", "LLY", "ABBV", "MRK", "TMO", "ABT", "DHR", "PFE", "BMY",
-    "AMGN", "CVS", "MDT", "GILD", "CI", "ISRG", "REGN", "VRTX", "ZTS", "HUM",
-    "BSX", "SYK", "ELV", "MCK", "COR", "IDXX", "HCA", "DXCM", "BDX", "EW",
-    "RMD", "MTD", "IQV", "A", "ALGN", "HOLX", "PODD", "BAX", "WAT", "TECH",
-    "DGX", "MOH", "TFX", "STE", "GEHC", "RVTY", "SOLV", "VTRS", "OGN", "ZBH",
+    "UNH",
+    "JNJ",
+    "LLY",
+    "ABBV",
+    "MRK",
+    "TMO",
+    "ABT",
+    "DHR",
+    "PFE",
+    "BMY",
+    "AMGN",
+    "CVS",
+    "MDT",
+    "GILD",
+    "CI",
+    "ISRG",
+    "REGN",
+    "VRTX",
+    "ZTS",
+    "HUM",
+    "BSX",
+    "SYK",
+    "ELV",
+    "MCK",
+    "COR",
+    "IDXX",
+    "HCA",
+    "DXCM",
+    "BDX",
+    "EW",
+    "RMD",
+    "MTD",
+    "IQV",
+    "A",
+    "ALGN",
+    "HOLX",
+    "PODD",
+    "BAX",
+    "WAT",
+    "TECH",
+    "DGX",
+    "MOH",
+    "TFX",
+    "STE",
+    "GEHC",
+    "RVTY",
+    "SOLV",
+    "VTRS",
+    "OGN",
+    "ZBH",
     // Consumer Discretionary (50)
-    "AMZN", "TSLA", "HD", "MCD", "NKE", "SBUX", "LOW", "TJX", "BKNG", "CMG",
-    "ORLY", "MAR", "GM", "F", "HLT", "AZO", "YUM", "DHI", "ROST", "LEN",
-    "APTV", "DG", "DLTR", "BBY", "ULTA", "GPC", "LVS", "WYNN", "MGM", "EXPE",
-    "RL", "TPR", "NVR", "PHM", "LEN.B", "TOL", "KBH", "MTH", "BZH", "TMHC",
-    "MHO", "LGIH", "DFH", "CCS", "GRBK", "HOV", "CVCO", "JOE", "RH", "POOL",
+    "AMZN",
+    "TSLA",
+    "HD",
+    "MCD",
+    "NKE",
+    "SBUX",
+    "LOW",
+    "TJX",
+    "BKNG",
+    "CMG",
+    "ORLY",
+    "MAR",
+    "GM",
+    "F",
+    "HLT",
+    "AZO",
+    "YUM",
+    "DHI",
+    "ROST",
+    "LEN",
+    "APTV",
+    "DG",
+    "DLTR",
+    "BBY",
+    "ULTA",
+    "GPC",
+    "LVS",
+    "WYNN",
+    "MGM",
+    "EXPE",
+    "RL",
+    "TPR",
+    "NVR",
+    "PHM",
+    "LEN.B",
+    "TOL",
+    "KBH",
+    "MTH",
+    "BZH",
+    "TMHC",
+    "MHO",
+    "LGIH",
+    "DFH",
+    "CCS",
+    "GRBK",
+    "HOV",
+    "CVCO",
+    "JOE",
+    "RH",
+    "POOL",
     // Consumer Staples (30)
-    "WMT", "PG", "COST", "KO", "PEP", "PM", "MDLZ", "MO", "CL", "GIS",
-    "KMB", "SYY", "MNST", "KHC", "K", "HSY", "CAG", "CPB", "HRL", "TSN",
-    "KR", "SJM", "TAP", "STZ", "BF.B", "MKC", "LW", "POST", "SMPL", "CALM",
+    "WMT",
+    "PG",
+    "COST",
+    "KO",
+    "PEP",
+    "PM",
+    "MDLZ",
+    "MO",
+    "CL",
+    "GIS",
+    "KMB",
+    "SYY",
+    "MNST",
+    "KHC",
+    "K",
+    "HSY",
+    "CAG",
+    "CPB",
+    "HRL",
+    "TSN",
+    "KR",
+    "SJM",
+    "TAP",
+    "STZ",
+    "BF.B",
+    "MKC",
+    "LW",
+    "POST",
+    "SMPL",
+    "CALM",
     // Energy (40)
-    "XOM", "CVX", "COP", "SLB", "EOG", "MPC", "PSX", "VLO", "OXY", "PXD",
-    "WMB", "KMI", "HAL", "HES", "DVN", "FANG", "BKR", "TRGP", "EQT", "LNG",
-    "MRO", "APA", "CTRA", "OVV", "RIG", "NOV", "FTI", "CLB", "HP", "PTEN",
-    "LBRT", "WHD", "WTTR", "VAL", "NBR", "TDW", "NINE", "PUMP", "ACDC", "HLX",
+    "XOM",
+    "CVX",
+    "COP",
+    "SLB",
+    "EOG",
+    "MPC",
+    "PSX",
+    "VLO",
+    "OXY",
+    "PXD",
+    "WMB",
+    "KMI",
+    "HAL",
+    "HES",
+    "DVN",
+    "FANG",
+    "BKR",
+    "TRGP",
+    "EQT",
+    "LNG",
+    "MRO",
+    "APA",
+    "CTRA",
+    "OVV",
+    "RIG",
+    "NOV",
+    "FTI",
+    "CLB",
+    "HP",
+    "PTEN",
+    "LBRT",
+    "WHD",
+    "WTTR",
+    "VAL",
+    "NBR",
+    "TDW",
+    "NINE",
+    "PUMP",
+    "ACDC",
+    "HLX",
     // Industrials (60)
-    "UNP", "CAT", "HON", "UPS", "RTX", "GE", "LMT", "BA", "MMM", "DE",
-    "ADP", "WM", "GD", "ITW", "NOC", "ETN", "EMR", "FDX", "TT", "PH",
-    "CSX", "NSC", "PCAR", "CMI", "JCI", "CARR", "OTIS", "PWR", "FAST", "PAYX",
-    "AME", "ROK", "DOV", "XYL", "FTV", "IEX", "VRSK", "HUBB", "SWK", "GNRC",
-    "J", "DAL", "UAL", "AAL", "LUV", "JBLU", "ALK", "HA", "SAVE", "MESA",
-    "SKYW", "RYAAY", "LCC", "UAVS", "BLBD", "ALGT", "ATSG", "AAWW", "SNCY", "GNK",
+    "UNP",
+    "CAT",
+    "HON",
+    "UPS",
+    "RTX",
+    "GE",
+    "LMT",
+    "BA",
+    "MMM",
+    "DE",
+    "ADP",
+    "WM",
+    "GD",
+    "ITW",
+    "NOC",
+    "ETN",
+    "EMR",
+    "FDX",
+    "TT",
+    "PH",
+    "CSX",
+    "NSC",
+    "PCAR",
+    "CMI",
+    "JCI",
+    "CARR",
+    "OTIS",
+    "PWR",
+    "FAST",
+    "PAYX",
+    "AME",
+    "ROK",
+    "DOV",
+    "XYL",
+    "FTV",
+    "IEX",
+    "VRSK",
+    "HUBB",
+    "SWK",
+    "GNRC",
+    "J",
+    "DAL",
+    "UAL",
+    "AAL",
+    "LUV",
+    "JBLU",
+    "ALK",
+    "HA",
+    "SAVE",
+    "MESA",
+    "SKYW",
+    "RYAAY",
+    "LCC",
+    "UAVS",
+    "BLBD",
+    "ALGT",
+    "ATSG",
+    "AAWW",
+    "SNCY",
+    "GNK",
     // Materials (30)
-    "LIN", "APD", "SHW", "ECL", "NEM", "FCX", "DOW", "DD", "NUE", "VMC",
-    "MLM", "PPG", "CTVA", "ALB", "IFF", "CE", "FMC", "EMN", "CF", "MOS",
-    "LYB", "BALL", "AVY", "SEE", "PKG", "IP", "WRK", "SON", "GPK", "SLVM",
+    "LIN",
+    "APD",
+    "SHW",
+    "ECL",
+    "NEM",
+    "FCX",
+    "DOW",
+    "DD",
+    "NUE",
+    "VMC",
+    "MLM",
+    "PPG",
+    "CTVA",
+    "ALB",
+    "IFF",
+    "CE",
+    "FMC",
+    "EMN",
+    "CF",
+    "MOS",
+    "LYB",
+    "BALL",
+    "AVY",
+    "SEE",
+    "PKG",
+    "IP",
+    "WRK",
+    "SON",
+    "GPK",
+    "SLVM",
     // Real Estate (30)
-    "PLD", "AMT", "EQIX", "PSA", "WELL", "SPG", "DLR", "O", "CBRE", "AVB",
-    "EQR", "SBAC", "VTR", "ARE", "INVH", "ESS", "MAA", "UDR", "CPT", "EXR",
-    "DOC", "HST", "REG", "FRT", "KIM", "BXP", "VNO", "SLG", "AIV", "OUT",
+    "PLD",
+    "AMT",
+    "EQIX",
+    "PSA",
+    "WELL",
+    "SPG",
+    "DLR",
+    "O",
+    "CBRE",
+    "AVB",
+    "EQR",
+    "SBAC",
+    "VTR",
+    "ARE",
+    "INVH",
+    "ESS",
+    "MAA",
+    "UDR",
+    "CPT",
+    "EXR",
+    "DOC",
+    "HST",
+    "REG",
+    "FRT",
+    "KIM",
+    "BXP",
+    "VNO",
+    "SLG",
+    "AIV",
+    "OUT",
     // Utilities (30)
-    "NEE", "DUK", "SO", "D", "AEP", "EXC", "SRE", "XEL", "WEC", "ED",
-    "ES", "PEG", "FE", "EIX", "PPL", "AWK", "DTE", "ETR", "CMS", "AEE",
-    "CNP", "NI", "LNT", "EVRG", "ATO", "NWE", "PNW", "OGE", "AVA", "POR",
+    "NEE",
+    "DUK",
+    "SO",
+    "D",
+    "AEP",
+    "EXC",
+    "SRE",
+    "XEL",
+    "WEC",
+    "ED",
+    "ES",
+    "PEG",
+    "FE",
+    "EIX",
+    "PPL",
+    "AWK",
+    "DTE",
+    "ETR",
+    "CMS",
+    "AEE",
+    "CNP",
+    "NI",
+    "LNT",
+    "EVRG",
+    "ATO",
+    "NWE",
+    "PNW",
+    "OGE",
+    "AVA",
+    "POR",
     // Communication Services (20)
-    "META", "GOOGL", "NFLX", "DIS", "CMCSA", "T", "VZ", "TMUS", "CHTR", "EA",
-    "TTWO", "MTCH", "NWSA", "FOXA", "IPG", "OMC", "PARA", "WBD", "DISH", "SIRI",
+    "META",
+    "GOOGL",
+    "NFLX",
+    "DIS",
+    "CMCSA",
+    "T",
+    "VZ",
+    "TMUS",
+    "CHTR",
+    "EA",
+    "TTWO",
+    "MTCH",
+    "NWSA",
+    "FOXA",
+    "IPG",
+    "OMC",
+    "PARA",
+    "WBD",
+    "DISH",
+    "SIRI",
     // Additional High Volume Stocks (87)
-    "ABNB", "ADSK", "AMAT", "ASML", "BIIB", "BKNG", "CDNS", "CHTR", "CPRT", "CRWD",
-    "DDOG", "DOCU", "DXCM", "ENPH", "ETSY", "FICO", "FTNT", "HUBS", "ILMN", "KLAC",
-    "LRCX", "LULU", "MCHP", "MELI", "MRNA", "NXPI", "OKTA", "PAYC", "PLTR", "PYPL",
-    "RBLX", "SHOP", "SNPS", "SPOT", "SQ", "TEAM", "TWLO", "U", "UBER", "WDAY",
-    "ZM", "ZS", "APA", "BABA", "BILI", "BIDU", "BEKE", "BYD", "CPNG", "DIDI",
-    "JD", "LI", "NIO", "PDD", "TAL", "TCOM", "TME", "VIPS", "WB", "XPEV",
-    "YUMC", "ARKK", "ARKG", "ARKW", "ARKF", "ARKX", "IBIT", "GBTC", "ETHE", "IWM",
-    "EEM", "EFA", "VEA", "VWO", "AGG", "LQD", "HYG", "EMB", "TLT", "IEF",
-    "SHY", "GLD", "SLV", "USO", "UNG", "DBA", "XLF"
+    "ABNB",
+    "ADSK",
+    "AMAT",
+    "ASML",
+    "BIIB",
+    "BKNG",
+    "CDNS",
+    "CHTR",
+    "CPRT",
+    "CRWD",
+    "DDOG",
+    "DOCU",
+    "DXCM",
+    "ENPH",
+    "ETSY",
+    "FICO",
+    "FTNT",
+    "HUBS",
+    "ILMN",
+    "KLAC",
+    "LRCX",
+    "LULU",
+    "MCHP",
+    "MELI",
+    "MRNA",
+    "NXPI",
+    "OKTA",
+    "PAYC",
+    "PLTR",
+    "PYPL",
+    "RBLX",
+    "SHOP",
+    "SNPS",
+    "SPOT",
+    "SQ",
+    "TEAM",
+    "TWLO",
+    "U",
+    "UBER",
+    "WDAY",
+    "ZM",
+    "ZS",
+    "APA",
+    "BABA",
+    "BILI",
+    "BIDU",
+    "BEKE",
+    "BYD",
+    "CPNG",
+    "DIDI",
+    "JD",
+    "LI",
+    "NIO",
+    "PDD",
+    "TAL",
+    "TCOM",
+    "TME",
+    "VIPS",
+    "WB",
+    "XPEV",
+    "YUMC",
+    "ARKK",
+    "ARKG",
+    "ARKW",
+    "ARKF",
+    "ARKX",
+    "IBIT",
+    "GBTC",
+    "ETHE",
+    "IWM",
+    "EEM",
+    "EFA",
+    "VEA",
+    "VWO",
+    "AGG",
+    "LQD",
+    "HYG",
+    "EMB",
+    "TLT",
+    "IEF",
+    "SHY",
+    "GLD",
+    "SLV",
+    "USO",
+    "UNG",
+    "DBA",
+    "XLF",
   ],
 
   // COMMODITIES: 200 symbols (Futures, Metals, Agriculture, Energy)
   commodity: [
     // Precious Metals (20)
-    "GC=F", "SI=F", "PL=F", "PA=F", "GLD", "SLV", "PPLT", "PALL", "IAU", "SIVR",
-    "GLTR", "SGOL", "AAAU", "BAR", "PHYS", "PSLV", "CEF", "GTU", "CDE", "HL",
+    "GC=F",
+    "SI=F",
+    "PL=F",
+    "PA=F",
+    "GLD",
+    "SLV",
+    "PPLT",
+    "PALL",
+    "IAU",
+    "SIVR",
+    "GLTR",
+    "SGOL",
+    "AAAU",
+    "BAR",
+    "PHYS",
+    "PSLV",
+    "CEF",
+    "GTU",
+    "CDE",
+    "HL",
     // Base Metals (20)
-    "HG=F", "ALI=F", "SCHN", "RS", "CMC", "NUE", "STLD", "X", "CLF", "MT",
-    "TX", "CSTM", "WOR", "ATI", "HAYN", "SXC", "ZEUS", "KALU", "CENX", "AA",
+    "HG=F",
+    "ALI=F",
+    "SCHN",
+    "RS",
+    "CMC",
+    "NUE",
+    "STLD",
+    "X",
+    "CLF",
+    "MT",
+    "TX",
+    "CSTM",
+    "WOR",
+    "ATI",
+    "HAYN",
+    "SXC",
+    "ZEUS",
+    "KALU",
+    "CENX",
+    "AA",
     // Energy (40)
-    "CL=F", "NG=F", "RB=F", "HO=F", "BZ=F", "USO", "UNG", "USL", "BNO", "UGA",
-    "UHN", "NRGU", "ERX", "ERY", "XLE", "XOP", "VDE", "IXC", "IEO", "IYE",
-    "FENY", "XES", "AMLP", "MLPA", "AMJ", "ENFR", "PXE", "PXJ", "FCG", "ICLN",
-    "TAN", "QCLN", "ACES", "SMOG", "GRID", "PBW", "FAN", "RAYS", "HDRO", "HJEN",
+    "CL=F",
+    "NG=F",
+    "RB=F",
+    "HO=F",
+    "BZ=F",
+    "USO",
+    "UNG",
+    "USL",
+    "BNO",
+    "UGA",
+    "UHN",
+    "NRGU",
+    "ERX",
+    "ERY",
+    "XLE",
+    "XOP",
+    "VDE",
+    "IXC",
+    "IEO",
+    "IYE",
+    "FENY",
+    "XES",
+    "AMLP",
+    "MLPA",
+    "AMJ",
+    "ENFR",
+    "PXE",
+    "PXJ",
+    "FCG",
+    "ICLN",
+    "TAN",
+    "QCLN",
+    "ACES",
+    "SMOG",
+    "GRID",
+    "PBW",
+    "FAN",
+    "RAYS",
+    "HDRO",
+    "HJEN",
     // Agriculture (60)
-    "ZC=F", "ZS=F", "ZW=F", "ZL=F", "ZM=F", "ZO=F", "ZR=F", "GF=F", "HE=F", "LE=F",
-    "KC=F", "CT=F", "SB=F", "CC=F", "OJ=F", "CORN", "SOYB", "WEAT", "CANE", "SGG",
-    "JO", "NIB", "BAL", "TAGS", "DBA", "RJA", "MOO", "VEGI", "FTGC", "FUD",
-    "ADM", "BG", "TSN", "CAG", "GIS", "K", "MKC", "CPB", "SJM", "HRL",
-    "INGR", "POST", "FLO", "CALM", "SAFM", "PPC", "LMNR", "VITL", "JJSF", "FARM",
-    "ANDE", "LANC", "GO", "SEB", "CVGW", "JBSS", "MRIN", "VFF", "APPH", "BYND",
+    "ZC=F",
+    "ZS=F",
+    "ZW=F",
+    "ZL=F",
+    "ZM=F",
+    "ZO=F",
+    "ZR=F",
+    "GF=F",
+    "HE=F",
+    "LE=F",
+    "KC=F",
+    "CT=F",
+    "SB=F",
+    "CC=F",
+    "OJ=F",
+    "CORN",
+    "SOYB",
+    "WEAT",
+    "CANE",
+    "SGG",
+    "JO",
+    "NIB",
+    "BAL",
+    "TAGS",
+    "DBA",
+    "RJA",
+    "MOO",
+    "VEGI",
+    "FTGC",
+    "FUD",
+    "ADM",
+    "BG",
+    "TSN",
+    "CAG",
+    "GIS",
+    "K",
+    "MKC",
+    "CPB",
+    "SJM",
+    "HRL",
+    "INGR",
+    "POST",
+    "FLO",
+    "CALM",
+    "SAFM",
+    "PPC",
+    "LMNR",
+    "VITL",
+    "JJSF",
+    "FARM",
+    "ANDE",
+    "LANC",
+    "GO",
+    "SEB",
+    "CVGW",
+    "JBSS",
+    "MRIN",
+    "VFF",
+    "APPH",
+    "BYND",
     // Livestock (10)
-    "COW", "BEEF", "HOGS", "MILK", "EGG", "CHKN", "TURK", "FISH", "SMON", "TUNA",
+    "COW",
+    "BEEF",
+    "HOGS",
+    "MILK",
+    "EGG",
+    "CHKN",
+    "TURK",
+    "FISH",
+    "SMON",
+    "TUNA",
     // Softs & Misc (50)
-    "WOOD", "LBS", "CUT", "PCH", "WDFC", "BCC", "UFPI", "WY", "RYN", "PCH",
-    "LPX", "POPE", "LL", "DOOR", "FBHS", "MHK", "BLD", "SSD", "FND", "BECN",
-    "AZEK", "TREX", "WOLF", "BOOT", "TILE", "KALU", "CSWC", "AMSF", "NGHC", "ABM",
-    "JELD", "APOG", "AAON", "ROCK", "WTS", "ALG", "ACA", "STRL", "WDFC", "PTVE",
-    "CRVL", "HWKN", "AMWD", "PRIM", "HIFS", "MATW", "PKE", "GVA", "MLI", "KOP"
+    "WOOD",
+    "LBS",
+    "CUT",
+    "PCH",
+    "WDFC",
+    "BCC",
+    "UFPI",
+    "WY",
+    "RYN",
+    "PCH",
+    "LPX",
+    "POPE",
+    "LL",
+    "DOOR",
+    "FBHS",
+    "MHK",
+    "BLD",
+    "SSD",
+    "FND",
+    "BECN",
+    "AZEK",
+    "TREX",
+    "WOLF",
+    "BOOT",
+    "TILE",
+    "KALU",
+    "CSWC",
+    "AMSF",
+    "NGHC",
+    "ABM",
+    "JELD",
+    "APOG",
+    "AAON",
+    "ROCK",
+    "WTS",
+    "ALG",
+    "ACA",
+    "STRL",
+    "WDFC",
+    "PTVE",
+    "CRVL",
+    "HWKN",
+    "AMWD",
+    "PRIM",
+    "HIFS",
+    "MATW",
+    "PKE",
+    "GVA",
+    "MLI",
+    "KOP",
   ],
 
   // CRYPTO: 200 symbols (Major coins + DeFi + NFT + Meme)
   crypto: [
     // Top 50 by Market Cap
-    "Bitcoin", "Ethereum", "BNB", "Solana", "XRP", "Cardano", "Avalanche", "Dogecoin", "Polkadot", "TRON",
-    "Polygon", "Litecoin", "Shiba-Inu", "Chainlink", "Bitcoin-Cash", "Uniswap", "Stellar", "Cosmos", "Monero", "Ethereum-Classic",
-    "Filecoin", "Aptos", "Hedera", "Cronos", "VeChain", "Algorand", "Near-Protocol", "Internet-Computer", "Quant", "Aave",
-    "The-Graph", "Fantom", "EOS", "Theta", "Tezos", "Axie-Infinity", "Flow", "Elrond", "Klaytn", "Decentraland",
-    "The-Sandbox", "Zcash", "BitTorrent", "Maker", "NEO", "Kava", "IOTA", "Dash", "Kusama", "Compound",
+    "Bitcoin",
+    "Ethereum",
+    "BNB",
+    "Solana",
+    "XRP",
+    "Cardano",
+    "Avalanche",
+    "Dogecoin",
+    "Polkadot",
+    "TRON",
+    "Polygon",
+    "Litecoin",
+    "Shiba-Inu",
+    "Chainlink",
+    "Bitcoin-Cash",
+    "Uniswap",
+    "Stellar",
+    "Cosmos",
+    "Monero",
+    "Ethereum-Classic",
+    "Filecoin",
+    "Aptos",
+    "Hedera",
+    "Cronos",
+    "VeChain",
+    "Algorand",
+    "Near-Protocol",
+    "Internet-Computer",
+    "Quant",
+    "Aave",
+    "The-Graph",
+    "Fantom",
+    "EOS",
+    "Theta",
+    "Tezos",
+    "Axie-Infinity",
+    "Flow",
+    "Elrond",
+    "Klaytn",
+    "Decentraland",
+    "The-Sandbox",
+    "Zcash",
+    "BitTorrent",
+    "Maker",
+    "NEO",
+    "Kava",
+    "IOTA",
+    "Dash",
+    "Kusama",
+    "Compound",
     // DeFi Tokens (50)
-    "Uniswap", "Aave", "Maker", "Compound", "Curve", "SushiSwap", "PancakeSwap", "dYdX", "Balancer", "Yearn-Finance",
-    "Synthetix", "1inch", "Bancor", "Loopring", "0x", "RenVM", "Kyber-Network", "bZx", "Ampleforth", "UMA",
-    "BadgerDAO", "Harvest-Finance", "Cream-Finance", "Alpha-Finance", "Venus", "Reef", "TrueFi", "Rari-Capital", "Vesper", "Idle",
-    "mStable", "dForce", "Barnbridge", "APWine", "Saffron-Finance", "88mph", "Element-Finance", "Pendle", "Alchemix", "Liquity",
-    "Reflexer", "Fei-Protocol", "Float-Protocol", "Euler", "Notional", "Ribbon-Finance", "Dopex", "Jones-DAO", "Redacted", "Olympus",
+    "Uniswap",
+    "Aave",
+    "Maker",
+    "Compound",
+    "Curve",
+    "SushiSwap",
+    "PancakeSwap",
+    "dYdX",
+    "Balancer",
+    "Yearn-Finance",
+    "Synthetix",
+    "1inch",
+    "Bancor",
+    "Loopring",
+    "0x",
+    "RenVM",
+    "Kyber-Network",
+    "bZx",
+    "Ampleforth",
+    "UMA",
+    "BadgerDAO",
+    "Harvest-Finance",
+    "Cream-Finance",
+    "Alpha-Finance",
+    "Venus",
+    "Reef",
+    "TrueFi",
+    "Rari-Capital",
+    "Vesper",
+    "Idle",
+    "mStable",
+    "dForce",
+    "Barnbridge",
+    "APWine",
+    "Saffron-Finance",
+    "88mph",
+    "Element-Finance",
+    "Pendle",
+    "Alchemix",
+    "Liquity",
+    "Reflexer",
+    "Fei-Protocol",
+    "Float-Protocol",
+    "Euler",
+    "Notional",
+    "Ribbon-Finance",
+    "Dopex",
+    "Jones-DAO",
+    "Redacted",
+    "Olympus",
     // Layer 2 & Scaling (30)
-    "Polygon", "Optimism", "Arbitrum", "Loopring", "ImmutableX", "zkSync", "StarkNet", "Metis", "Boba-Network", "Aztec",
-    "Hermez", "Fuel", "Celer", "Hop-Protocol", "Connext", "Across", "Synapse", "Multichain", "Stargate", "LayerZero",
-    "Wormhole", "Axelar", "Cbridge", "Gravity-Bridge", "Rainbow-Bridge", "Portal", "Allbridge", "O3-Swap", "Router-Protocol", "Rubic",
+    "Polygon",
+    "Optimism",
+    "Arbitrum",
+    "Loopring",
+    "ImmutableX",
+    "zkSync",
+    "StarkNet",
+    "Metis",
+    "Boba-Network",
+    "Aztec",
+    "Hermez",
+    "Fuel",
+    "Celer",
+    "Hop-Protocol",
+    "Connext",
+    "Across",
+    "Synapse",
+    "Multichain",
+    "Stargate",
+    "LayerZero",
+    "Wormhole",
+    "Axelar",
+    "Cbridge",
+    "Gravity-Bridge",
+    "Rainbow-Bridge",
+    "Portal",
+    "Allbridge",
+    "O3-Swap",
+    "Router-Protocol",
+    "Rubic",
     // NFT & Metaverse (30)
-    "Decentraland", "The-Sandbox", "Axie-Infinity", "Enjin", "Flow", "ImmutableX", "Gala", "WAX", "Theta", "ECOMI",
-    "Ultra", "MyNeighborAlice", "Star-Atlas", "Wilder-World", "Bloktopia", "Victoria-VR", "Somnium-Space", "CryptoVoxels", "Netvrk", "Voxies",
-    "BigTime", "Illuvium", "Ember-Sword", "Guild-of-Guardians", "Aurory", "DeFi-Kingdoms", "Crabada", "Farmers-World", "Alien-Worlds", "Splinterlands",
+    "Decentraland",
+    "The-Sandbox",
+    "Axie-Infinity",
+    "Enjin",
+    "Flow",
+    "ImmutableX",
+    "Gala",
+    "WAX",
+    "Theta",
+    "ECOMI",
+    "Ultra",
+    "MyNeighborAlice",
+    "Star-Atlas",
+    "Wilder-World",
+    "Bloktopia",
+    "Victoria-VR",
+    "Somnium-Space",
+    "CryptoVoxels",
+    "Netvrk",
+    "Voxies",
+    "BigTime",
+    "Illuvium",
+    "Ember-Sword",
+    "Guild-of-Guardians",
+    "Aurory",
+    "DeFi-Kingdoms",
+    "Crabada",
+    "Farmers-World",
+    "Alien-Worlds",
+    "Splinterlands",
     // Meme & Community (20)
-    "Dogecoin", "Shiba-Inu", "Floki", "SafeMoon", "Dogelon-Mars", "Baby-Doge", "Akita-Inu", "Kishu-Inu", "Hoge", "Saitama",
-    "Mononoke-Inu", "Catecoin", "Pitbull", "Shih-Tzu", "Corgi", "Husky", "Pomeranian", "Dachshund", "Chihuahua", "Pug",
+    "Dogecoin",
+    "Shiba-Inu",
+    "Floki",
+    "SafeMoon",
+    "Dogelon-Mars",
+    "Baby-Doge",
+    "Akita-Inu",
+    "Kishu-Inu",
+    "Hoge",
+    "Saitama",
+    "Mononoke-Inu",
+    "Catecoin",
+    "Pitbull",
+    "Shih-Tzu",
+    "Corgi",
+    "Husky",
+    "Pomeranian",
+    "Dachshund",
+    "Chihuahua",
+    "Pug",
     // Exchange Tokens (20)
-    "BNB", "FTX-Token", "Crypto-com-Coin", "Huobi-Token", "OKB", "KuCoin", "Gate-Token", "Bitfinex-LEO", "Gemini-Dollar", "MEXC-Token"
+    "BNB",
+    "FTX-Token",
+    "Crypto-com-Coin",
+    "Huobi-Token",
+    "OKB",
+    "KuCoin",
+    "Gate-Token",
+    "Bitfinex-LEO",
+    "Gemini-Dollar",
+    "MEXC-Token",
   ],
 
   // FOREX: 50 pairs (Majors, Minors, Exotics)
   forex: [
     // Major Pairs (8)
-    "EUR/USD", "USD/JPY", "GBP/USD", "USD/CHF", "USD/CAD", "AUD/USD", "NZD/USD", "EUR/GBP",
+    "EUR/USD",
+    "USD/JPY",
+    "GBP/USD",
+    "USD/CHF",
+    "USD/CAD",
+    "AUD/USD",
+    "NZD/USD",
+    "EUR/GBP",
     // Cross Pairs (20)
-    "EUR/JPY", "GBP/JPY", "CHF/JPY", "EUR/CHF", "GBP/CHF", "AUD/JPY", "NZD/JPY", "CAD/JPY",
-    "EUR/CAD", "GBP/CAD", "EUR/AUD", "GBP/AUD", "EUR/NZD", "GBP/NZD", "AUD/CAD", "AUD/NZD",
-    "AUD/CHF", "NZD/CAD", "NZD/CHF", "CAD/CHF",
+    "EUR/JPY",
+    "GBP/JPY",
+    "CHF/JPY",
+    "EUR/CHF",
+    "GBP/CHF",
+    "AUD/JPY",
+    "NZD/JPY",
+    "CAD/JPY",
+    "EUR/CAD",
+    "GBP/CAD",
+    "EUR/AUD",
+    "GBP/AUD",
+    "EUR/NZD",
+    "GBP/NZD",
+    "AUD/CAD",
+    "AUD/NZD",
+    "AUD/CHF",
+    "NZD/CAD",
+    "NZD/CHF",
+    "CAD/CHF",
     // Exotic Pairs (22)
-    "USD/SGD", "USD/HKD", "USD/ZAR", "USD/THB", "USD/MXN", "USD/NOK", "USD/SEK", "USD/DKK",
-    "USD/PLN", "USD/TRY", "USD/BRL", "USD/CNY", "USD/INR", "USD/KRW", "USD/RUB", "USD/IDR",
-    "EUR/TRY", "EUR/NOK", "EUR/SEK", "EUR/PLN", "GBP/ZAR", "AUD/SGD"
+    "USD/SGD",
+    "USD/HKD",
+    "USD/ZAR",
+    "USD/THB",
+    "USD/MXN",
+    "USD/NOK",
+    "USD/SEK",
+    "USD/DKK",
+    "USD/PLN",
+    "USD/TRY",
+    "USD/BRL",
+    "USD/CNY",
+    "USD/INR",
+    "USD/KRW",
+    "USD/RUB",
+    "USD/IDR",
+    "EUR/TRY",
+    "EUR/NOK",
+    "EUR/SEK",
+    "EUR/PLN",
+    "GBP/ZAR",
+    "AUD/SGD",
   ],
 
   // RATES-MACRO: 50 symbols (Bonds, Rates, Economic Indicators)
   "rates-macro": [
     // Treasury Bonds (15)
-    "TLT", "IEF", "SHY", "TIP", "GOVT", "VGIT", "VGLT", "SCHO", "SCHR", "SPTS",
-    "SPTL", "EDV", "BLV", "BSV", "BIV",
+    "TLT",
+    "IEF",
+    "SHY",
+    "TIP",
+    "GOVT",
+    "VGIT",
+    "VGLT",
+    "SCHO",
+    "SCHR",
+    "SPTS",
+    "SPTL",
+    "EDV",
+    "BLV",
+    "BSV",
+    "BIV",
     // Interest Rates (10)
-    "FEDFUNDS", "TNX", "IRX", "FVX", "TYX", "DGS10", "DGS2", "DGS5", "DGS30", "LIBOR",
+    "FEDFUNDS",
+    "TNX",
+    "IRX",
+    "FVX",
+    "TYX",
+    "DGS10",
+    "DGS2",
+    "DGS5",
+    "DGS30",
+    "LIBOR",
     // Economic Indicators (25)
-    "CPI", "PPI", "PCE", "GDP", "UNRATE", "PAYEMS", "INDPRO", "HOUST", "PERMIT", "RRSFS",
-    "M1", "M2", "DFII10", "T10YIE", "T5YIFR", "DCOILWTICO", "DEXUSEU", "DEXJPUS", "DEXUSAL",
-    "WILL5000IND", "NASDAQCOM", "SP500", "DJIA", "MORTGAGE30US", "MORTGAGE15US"
+    "CPI",
+    "PPI",
+    "PCE",
+    "GDP",
+    "UNRATE",
+    "PAYEMS",
+    "INDPRO",
+    "HOUST",
+    "PERMIT",
+    "RRSFS",
+    "M1",
+    "M2",
+    "DFII10",
+    "T10YIE",
+    "T5YIFR",
+    "DCOILWTICO",
+    "DEXUSEU",
+    "DEXJPUS",
+    "DEXUSAL",
+    "WILL5000IND",
+    "NASDAQCOM",
+    "SP500",
+    "DJIA",
+    "MORTGAGE30US",
+    "MORTGAGE15US",
   ],
 
   // STRESS: 29 symbols (Volatility, Credit, Sentiment)
   stress: [
     // Volatility Indices (10)
-    "VIX", "VXN", "RVX", "VVIX", "SKEW", "MOVE", "TYVIX", "GVZ", "OVX", "EVZ",
+    "VIX",
+    "VXN",
+    "RVX",
+    "VVIX",
+    "SKEW",
+    "MOVE",
+    "TYVIX",
+    "GVZ",
+    "OVX",
+    "EVZ",
     // Credit & Risk (10)
-    "HYG", "LQD", "JNK", "EMB", "BKLN", "FALN", "SHYG", "USHY", "ANGL", "SJNK",
+    "HYG",
+    "LQD",
+    "JNK",
+    "EMB",
+    "BKLN",
+    "FALN",
+    "SHYG",
+    "USHY",
+    "ANGL",
+    "SJNK",
     // Market Internals (9)
-    "TRIN", "TICK", "ADD", "VOLD", "VOLU", "ADVN", "DECN", "UNCH", "NH-NL"
-  ]
+    "TRIN",
+    "TICK",
+    "ADD",
+    "VOLD",
+    "VOLU",
+    "ADVN",
+    "DECN",
+    "UNCH",
+    "NH-NL",
+  ],
 }
 
 const PRICE_CSVS = {
@@ -450,7 +1354,7 @@ function mapCryptoSymbol(symbol: string): string {
     SUSHI: "sushi",
     PancakeSwap: "pancakeswap-token",
     CAKE: "pancakeswap-token",
-    "dYdX": "dydx",
+    dYdX: "dydx",
     DYDX: "dydx",
     Balancer: "balancer",
     BAL: "balancer",
@@ -1093,7 +1997,11 @@ async function fetchFREDHistorical(symbol: string, days: number): Promise<any[]>
     }))
 }
 
-async function fetchAlphaVantageHistorical(symbol: string, days: number, category: string): Promise<any[]> {
+async function fetchAlphaVantageHistorical(
+  symbol: string,
+  days: number,
+  category: string
+): Promise<any[]> {
   // Handle forex differently
   if (category === "forex" && symbol.includes("/")) {
     const [from, to] = symbol.split("/")
@@ -1320,7 +2228,9 @@ async function backfillFromCategoryMap(category?: string, days: number = 365): P
 
       // Progress update every 25 symbols
       if (processed % 25 === 0) {
-        console.log(`   📊 Progress: ${processed}/${symbols.length} (${inserted.toLocaleString()} records)`)
+        console.log(
+          `   📊 Progress: ${processed}/${symbols.length} (${inserted.toLocaleString()} records)`
+        )
       }
     }
 
@@ -1334,7 +2244,9 @@ async function backfillFromCategoryMap(category?: string, days: number = 365): P
     }
   }
 
-  console.log(`\n✅ COMPLETE: ${totalProcessed} symbols, ${totalInserted.toLocaleString()} records\n`)
+  console.log(
+    `\n✅ COMPLETE: ${totalProcessed} symbols, ${totalInserted.toLocaleString()} records\n`
+  )
 }
 
 // ============================================================================
@@ -1478,34 +2390,800 @@ async function checkPriceFreshness(): Promise<void> {
 }
 
 async function populateFeaturedTickers(): Promise<void> {
-  console.log("🚀 Populating featured tickers directly from database...\n")
+  console.log("🌟 Populating featured tickers (FAST MODE)...\n")
 
   try {
     // Import confluenceEngine functions
-    const { calculateAllFeaturedTickers, storeFeaturedTickers } = await import(
-      "../src/lib/services/confluenceEngine.js"
-    )
+    const { batchCalculateRatings, detectConvergenceForecastedSwings, storeFeaturedTickers } =
+      await import("../src/lib/services/confluenceEngine.js")
 
-    // Calculate featured tickers for all categories
-    console.log("📊 Calculating featured tickers across all categories...")
-    const featuredByCategory = await calculateAllFeaturedTickers()
+    // Get current ingress to determine scope
+    const today = new Date().toISOString().split("T")[0]
+    const { data: currentIngress } = await supabase
+      .from("astro_events")
+      .select("*")
+      .eq("event_type", "ingress")
+      .eq("body", "Sun")
+      .lte("date", today)
+      .order("date", { ascending: false })
+      .limit(1)
+      .single()
 
-    // Store all featured tickers
-    const allFeatured = Object.values(featuredByCategory).flat()
-    console.log(`\n💾 Storing ${allFeatured.length} featured tickers...`)
-    await storeFeaturedTickers(allFeatured)
-
-    // Summary
-    console.log("\n📊 Summary by category:")
-    for (const [category, tickers] of Object.entries(featuredByCategory)) {
-      console.log(`   ${category}: ${tickers.length} tickers`)
+    if (!currentIngress) {
+      console.log("⚠️  No ingress data, skipping featured refresh\n")
+      return
     }
 
-    console.log("\n✅ Featured tickers populated successfully")
+    const daysSinceIngress = Math.floor(
+      (Date.now() - new Date(currentIngress.date).getTime()) / (1000 * 60 * 60 * 24)
+    )
+
+    console.log(`🌞 Current ingress: ${currentIngress.sign} (Day ${daysSinceIngress})`)
+
+    // SENTINEL SYMBOLS (excluded from featured)
+    const SENTINELS = new Set([
+      "SPY",
+      "QQQ",
+      "XLY", // Equity
+      "GLD",
+      "USO",
+      "HG1!", // Commodity
+      "EUR/USD",
+      "USD/JPY",
+      "GBP/USD", // Forex
+      "Bitcoin",
+      "Ethereum",
+      "Solana", // Crypto
+      "TLT",
+      "FEDFUNDS",
+      "CPI", // Rates-macro
+      "VIX",
+      "MOVE",
+      "TRIN", // Stress
+    ])
+
+    const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
+    const allFeatured: any[] = []
+
+    for (const category of categories) {
+      console.log(`\n📂 ${category.toUpperCase()}`)
+
+      // STEP 1: Get symbols from ticker universe (limit to active, non-sentinels)
+      const { data: tickers } = await supabase
+        .from("ticker_universe")
+        .select("symbol")
+        .eq("category", category)
+        .eq("active", true)
+        .limit(100) // CRITICAL: Limit to 100 per category (not 1000)
+
+      if (!tickers || tickers.length === 0) {
+        console.log(`   ⚠️  No tickers found in universe`)
+        continue
+      }
+
+      const symbols = tickers
+        .map((t) => t.symbol)
+        .filter((s) => !SENTINELS.has(s))
+        .slice(0, 50) // CRITICAL: Further limit to 50 for convergence detection
+
+      console.log(`   🔍 Checking ${symbols.length} symbols for convergence...`)
+
+      // STEP 2: Run convergence detection (this is the expensive operation)
+      const convergenceResults = await detectConvergenceForecastedSwings(symbols, category)
+
+      if (convergenceResults.length > 0) {
+        console.log(`   ✅ Found ${convergenceResults.length} convergence forecasts`)
+
+        // Map to featured ticker format
+        const featured = convergenceResults.slice(0, 10).map((result, idx) => ({
+          symbol: result.symbol,
+          category,
+          sector: determineSector(result.symbol, category),
+          current_price: result.currentPrice,
+          next_key_level_price: result.forecastedSwing.price,
+          next_key_level_type: result.forecastedSwing.type === "high" ? "resistance" : "support",
+          distance_percent:
+            Math.abs((result.forecastedSwing.price - result.currentPrice) / result.currentPrice) *
+            100,
+          days_until: Math.floor(
+            (new Date(result.forecastedSwing.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+          ),
+          confluence_score: Math.round(result.forecastedSwing.finalConfidence * 100),
+          tradeability_score: Math.round(result.forecastedSwing.finalConfidence * 100),
+          reason: result.forecastedSwing.convergingMethods.join(", "),
+          rank: idx + 1,
+          updated_at: new Date().toISOString(),
+        }))
+
+        allFeatured.push(...featured)
+        console.log(`   💾 Added ${featured.length} to featured list`)
+      } else {
+        console.log(`   ℹ️  No convergence forecasts found, falling back to ratings...`)
+
+        // FALLBACK: Use ticker ratings (faster than convergence)
+        const ratings = await batchCalculateRatings({
+          symbols: symbols.slice(0, 30), // Even more limited for fallback
+          minScore: 70,
+          maxResults: 10,
+          lookbackDays: 365,
+          includeProjections: false, // CRITICAL: Skip expensive projections
+          includeSeasonalData: false, // CRITICAL: Skip expensive seasonal calcs
+          parallelism: 3, // CRITICAL: Reduce parallelism to avoid rate limits
+        })
+
+        if (ratings.length > 0) {
+          const featured = ratings.slice(0, 10).map((r, idx) => ({
+            symbol: r.symbol,
+            category: r.category,
+            sector: r.sector,
+            current_price: r.currentPrice,
+            next_key_level_price: r.nextKeyLevel.price,
+            next_key_level_type: r.nextKeyLevel.type,
+            distance_percent: r.nextKeyLevel.distancePercent,
+            days_until: r.nextKeyLevel.daysUntilEstimate,
+            confluence_score: r.scores.confluence,
+            tradeability_score: r.scores.total,
+            reason: r.reasons.join("; "),
+            rank: idx + 1,
+            updated_at: new Date().toISOString(),
+          }))
+
+          allFeatured.push(...featured)
+          console.log(`   💾 Added ${featured.length} from ratings`)
+        }
+      }
+
+      // Rate limiting between categories
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+    }
+
+    // STEP 3: Store results
+    if (allFeatured.length > 0) {
+      console.log(`\n💾 Storing ${allFeatured.length} featured tickers...`)
+
+      // Clear old data
+      for (const category of categories) {
+        await supabase.from("featured_tickers").delete().eq("category", category)
+      }
+
+      // Insert new data in batches
+      for (let i = 0; i < allFeatured.length; i += 50) {
+        const batch = allFeatured.slice(i, i + 50)
+        const { error } = await supabase.from("featured_tickers").insert(batch)
+
+        if (error) {
+          console.error(`   ❌ Error storing batch: ${error.message}`)
+        }
+      }
+
+      console.log(`\n✅ Featured tickers refresh complete`)
+      console.log(`   Total: ${allFeatured.length} tickers across ${categories.length} categories`)
+    } else {
+      console.log(`\n⚠️  No featured tickers found`)
+    }
   } catch (error: any) {
     console.error("❌ Error:", error.message)
     console.error(error.stack)
+    throw error
   }
+}
+
+// ============================================================================
+// INGRESS-AWARE CACHING SYSTEM (NEW - INSERT HERE)
+// ============================================================================
+
+async function getCurrentIngressPeriod(): Promise<{
+  period: string
+  sign: string
+  startDate: string
+  endDate: string
+  daysInPeriod: number
+}> {
+  const today = new Date().toISOString().split("T")[0]
+
+  const { data: currentIngress } = await supabase
+    .from("astro_events")
+    .select("*")
+    .eq("event_type", "ingress")
+    .eq("body", "Sun")
+    .lte("date", today)
+    .order("date", { ascending: false })
+    .limit(1)
+    .single()
+
+  if (!currentIngress) {
+    throw new Error("No ingress data found")
+  }
+
+  const { data: nextIngress } = await supabase
+    .from("astro_events")
+    .select("*")
+    .eq("event_type", "ingress")
+    .eq("body", "Sun")
+    .gt("date", today)
+    .order("date", { ascending: true })
+    .limit(1)
+    .single()
+
+  const startDate = currentIngress.date
+  const endDate =
+    nextIngress?.date ||
+    new Date(new Date(startDate).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const daysInPeriod = Math.floor(
+    (Date.now() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+  )
+
+  return {
+    period: `${new Date(startDate).getFullYear()}-${String(new Date(startDate).getMonth() + 1).padStart(2, "0")}-${currentIngress.sign.toLowerCase()}`,
+    sign: currentIngress.sign,
+    startDate,
+    endDate,
+    daysInPeriod,
+  }
+}
+
+function determineSector(symbol: string, category: string): string {
+  const SECTOR_MAP: Record<string, string> = {
+    // Technology
+    AAPL: "technology",
+    MSFT: "technology",
+    NVDA: "technology",
+    GOOGL: "technology",
+    META: "technology",
+    TSLA: "technology",
+    AMD: "technology",
+    INTC: "technology",
+    // Finance
+    JPM: "finance",
+    BAC: "finance",
+    GS: "finance",
+    MS: "finance",
+    WFC: "finance",
+    V: "finance",
+    MA: "finance",
+    AXP: "finance",
+    // Healthcare
+    JNJ: "healthcare",
+    UNH: "healthcare",
+    PFE: "healthcare",
+    ABBV: "healthcare",
+    LLY: "healthcare",
+    MRK: "healthcare",
+    // Energy
+    XOM: "energy",
+    CVX: "energy",
+    COP: "energy",
+    SLB: "energy",
+    // Consumer
+    AMZN: "consumer",
+    WMT: "consumer",
+    HD: "consumer",
+    MCD: "consumer",
+    NKE: "consumer",
+    SBUX: "consumer",
+  }
+
+  if (SECTOR_MAP[symbol]) return SECTOR_MAP[symbol]
+  if (category === "commodity") return "commodities"
+  if (category === "crypto") return "cryptocurrency"
+  if (category === "forex") return "currency"
+  if (category === "rates-macro") return "macro"
+  if (category === "stress") return "volatility"
+  return "unknown"
+}
+
+async function runMonthlyIngressScan(): Promise<void> {
+  console.log("🌙 MONTHLY INGRESS SCAN - Full Analysis\n")
+
+  const ingress = await getCurrentIngressPeriod()
+  console.log(`📅 Ingress Period: ${ingress.period}`)
+  console.log(`🌟 Sign: ${ingress.sign}`)
+  console.log(`📆 ${ingress.startDate} → ${ingress.endDate}`)
+  console.log(`⏱️  Day ${ingress.daysInPeriod} of period\n`)
+
+  // Check if we've already scanned this period
+  const { count: existingCount } = await supabase
+    .from("ticker_ratings_cache")
+    .select("*", { count: "exact", head: true })
+    .eq("ingress_period", ingress.period)
+
+  if (existingCount && existingCount > 0) {
+    console.log(`⚠️  Period ${ingress.period} already scanned (${existingCount} records)`)
+    console.log("Run 'refresh-monthly-scan' to force rescan\n")
+    return
+  }
+
+  // Import analysis functions
+  const { batchCalculateRatings, detectConvergenceForecastedSwings } =
+    await import("../src/lib/services/confluenceEngine.js")
+
+  const SENTINELS = new Set([
+    "SPY",
+    "QQQ",
+    "XLY",
+    "GLD",
+    "USO",
+    "HG1!",
+    "EUR/USD",
+    "USD/JPY",
+    "GBP/USD",
+    "Bitcoin",
+    "Ethereum",
+    "Solana",
+    "TLT",
+    "FEDFUNDS",
+    "CPI",
+    "VIX",
+    "MOVE",
+    "TRIN",
+  ])
+
+  const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
+  let totalAnalyzed = 0
+
+  for (const category of categories) {
+    console.log(`\n📂 ${category.toUpperCase()}`)
+
+    // Get all active tickers
+    const { data: tickers } = await supabase
+      .from("ticker_universe")
+      .select("symbol")
+      .eq("category", category)
+      .eq("active", true)
+
+    if (!tickers?.length) {
+      console.log(`   ⚠️  No tickers found`)
+      continue
+    }
+
+    const symbols = tickers.map((t) => t.symbol).filter((s) => !SENTINELS.has(s))
+
+    console.log(`   🔍 Analyzing ${symbols.length} symbols...`)
+
+    // PHASE 1: Get ratings for ALL symbols
+    const ratings = await batchCalculateRatings({
+      symbols,
+      minScore: 50,
+      maxResults: symbols.length,
+      lookbackDays: 365,
+      includeProjections: false,
+      includeSeasonalData: false,
+      parallelism: 5,
+    })
+
+    console.log(`   📊 Got ${ratings.length} ratings`)
+
+    // PHASE 2: Run convergence detection on top 30%
+    const topRatings = ratings
+      .sort((a, b) => b.scores.total - a.scores.total)
+      .slice(0, Math.ceil(ratings.length * 0.3))
+
+    console.log(`   🎯 Running convergence on top ${topRatings.length} symbols...`)
+
+    const convergenceResults = await detectConvergenceForecastedSwings(
+      topRatings.map((r) => r.symbol),
+      category
+    )
+
+    console.log(`   ✅ Found ${convergenceResults.length} convergence forecasts`)
+
+    // PHASE 3: Store in cache
+    const cacheRecords: any[] = []
+
+    // Add convergence results
+    for (const conv of convergenceResults) {
+      const rating = ratings.find((r) => r.symbol === conv.symbol)
+
+      cacheRecords.push({
+        symbol: conv.symbol,
+        category,
+        ingress_period: ingress.period,
+        calculated_at: new Date().toISOString(),
+        rating_data: {
+          current_price: conv.currentPrice,
+          price_date: new Date().toISOString().split("T")[0],
+          next_key_level: {
+            price: conv.forecastedSwing.price,
+            type: conv.forecastedSwing.type === "high" ? "resistance" : "support",
+            distance_percent:
+              Math.abs((conv.forecastedSwing.price - conv.currentPrice) / conv.currentPrice) * 100,
+            distance_points: Math.abs(conv.forecastedSwing.price - conv.currentPrice),
+          },
+          scores: {
+            confluence: rating?.scores.confluence || 0,
+            proximity: rating?.scores.proximity || 0,
+            momentum: rating?.scores.momentum || 0,
+            seasonal: rating?.scores.seasonal || 0,
+            aspect_alignment: rating?.scores.aspectAlignment || 0,
+            volatility: rating?.scores.volatility || 0,
+            trend: rating?.scores.trend || 0,
+            volume: rating?.scores.volume || 0,
+            technical: rating?.scores.technical || 0,
+            fundamental: rating?.scores.fundamental || 0,
+            total: rating?.scores.total || Math.round(conv.forecastedSwing.finalConfidence * 100),
+          },
+          rating: rating?.rating || null,
+          confidence: rating?.confidence || null,
+          recommendation: rating?.recommendation || null,
+          convergence: {
+            has_convergence: true,
+            methods: conv.forecastedSwing.convergingMethods,
+            confidence: conv.forecastedSwing.finalConfidence,
+            forecasted_swing: {
+              type: conv.forecastedSwing.type,
+              price: conv.forecastedSwing.price,
+              date: conv.forecastedSwing.date,
+            },
+          },
+          validations: {
+            fib: {
+              quality: conv.forecastedSwing.fibOverlap?.quality || "none",
+              ratio: conv.forecastedSwing.fibOverlap?.fibRatio || null,
+              score: conv.forecastedSwing.fibOverlap?.score || 0,
+            },
+            gann: {
+              quality: conv.forecastedSwing.gannValidation?.quality || "none",
+              time_symmetry: conv.forecastedSwing.gannValidation?.timeSymmetry || false,
+              price_square: conv.forecastedSwing.gannValidation?.priceSquare || false,
+              angle_holding: conv.forecastedSwing.gannValidation?.angleHolding || false,
+              score: conv.forecastedSwing.gannValidation?.score || 0,
+            },
+            lunar: {
+              phase: conv.forecastedSwing.lunarTiming?.phase || null,
+              recommendation: conv.forecastedSwing.lunarTiming?.recommendation || null,
+              entry_favorability: conv.forecastedSwing.lunarTiming?.entryFavorability || null,
+              exit_favorability: conv.forecastedSwing.lunarTiming?.exitFavorability || null,
+              days_to_phase: conv.forecastedSwing.lunarTiming?.daysToPhase || null,
+            },
+            atr: {
+              state: conv.forecastedSwing.atrAnalysis?.state || null,
+              current: conv.atr14,
+              current_percent: conv.forecastedSwing.atrAnalysis?.currentPercent || null,
+              average_percent: conv.forecastedSwing.atrAnalysis?.average || null,
+              multiple:
+                conv.atr14 > 0
+                  ? Math.abs(conv.forecastedSwing.price - conv.currentPrice) / conv.atr14
+                  : 0,
+              strength: conv.forecastedSwing.atrAnalysis?.strength || null,
+            },
+          },
+          sector: determineSector(conv.symbol, category),
+          reasons: rating?.reasons || [],
+          warnings: rating?.warnings || [],
+          projections: {
+            days_until_target: Math.floor(
+              (new Date(conv.forecastedSwing.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+            ),
+            reach_probability: conv.forecastedSwing.finalConfidence,
+            earliest_date: null,
+            most_likely_date: conv.forecastedSwing.date,
+            latest_date: null,
+          },
+          ingress_alignment: {
+            sign: ingress.sign,
+            start_date: ingress.startDate,
+            end_date: ingress.endDate,
+            days_in_period: ingress.daysInPeriod,
+            favorability: rating?.ingressAlignment?.favorability || null,
+          },
+          featured_rank: null,
+          dynamic_score: null,
+          last_rank_update: null,
+        },
+      })
+    }
+
+    // Add remaining ratings (without convergence)
+    const nonConvergenceSymbols = new Set(convergenceResults.map((c) => c.symbol))
+    for (const rating of ratings) {
+      if (nonConvergenceSymbols.has(rating.symbol)) continue
+
+      cacheRecords.push({
+        symbol: rating.symbol,
+        category,
+        ingress_period: ingress.period,
+        calculated_at: new Date().toISOString(),
+        rating_data: {
+          current_price: rating.currentPrice,
+          price_date: rating.priceDate,
+          next_key_level: {
+            price: rating.nextKeyLevel.price,
+            type: rating.nextKeyLevel.type,
+            distance_percent: rating.nextKeyLevel.distancePercent,
+            distance_points: rating.nextKeyLevel.distancePoints,
+          },
+          scores: {
+            confluence: rating.scores.confluence,
+            proximity: rating.scores.proximity,
+            momentum: rating.scores.momentum,
+            seasonal: rating.scores.seasonal,
+            aspect_alignment: rating.scores.aspectAlignment,
+            volatility: rating.scores.volatility,
+            trend: rating.scores.trend,
+            volume: rating.scores.volume,
+            technical: rating.scores.technical,
+            fundamental: rating.scores.fundamental,
+            total: rating.scores.total,
+          },
+          rating: rating.rating,
+          confidence: rating.confidence,
+          recommendation: rating.recommendation,
+          convergence: {
+            has_convergence: false,
+          },
+          validations: {
+            atr: {
+              current: rating.atr14,
+              multiple: rating.atrMultiple,
+            },
+          },
+          sector: rating.sector,
+          reasons: rating.reasons,
+          warnings: rating.warnings,
+          projections: {
+            days_until_target: rating.nextKeyLevel.daysUntilEstimate,
+            reach_probability: rating.projections?.probability || null,
+            earliest_date: rating.projections?.confidenceInterval?.earliest || null,
+            most_likely_date: rating.projections?.reachDate || null,
+            latest_date: rating.projections?.confidenceInterval?.latest || null,
+          },
+          ingress_alignment: {
+            sign: ingress.sign,
+            start_date: ingress.startDate,
+            end_date: ingress.endDate,
+            days_in_period: ingress.daysInPeriod,
+            favorability: rating.ingressAlignment?.favorability || null,
+          },
+          featured_rank: null,
+          dynamic_score: null,
+          last_rank_update: null,
+        },
+      })
+    }
+
+    // Batch insert
+    if (cacheRecords.length > 0) {
+      for (let i = 0; i < cacheRecords.length; i += 100) {
+        const batch = cacheRecords.slice(i, i + 100)
+        const { error } = await supabase.from("ticker_ratings_cache").upsert(batch, {
+          onConflict: "symbol,category,ingress_period",
+        })
+
+        if (error) {
+          console.error(`   ❌ Error inserting batch: ${error.message}`)
+        }
+      }
+
+      totalAnalyzed += cacheRecords.length
+      console.log(`   💾 Cached ${cacheRecords.length} analysis records`)
+    }
+
+    // Rate limiting between categories
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+  }
+
+  console.log(`\n✅ COMPLETE: ${totalAnalyzed} symbols analyzed and cached\n`)
+}
+
+async function runDailyRankUpdate(): Promise<void> {
+  console.log("📊 DAILY RANK UPDATE\n")
+
+  const ingress = await getCurrentIngressPeriod()
+  console.log(`📅 Period: ${ingress.period} (Day ${ingress.daysInPeriod})\n`)
+
+  const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
+  let totalUpdated = 0
+
+  for (const category of categories) {
+    console.log(`📂 ${category.toUpperCase()}`)
+
+    const { data: cached } = await supabase
+      .from("ticker_ratings_cache")
+      .select("*")
+      .eq("ingress_period", ingress.period)
+      .eq("category", category)
+
+    if (!cached?.length) {
+      console.log(`   ⚠️  No cache - run monthly scan first`)
+      continue
+    }
+
+    console.log(`   📊 Found ${cached.length} cached analyses`)
+
+    // Re-rank based on dynamic scoring
+    const scored = cached.map((item) => {
+      const data = item.rating_data
+      let dynamicScore = data.scores?.total || 0
+
+      // Convergence bonus (strong signal)
+      if (data.convergence?.has_convergence) {
+        dynamicScore += 15
+
+        if (data.convergence.confidence && data.convergence.confidence > 0.85) {
+          dynamicScore += 5
+        }
+      }
+
+      // Framework validation bonuses
+      if (data.validations?.fib?.quality === "excellent") dynamicScore += 8
+      else if (data.validations?.fib?.quality === "good") dynamicScore += 4
+
+      if (data.validations?.gann?.quality === "excellent") dynamicScore += 7
+      else if (data.validations?.gann?.quality === "good") dynamicScore += 3
+
+      // Lunar timing
+      if (data.validations?.lunar?.recommendation === "favorable_entry") dynamicScore += 5
+      else if (data.validations?.lunar?.recommendation === "caution") dynamicScore -= 3
+
+      // ATR state (setup vs. already moving)
+      if (data.validations?.atr?.state === "compression") dynamicScore += 6
+      else if (data.validations?.atr?.state === "expansion") dynamicScore -= 4
+
+      // ATR multiple quality
+      if (data.validations?.atr?.multiple && data.validations.atr.multiple >= 3) dynamicScore += 4
+      else if (data.validations?.atr?.multiple && data.validations.atr.multiple < 2)
+        dynamicScore -= 2
+
+      // Proximity bonus
+      if (data.next_key_level?.distance_percent && data.next_key_level.distance_percent < 2) {
+        dynamicScore += 3
+      }
+
+      // Ingress favorability
+      if (data.ingress_alignment?.favorability === "very_favorable") dynamicScore += 4
+      else if (data.ingress_alignment?.favorability === "unfavorable") dynamicScore -= 3
+
+      return {
+        symbol: item.symbol,
+        category: item.category,
+        ingress_period: item.ingress_period,
+        data,
+        dynamic_score: dynamicScore,
+      }
+    })
+
+    scored.sort((a, b) => b.dynamic_score - a.dynamic_score)
+
+    // Update ranks in JSONB
+    for (let i = 0; i < scored.length; i++) {
+      const updatedData = {
+        ...scored[i].data,
+        featured_rank: i < 10 ? i + 1 : null,
+        dynamic_score: scored[i].dynamic_score,
+        last_rank_update: new Date().toISOString(),
+      }
+
+      await supabase
+        .from("ticker_ratings_cache")
+        .update({
+          rating_data: updatedData,
+          calculated_at: new Date().toISOString(), // Update timestamp
+        })
+        .eq("symbol", scored[i].symbol)
+        .eq("category", scored[i].category)
+        .eq("ingress_period", scored[i].ingress_period)
+    }
+
+    totalUpdated += scored.length
+    const topTen = scored.filter((_, idx) => idx < 10).map((s, idx) => `${s.symbol} (#${idx + 1})`)
+
+    console.log(`   🏆 Top 10: ${topTen.join(", ")}`)
+  }
+
+  console.log(`\n✅ Ranks updated: ${totalUpdated} tickers\n`)
+
+  // Sync to featured_tickers table
+  await syncCacheToFeaturedTable(ingress.period)
+}
+
+async function syncCacheToFeaturedTable(ingressPeriod: string): Promise<void> {
+  console.log("🔄 Syncing cache to featured_tickers...\n")
+
+  // Query with JSONB field extraction
+  const { data: topTickers } = await supabase
+    .from("ticker_ratings_cache")
+    .select("symbol, category, rating_data")
+    .eq("ingress_period", ingressPeriod)
+    // Filter where rating_data->>'featured_rank' is not null using raw query
+    .not("rating_data->featured_rank", "is", null)
+    .order("rating_data->dynamic_score", { ascending: false } as any)
+    .limit(60) // Get top 60 (10 per category)
+
+  if (!topTickers?.length) {
+    console.log("⚠️  No featured tickers to sync")
+    return
+  }
+
+  console.log(`   📦 Found ${topTickers.length} ranked tickers`)
+
+  // Clear old featured table
+  await supabase.from("featured_tickers").delete().neq("symbol", "")
+
+  // Transform and insert
+  const featured = topTickers
+    .filter((t) => t.rating_data?.featured_rank) // Double-check
+    .map((t) => {
+      const data = t.rating_data
+      return {
+        symbol: t.symbol,
+        category: t.category,
+        sector: data.sector || determineSector(t.symbol, t.category),
+        current_price: data.current_price,
+        next_key_level_price: data.next_key_level?.price,
+        next_key_level_type: data.next_key_level?.type,
+        distance_percent: data.next_key_level?.distance_percent,
+        days_until: data.projections?.days_until_target,
+        confluence_score: data.scores?.confluence,
+        tradeability_score: data.scores?.total,
+        reason: data.convergence?.has_convergence
+          ? data.convergence.methods?.join(", ")
+          : data.reasons?.join("; ") || `Score: ${data.scores?.total}`,
+        rank: data.featured_rank,
+        updated_at: new Date().toISOString(),
+      }
+    })
+
+  if (featured.length > 0) {
+    const { error } = await supabase.from("featured_tickers").insert(featured)
+    if (error) {
+      console.error(`   ❌ Error syncing: ${error.message}`)
+    } else {
+      console.log(`   ✅ Synced ${featured.length} featured tickers\n`)
+    }
+  }
+}
+
+async function getFeaturedTickersFromCache(category?: string): Promise<any[]> {
+  const ingress = await getCurrentIngressPeriod()
+
+  let query = supabase
+    .from("ticker_ratings_cache")
+    .select("symbol, category, rating_data")
+    .eq("ingress_period", ingress.period)
+
+  if (category) {
+    query = query.eq("category", category)
+  }
+
+  const { data } = await query
+
+  if (!data?.length) return []
+
+  return data
+    .filter((t) => t.rating_data?.featured_rank)
+    .sort((a, b) => (a.rating_data.featured_rank || 999) - (b.rating_data.featured_rank || 999))
+    .map((t) => ({
+      symbol: t.symbol,
+      category: t.category,
+      currentPrice: t.rating_data.current_price,
+      lastSwing: {
+        type: t.rating_data.next_key_level?.type === "resistance" ? "low" : "high",
+        price: t.rating_data.current_price * 0.98,
+        date: t.rating_data.price_date,
+        barIndex: 0,
+      },
+      forecastedSwing: {
+        type:
+          t.rating_data.convergence?.forecasted_swing?.type ||
+          (t.rating_data.next_key_level?.type === "resistance" ? "high" : "low"),
+        price:
+          t.rating_data.convergence?.forecasted_swing?.price || t.rating_data.next_key_level?.price,
+        date:
+          t.rating_data.convergence?.forecasted_swing?.date ||
+          t.rating_data.projections?.most_likely_date,
+        convergingMethods: t.rating_data.convergence?.methods || ["Technical Analysis"],
+        baseConfidence: t.rating_data.convergence?.confidence || t.rating_data.scores?.total / 100,
+        astroBoost: 0,
+        finalConfidence: t.rating_data.convergence?.confidence || t.rating_data.scores?.total / 100,
+        fibOverlap: t.rating_data.validations?.fib,
+        gannValidation: t.rating_data.validations?.gann,
+        lunarTiming: t.rating_data.validations?.lunar,
+        atrAnalysis: t.rating_data.validations?.atr,
+      },
+      ingressValidity: true,
+      rank: t.rating_data.featured_rank,
+      atr14: t.rating_data.validations?.atr?.current,
+    }))
 }
 
 // ============================================================================
@@ -1720,6 +3398,8 @@ async function testAPIProviders(): Promise<void> {
 // MAIN CLI
 // ============================================================================
 
+export { getCurrentIngressPeriod, getFeaturedTickersFromCache }
+
 async function main() {
   const command = process.argv[2]
 
@@ -1730,6 +3410,22 @@ async function main() {
     "update-prices": () => updatePricesFromCSV(process.argv[3]),
     "check-freshness": checkPriceFreshness,
     "populate-featured": populateFeaturedTickers,
+    "monthly-scan": runMonthlyIngressScan,
+    "daily-rank": runDailyRankUpdate,
+    "refresh-monthly-scan": async () => {
+      const ingress = await getCurrentIngressPeriod()
+      await supabase.from("ticker_analysis_cache").delete().eq("ingress_period", ingress.period)
+      await runMonthlyIngressScan()
+    },
+    "check-cache": async () => {
+      const ingress = await getCurrentIngressPeriod()
+      const { count } = await supabase
+        .from("ticker_analysis_cache")
+        .select("*", { count: "exact", head: true })
+        .eq("ingress_period", ingress.period)
+
+      console.log(`📦 Cache for ${ingress.period}: ${count || 0} records`)
+    },
     "cron-update-prices": cronUpdatePricesDelayTolerant,
     "cron-refresh-featured": cronRefreshFeaturedDelayTolerant,
     "clean-old-data": () => cleanOldPriceData(1095),
@@ -1748,25 +3444,12 @@ async function main() {
     "backfill-all": () => backfillFromCategoryMap(undefined, 365),
     "backfill-map": () => backfillFromCategoryMap(process.argv[3], 365),
     "universe-stats": universeStats,
-    "check-ingress": async () => {
-      const today = new Date().toISOString().split("T")[0]
-      const { data } = await supabase
-        .from("astro_events")
-        .select("*")
-        .eq("event_type", "ingress")
-        .eq("body", "Sun")
-        .lte("date", today)
-        .order("date", { ascending: false })
-        .limit(1)
-        .single()
+    "check-ingress": checkCurrentIngress,
 
-      if (data) {
-        const days = Math.floor(
-          (Date.now() - new Date(data.date).getTime()) / (1000 * 60 * 60 * 24)
-        )
-        console.log(`🌞 Current ingress: ${data.sign} (${data.date}, ${days} days ago)`)
-      }
-    },
+    // NEW: Diagnostic commands
+    "debug-symbols": debugSymbolFormats,
+    "fix-symbols": fixSymbolFormats,
+    "verify-ingress": verifyIngressCalculation,
   }
 
   if (!command || !commands[command]) {
@@ -1782,12 +3465,18 @@ Core Commands:
   populate-featured              Populate featured tickers from scores
   check-ingress                  Check current astrological ingress status
 
-📄 Cron Commands:
+Ingress-Aware Caching:
+  monthly-scan                   Full analysis at start of ingress period
+  daily-rank                     Re-rank cached tickers (fast, uses cache)
+  refresh-monthly-scan           Force re-scan current ingress period
+  check-cache                    View cache status for current period
+
+Cron Commands:
   cron-update-prices [--categories=equity,crypto,forex]
                                  Smart price update with API fallbacks
   cron-refresh-featured          Ingress-aware featured ticker refresh
 
-🌐 Ticker Universe:
+Ticker Universe:
   init-universe                  Initialize complete ticker universe
   load-polygon-tickers           Load equity tickers from Polygon
   add-crypto                     Add crypto tickers to universe
@@ -1795,7 +3484,7 @@ Core Commands:
   add-commodities                Add commodities to universe
   universe-stats                 Show universe statistics
 
-📊 Historical Data Backfill:
+Historical Data Backfill:
   backfill [category]            Backfill 365d from ticker_universe table
   backfill-equity                Backfill equity from ticker_universe
   backfill-crypto                Backfill crypto from ticker_universe
@@ -1837,3 +3526,198 @@ main().catch((error) => {
   console.error("Uncaught error:", error)
   process.exit(1)
 })
+
+async function debugSymbolFormats() {
+  console.log("🔍 Symbol Format Diagnostic\n")
+
+  const categories = ["equity", "crypto", "forex", "commodity", "rates-macro", "stress"]
+
+  for (const category of categories) {
+    console.log(`\n📂 ${category.toUpperCase()}`)
+
+    // Get symbols from universe
+    const { data: universeTickers } = await supabase
+      .from("ticker_universe")
+      .select("symbol")
+      .eq("category", category)
+      .eq("active", true)
+      .limit(10)
+
+    const universeSymbols = universeTickers?.map((t: any) => t.symbol) || []
+    console.log(`   Universe (${universeSymbols.length}):`, universeSymbols.join(", "))
+
+    // Get symbols from financial_data
+    const { data: priceData } = await supabase
+      .from("financial_data")
+      .select("symbol")
+      .eq("category", category)
+      .limit(10000) // Get all to count distinct
+
+    const uniquePriceSymbols = [...new Set(priceData?.map((p: any) => p.symbol) || [])]
+    console.log(
+      `   Price Data (${uniquePriceSymbols.length}):`,
+      uniquePriceSymbols.slice(0, 10).join(", "),
+      uniquePriceSymbols.length > 10 ? "..." : ""
+    )
+
+    // Find mismatches
+    const mismatches = universeSymbols.filter((s: string) => !uniquePriceSymbols.includes(s))
+    if (mismatches.length > 0) {
+      console.log(`   ❌ No price data for:`, mismatches.join(", "))
+    } else {
+      console.log(`   ✅ All universe symbols have price data`)
+    }
+
+    // Check bar counts for sample symbols
+    for (const symbol of universeSymbols.slice(0, 3)) {
+      const { count } = await supabase
+        .from("financial_data")
+        .select("*", { count: "exact", head: true })
+        .eq("symbol", symbol)
+        .eq("category", category)
+
+      console.log(`   📊 ${symbol}: ${count || 0} bars`)
+    }
+  }
+}
+
+async function fixSymbolFormats() {
+  console.log("🔧 Normalizing symbol formats...\n")
+
+  const fixes = [
+    // Crypto
+    { from: "BTC", to: "bitcoin", category: "crypto" },
+    { from: "ETH", to: "ethereum", category: "crypto" },
+    { from: "SOL", to: "solana", category: "crypto" },
+    { from: "Bitcoin", to: "bitcoin", category: "crypto" },
+    { from: "Ethereum", to: "ethereum", category: "crypto" },
+    { from: "Solana", to: "solana", category: "crypto" },
+
+    // Forex
+    { from: "EURUSD", to: "EUR/USD", category: "forex" },
+    { from: "USDJPY", to: "USD/JPY", category: "forex" },
+    { from: "GBPUSD", to: "GBP/USD", category: "forex" },
+    { from: "GBPJPY", to: "GBP/JPY", category: "forex" },
+    { from: "AUDUSD", to: "AUD/USD", category: "forex" },
+
+    // Commodities
+    { from: "GC", to: "GC1!", category: "commodity" },
+    { from: "CL", to: "CL1!", category: "commodity" },
+    { from: "HG", to: "HG1!", category: "commodity" },
+  ]
+
+  for (const fix of fixes) {
+    // Update ticker_universe
+    const { error: universeError } = await supabase
+      .from("ticker_universe")
+      .update({ symbol: fix.to })
+      .eq("symbol", fix.from)
+      .eq("category", fix.category)
+
+    if (!universeError) {
+      console.log(`✅ ticker_universe: ${fix.from} → ${fix.to} (${fix.category})`)
+    }
+
+    // Update financial_data
+    const { error: dataError } = await supabase
+      .from("financial_data")
+      .update({ symbol: fix.to })
+      .eq("symbol", fix.from)
+      .eq("category", fix.category)
+
+    if (!dataError) {
+      console.log(`✅ financial_data: ${fix.from} → ${fix.to} (${fix.category})`)
+    }
+  }
+
+  console.log("\n✅ Symbol normalization complete")
+}
+
+async function verifyIngressCalculation() {
+  console.log("🌞 Verifying ingress calculation\n")
+
+  const today = new Date().toISOString().split("T")[0]
+
+  // FIXED: Use correct event_type filter
+  const { data: current } = await supabase
+    .from("astro_events")
+    .select("*")
+    .eq("event_type", "solar_ingress") // Changed from "ingress"
+    .eq("body", "Sun")
+    .lte("date", today)
+    .order("date", { ascending: false })
+    .limit(1)
+
+  if (!current || current.length === 0) {
+    console.log("❌ No solar_ingress data found in astro_events")
+    console.log("   Checking what event_types exist...")
+
+    const { data: types } = await supabase.from("astro_events").select("event_type").limit(100)
+
+    const uniqueTypes = [...new Set(types?.map((t: any) => t.event_type) || [])]
+    console.log("   Available event_types:", uniqueTypes.join(", "))
+    return
+  }
+
+  // Get next ingress
+  const { data: next } = await supabase
+    .from("astro_events")
+    .select("*")
+    .eq("event_type", "solar_ingress")
+    .eq("body", "Sun")
+    .gt("date", today)
+    .order("date", { ascending: true })
+    .limit(1)
+
+  const currentIngress = current[0]
+  const nextIngress = next && next.length > 0 ? next[0] : null
+
+  console.log(`Current Ingress: ${currentIngress.sign || "Unknown"}`)
+  console.log(`Start Date: ${currentIngress.date}`)
+  console.log(
+    `Next Ingress: ${nextIngress?.sign || "Unknown"} on ${nextIngress?.date || "Unknown"}`
+  )
+
+  // Calculate days CORRECTLY
+  const start = new Date(currentIngress.date)
+  const end = nextIngress
+    ? new Date(nextIngress.date)
+    : new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000)
+  const now = new Date()
+
+  const daysInPeriod = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+  const dayOfPeriod = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  const daysRemaining = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+
+  console.log(`\n📊 Period: ${daysInPeriod} days total`)
+  console.log(`📍 Current: Day ${dayOfPeriod} of ${daysInPeriod}`)
+  console.log(`⏳ Remaining: ${daysRemaining} days`)
+  console.log(`📈 Progress: ${Math.round((dayOfPeriod / daysInPeriod) * 100)}%`)
+
+  if (dayOfPeriod > daysInPeriod || dayOfPeriod < 1) {
+    console.log(`\n❌ INVALID: dayOfPeriod should be 1-${daysInPeriod}`)
+  } else {
+    console.log(`\n✅ Ingress calculation is correct`)
+  }
+}
+
+async function checkCurrentIngress() {
+  const today = new Date().toISOString().split("T")[0]
+  const { data } = await supabase
+    .from("astro_events")
+    .select("*")
+    .eq("event_type", "solar_ingress") // FIXED
+    .eq("body", "Sun")
+    .lte("date", today)
+    .order("date", { ascending: false })
+    .limit(1)
+    .single()
+
+  if (data) {
+    const days =
+      Math.floor((Date.now() - new Date(data.date).getTime()) / (1000 * 60 * 60 * 24)) + 1
+    console.log(`🌞 Current ingress: ${data.sign} (${data.date}, Day ${days})`)
+  } else {
+    console.log("❌ No solar ingress data found")
+  }
+}

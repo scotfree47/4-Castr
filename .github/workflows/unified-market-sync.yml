@@ -29,9 +29,9 @@ on:
         required: false
         type: choice
         options:
-          - "auto"      # Ingress-aware (day 1, 7, 14, 21, 28)
-          - "force"     # Always refresh
-          - "skip"      # Skip this run
+          - "auto" # Ingress-aware (day 1, 7, 14, 21, 28)
+          - "force" # Always refresh
+          - "skip" # Skip this run
         default: "auto"
       categories:
         description: "Categories to update (comma-separated: equity,crypto,forex,commodity,rates-macro,stress)"
@@ -296,27 +296,27 @@ jobs:
         run: |
           REFRESH_MODE="${{ steps.strategy.outputs.refresh_featured }}"
 
-          echo "═══════════════════════════════════════════════════════════════"
+          echo "╔══════════════════════════════════════════════════════════════╗"
           echo "🌟 Featured Tickers Refresh"
-          echo "───────────────────────────────────────────────────────────────"
+          echo "──────────────────────────────────────────────────────────────"
           echo "Mode: $REFRESH_MODE"
           echo "Time: $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z')"
-          echo "═══════════════════════════════════════════════════════════════"
+          echo "╚══════════════════════════════════════════════════════════════╝"
 
           if [ "$REFRESH_MODE" = "force" ]; then
-            echo "🔄 FORCE MODE: Refreshing all categories..."
-            npx tsx scripts/data-manager.ts populate-featured
+            echo "🌙 FORCE MODE: Running monthly scan"
+            npx tsx scripts/data-manager.ts monthly-scan
           elif [ "$REFRESH_MODE" = "daily" ]; then
-            echo "📅 DAILY MODE: Smart refresh (ingress-aware)..."
-            npx tsx scripts/data-manager.ts cron-refresh-featured
+            echo "📊 DAILY MODE: Updating ranks from cache"
+            npx tsx scripts/data-manager.ts daily-rank
           else
-            echo "🌞 INGRESS CHECK: Conditional refresh..."
-            npx tsx scripts/data-manager.ts cron-refresh-featured
+            echo "⏭️  Skipping featured refresh"
           fi
 
           echo ""
           echo "✅ Featured tickers refresh complete"
         continue-on-error: true
+        timeout-minutes: 15
 
       - name: 📊 Execution Summary
         if: always()

@@ -1,108 +1,71 @@
 // src/lib/dataProviders.js
 // Consolidated data providers: API adapters + CSV readers
 
-import axios from 'axios'
-import fs from 'fs'
-import path from 'path'
-import Papa from 'papaparse'
-import yahooFinance from 'yahoo-finance2'
+import axios from "axios"
+import fs from "fs"
+import path from "path"
+import Papa from "papaparse"
+import yahooFinance from "yahoo-finance2"
+import { normalizeSymbol, getSymbolVariants } from "../utils.js"
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-const CSV_BASE = path.join(process.cwd(), 'csv-pull', 'market-data', 'data')
+const CSV_BASE = path.join(process.cwd(), "csv-pull", "market-data", "data")
 const POLYGON_DELAY = 500 // 500ms = 2 calls/second
 let lastPolygonCall = 0
 
 // Symbol mappings for different providers
 const SYMBOL_MAPS = {
   polygon: {
-    'TNX': 'I:TNX',
-    'DXY': 'I:DXY',
-    'VIX': 'I:VIX',
-    'VVIX': 'I:VVIX',
-    'VXN': 'I:VXN',
-    'RVX': 'I:RVX',
-    'TYX': 'I:TYX',
-    'MOVE': 'I:MOVE',
-    'TRIN': 'I:TRIN',
-    'CL1!': 'CL=F',
-    'GC1!': 'GC=F',
-    'HG1!': 'HG=F',
-    'ZW1!': 'ZW=F',
-    'ZC1!': 'ZC=F',
-    'CT1!': 'CT=F',
-    'SB1!': 'SB=F',
-    'KC1!': 'KC=F',
-    'NG1!': 'NG=F',
-    'SI1!': 'SI=F',
-    'ZS1!': 'ZS=F',
-    'ZL1!': 'ZL=F',
-    'LE1!': 'LE=F',
+    // Indices (keep I: prefix for Polygon API)
+    TNX: "I:TNX",
+    DXY: "I:DXY",
+    VIX: "I:VIX",
+    MOVE: "I:MOVE",
+    TRIN: "I:TRIN",
+
+    // Futures (Polygon uses =F suffix)
+    "CL1!": "CL=F",
+    "GC1!": "GC=F",
+    "HG1!": "HG=F",
+    "ZW1!": "ZW=F",
+    "ZC1!": "ZC=F",
   },
-  twelve: {
-    'TNX': '^TNX',
-    'DXY': 'DXY',
-    'VIX': 'VIX',
-    'VVIX': 'VVIX',
-    'VXN': 'VXN',
-    'RVX': 'RVX',
-    'TYX': 'TYX',
-    'BVOL': 'BVOL',
-    'CL1!': 'CL',
-    'GC1!': 'GC',
-    'HG1!': 'HG',
-    'ZW1!': 'ZW',
-    'ZC1!': 'ZC',
-    'CT1!': 'CT',
-    'SB1!': 'SB',
-    'KC1!': 'KC',
-    'NG1!': 'NG',
-    'SI1!': 'SI',
-    'ZS1!': 'ZS',
-    'ZL1!': 'ZL',
-    'LE1!': 'LE',
-    'EUR/USD': 'EUR/USD',
-    'USD/JPY': 'USD/JPY',
-    'GBP/JPY': 'GBP/JPY',
-    'GBP/NZD': 'GBP/NZD',
-    'EUR/NZD': 'EUR/NZD',
-    'GBP/AUD': 'GBP/AUD',
-    'GBP/CAD': 'GBP/CAD',
-    'NZD/CAD': 'NZD/CAD',
-    'NZD/CHF': 'NZD/CHF',
-    'AUD/NZD': 'AUD/NZD',
-  },
+
   yahoo: {
-    'TNX': '^TNX',
-    'DXY': 'DX-Y.NYB',
-    'VIX': '^VIX',
-    'VVIX': '^VVIX',
-    'VXN': '^VXN',
-    'RVX': '^RVX',
-    'TYX': '^TYX',
-    'SPX': '^GSPC',
-    'NDX': '^NDX',
-    'CL1!': 'CL=F',
-    'GC1!': 'GC=F',
-    'HG1!': 'HG=F',
-    'ZW1!': 'ZW=F',
-    'ZC1!': 'ZC=F',
-    'CT1!': 'CT=F',
-    'SB1!': 'SB=F',
-    'KC1!': 'KC=F',
-    'NG1!': 'NG=F',
-    'SI1!': 'SI=F',
-    'ZS1!': 'ZS=F',
-    'ZL1!': 'ZL=F',
-    'LE1!': 'LE=F',
-    'EUR/USD': 'EURUSD=X',
-    'USD/JPY': 'JPY=X',
-    'GBP/USD': 'GBPUSD=X',
-    'GBP/JPY': 'GBPJPY=X',
-    'AUD/USD': 'AUDUSD=X',
-  }
+    // Indices
+    TNX: "^TNX",
+    DXY: "DX-Y.NYB",
+    VIX: "^VIX",
+    SPX: "^GSPC",
+    NDX: "^NDX",
+
+    // Futures
+    "CL1!": "CL=F",
+    "GC1!": "GC=F",
+    "HG1!": "HG=F",
+
+    // Forex (Yahoo uses =X suffix)
+    "EUR/USD": "EURUSD=X",
+    "USD/JPY": "JPY=X",
+    "GBP/USD": "GBPUSD=X",
+    "GBP/JPY": "GBPJPY=X",
+    "AUD/USD": "AUDUSD=X",
+  },
+
+  coingecko: {
+    // Crypto: normalize to CoinGecko IDs
+    bitcoin: "bitcoin",
+    ethereum: "ethereum",
+    solana: "solana",
+    binancecoin: "binancecoin",
+    ripple: "ripple",
+    cardano: "cardano",
+    "avalanche-2": "avalanche-2",
+    polkadot: "polkadot",
+  },
 }
 
 // ============================================================================
@@ -113,14 +76,16 @@ async function rateLimitedFetch(fetchFn) {
   const now = Date.now()
   const timeSinceLastCall = now - lastPolygonCall
   if (timeSinceLastCall < POLYGON_DELAY) {
-    await new Promise(resolve => setTimeout(resolve, POLYGON_DELAY - timeSinceLastCall))
+    await new Promise((resolve) => setTimeout(resolve, POLYGON_DELAY - timeSinceLastCall))
   }
   lastPolygonCall = Date.now()
   return fetchFn()
 }
 
-export function getMappedSymbol(symbol, provider) {
-  return SYMBOL_MAPS[provider]?.[symbol] || symbol
+export function getMappedSymbol(symbol, provider, category) {
+  const normalized = normalizeSymbol(symbol, category)
+
+  return SYMBOL_MAPS[provider]?.[normalized] || normalized
 }
 
 // ============================================================================
@@ -130,23 +95,23 @@ export function getMappedSymbol(symbol, provider) {
 export async function fetchFromPolygon(symbol, startDate, endDate) {
   return rateLimitedFetch(async () => {
     try {
-      const mappedSymbol = getMappedSymbol(symbol, 'polygon')
+      const mappedSymbol = getMappedSymbol(symbol, "polygon")
       const url = `https://api.polygon.io/v2/aggs/ticker/${mappedSymbol}/range/1/day/${startDate}/${endDate}`
-      
+
       const response = await axios.get(url, {
-        params: { apiKey: process.env.POLYGON_API_KEY }
+        params: { apiKey: process.env.POLYGON_API_KEY },
       })
-      
+
       if (response.data.results && response.data.results.length > 0) {
-        return response.data.results.map(bar => ({
+        return response.data.results.map((bar) => ({
           symbol,
-          date: new Date(bar.t).toISOString().split('T')[0],
+          date: new Date(bar.t).toISOString().split("T")[0],
           open: bar.o,
           high: bar.h,
           low: bar.l,
           close: bar.c,
           volume: bar.v,
-          source: 'polygon'
+          source: "polygon",
         }))
       }
       return null
@@ -159,28 +124,28 @@ export async function fetchFromPolygon(symbol, startDate, endDate) {
 
 export async function fetchFromTwelveData(symbol, startDate, endDate) {
   try {
-    const mappedSymbol = getMappedSymbol(symbol, 'twelve')
-    const url = 'https://api.twelvedata.com/time_series'
+    const mappedSymbol = getMappedSymbol(symbol, "twelve")
+    const url = "https://api.twelvedata.com/time_series"
 
     console.log(`Twelve Data: Fetching ${mappedSymbol} (original: ${symbol})`)
 
     const response = await axios.get(url, {
       params: {
         symbol: mappedSymbol,
-        interval: '1day',
+        interval: "1day",
         start_date: startDate,
         end_date: endDate,
-        apikey: process.env.TWELVE_DATA_API_KEY
-      }
+        apikey: process.env.TWELVE_DATA_API_KEY,
+      },
     })
 
-    if (response.data.status === 'error') {
+    if (response.data.status === "error") {
       console.error(`Twelve Data error for ${symbol}:`, response.data.message)
       return null
     }
 
     if (response.data.values && response.data.values.length > 0) {
-      return response.data.values.map(bar => ({
+      return response.data.values.map((bar) => ({
         symbol,
         date: bar.datetime,
         open: parseFloat(bar.open),
@@ -188,7 +153,7 @@ export async function fetchFromTwelveData(symbol, startDate, endDate) {
         low: parseFloat(bar.low),
         close: parseFloat(bar.close),
         volume: parseInt(bar.volume) || 0,
-        source: 'twelve_data'
+        source: "twelve_data",
       }))
     }
     return null
@@ -200,14 +165,14 @@ export async function fetchFromTwelveData(symbol, startDate, endDate) {
 
 export async function fetchFromYahooFinance(symbol, startDate, endDate) {
   try {
-    const mappedSymbol = getMappedSymbol(symbol, 'yahoo')
+    const mappedSymbol = getMappedSymbol(symbol, "yahoo")
 
     console.log(`Yahoo Finance: Fetching ${mappedSymbol} (original: ${symbol})`)
 
     const result = await yahooFinance.historical(mappedSymbol, {
       period1: startDate, // 'YYYY-MM-DD' or Date object
       period2: endDate,
-      interval: '1d'
+      interval: "1d",
     })
 
     if (!result || result.length === 0) {
@@ -216,15 +181,15 @@ export async function fetchFromYahooFinance(symbol, startDate, endDate) {
     }
 
     // Normalize to standard format
-    return result.map(bar => ({
-      symbol,  // Original symbol (unmapped)
-      date: bar.date.toISOString().split('T')[0],
+    return result.map((bar) => ({
+      symbol, // Original symbol (unmapped)
+      date: bar.date.toISOString().split("T")[0],
       open: bar.open,
       high: bar.high,
       low: bar.low,
       close: bar.close,
       volume: bar.volume || 0,
-      source: 'yahoo_finance'
+      source: "yahoo_finance",
     }))
   } catch (error) {
     console.error(`Yahoo Finance error for ${symbol}:`, error.message)
@@ -234,36 +199,36 @@ export async function fetchFromYahooFinance(symbol, startDate, endDate) {
 
 export async function fetchFromAlphaVantage(symbol, startDate, endDate) {
   try {
-    const url = 'https://www.alphavantage.co/query'
-    
+    const url = "https://www.alphavantage.co/query"
+
     const response = await axios.get(url, {
       params: {
-        function: 'TIME_SERIES_DAILY',
+        function: "TIME_SERIES_DAILY",
         symbol: symbol,
-        outputsize: 'full',
-        apikey: process.env.ALPHA_VANTAGE_API_KEY
-      }
+        outputsize: "full",
+        apikey: process.env.ALPHA_VANTAGE_API_KEY,
+      },
     })
-    
-    const timeSeries = response.data['Time Series (Daily)']
+
+    const timeSeries = response.data["Time Series (Daily)"]
     if (!timeSeries) return null
-    
+
     const results = []
     for (const [date, values] of Object.entries(timeSeries)) {
       if (date >= startDate && date <= endDate) {
         results.push({
           symbol,
           date,
-          open: parseFloat(values['1. open']),
-          high: parseFloat(values['2. high']),
-          low: parseFloat(values['3. low']),
-          close: parseFloat(values['4. close']),
-          volume: parseInt(values['5. volume']),
-          source: 'alpha_vantage'
+          open: parseFloat(values["1. open"]),
+          high: parseFloat(values["2. high"]),
+          low: parseFloat(values["3. low"]),
+          close: parseFloat(values["4. close"]),
+          volume: parseInt(values["5. volume"]),
+          source: "alpha_vantage",
         })
       }
     }
-    
+
     return results.length > 0 ? results : null
   } catch (error) {
     console.error(`Alpha Vantage error for ${symbol}:`, error.message)
@@ -273,22 +238,25 @@ export async function fetchFromAlphaVantage(symbol, startDate, endDate) {
 
 export async function fetchFromCoinGecko(coinId, days = 30) {
   try {
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart`
-    
+    // Ensure coinId is normalized (lowercase)
+    const normalizedId = normalizeSymbol(coinId, "crypto")
+
+    const url = `https://api.coingecko.com/api/v3/coins/${normalizedId}/market_chart`
+
     const response = await axios.get(url, {
       params: {
-        vs_currency: 'usd',
+        vs_currency: "usd",
         days: days,
-        x_cg_demo_api_key: process.env.COINGECKO_API_KEY
-      }
+        x_cg_demo_api_key: process.env.COINGECKO_API_KEY,
+      },
     })
-    
+
     if (response.data.prices && response.data.prices.length > 0) {
       return response.data.prices.map(([timestamp, price]) => ({
-        symbol: coinId,
-        date: new Date(timestamp).toISOString().split('T')[0],
+        symbol: normalizedId, // Use normalized ID
+        date: new Date(timestamp).toISOString().split("T")[0],
         close: price,
-        source: 'coingecko'
+        source: "coingecko",
       }))
     }
     return null
@@ -300,25 +268,27 @@ export async function fetchFromCoinGecko(coinId, days = 30) {
 
 export async function fetchFromCoinMarketCap(symbol) {
   try {
-    const url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
-    
+    const url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
+
     const response = await axios.get(url, {
       params: { symbol },
       headers: {
-        'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY
-      }
+        "X-CMC_PRO_API_KEY": process.env.COINMARKETCAP_API_KEY,
+      },
     })
-    
+
     const data = response.data.data[symbol]
     if (data) {
-      return [{
-        symbol,
-        date: new Date().toISOString().split('T')[0],
-        close: data.quote.USD.price,
-        volume: data.quote.USD.volume_24h,
-        percent_change_24h: data.quote.USD.percent_change_24h,
-        source: 'coinmarketcap'
-      }]
+      return [
+        {
+          symbol,
+          date: new Date().toISOString().split("T")[0],
+          close: data.quote.USD.price,
+          volume: data.quote.USD.volume_24h,
+          percent_change_24h: data.quote.USD.percent_change_24h,
+          source: "coinmarketcap",
+        },
+      ]
     }
     return null
   } catch (error) {
@@ -329,24 +299,24 @@ export async function fetchFromCoinMarketCap(symbol) {
 
 export async function fetchFromFRED(seriesId, startDate, endDate) {
   try {
-    const url = 'https://api.stlouisfed.org/fred/series/observations'
-    
+    const url = "https://api.stlouisfed.org/fred/series/observations"
+
     const response = await axios.get(url, {
       params: {
         series_id: seriesId,
         api_key: process.env.FRED_API_KEY,
-        file_type: 'json',
+        file_type: "json",
         observation_start: startDate,
-        observation_end: endDate
-      }
+        observation_end: endDate,
+      },
     })
-    
+
     if (response.data.observations && response.data.observations.length > 0) {
-      return response.data.observations.map(obs => ({
+      return response.data.observations.map((obs) => ({
         symbol: seriesId,
         date: obs.date,
         value: parseFloat(obs.value),
-        source: 'fred'
+        source: "fred",
       }))
     }
     return null
@@ -356,13 +326,30 @@ export async function fetchFromFRED(seriesId, startDate, endDate) {
   }
 }
 
-export async function fetchWithFallback(symbol, startDate, endDate, adapters) {
+export async function fetchWithFallback(symbol, startDate, endDate, adapters, category) {
+  // Try normalized symbol first
+  const normalized = normalizeSymbol(symbol, category)
+
   for (const adapter of adapters) {
-    const data = await adapter(symbol, startDate, endDate)
+    const data = await adapter(normalized, startDate, endDate)
     if (data && data.length > 0) {
       return data
     }
   }
+
+  // If normalized fails, try all variants
+  const variants = getSymbolVariants(symbol, category)
+  for (const variant of variants) {
+    if (variant === normalized) continue // Already tried
+
+    for (const adapter of adapters) {
+      const data = await adapter(variant, startDate, endDate)
+      if (data && data.length > 0) {
+        return data
+      }
+    }
+  }
+
   return null
 }
 
@@ -376,16 +363,16 @@ async function readAndFilterCSV(csvPath, symbolKey, symbolValue, startDate, endD
     return null
   }
 
-  const fileContent = fs.readFileSync(csvPath, 'utf8')
+  const fileContent = fs.readFileSync(csvPath, "utf8")
   const parsed = Papa.parse(fileContent, { header: true, dynamicTyping: true })
 
   const filtered = parsed.data
-    .filter(row => row[symbolKey] === symbolValue)
-    .filter(row => {
+    .filter((row) => row[symbolKey] === symbolValue)
+    .filter((row) => {
       const rowDate = row.Date
       return rowDate >= startDate && rowDate <= endDate
     })
-    .map(row => ({
+    .map((row) => ({
       symbol: row[symbolKey],
       date: row.Date,
       open: row.Open || null,
@@ -399,33 +386,33 @@ async function readAndFilterCSV(csvPath, symbolKey, symbolValue, startDate, endD
 }
 
 export async function readEquityCSV(symbol, startDate, endDate) {
-  const csvPath = path.join(CSV_BASE, 'equities', 'equities_solstice_equinox.csv')
-  return readAndFilterCSV(csvPath, 'Symbol', symbol, startDate, endDate)
+  const csvPath = path.join(CSV_BASE, "equities", "equities_solstice_equinox.csv")
+  return readAndFilterCSV(csvPath, "Symbol", symbol, startDate, endDate)
 }
 
 export async function readCryptoCSV(symbol, startDate, endDate) {
-  const csvPath = path.join(CSV_BASE, 'crypto', 'crypto_solstice_equinox.csv')
-  return readAndFilterCSV(csvPath, 'Symbol', symbol, startDate, endDate)
+  const csvPath = path.join(CSV_BASE, "crypto", "crypto_solstice_equinox.csv")
+  return readAndFilterCSV(csvPath, "Symbol", symbol, startDate, endDate)
 }
 
 export async function readForexCSV(pair, startDate, endDate) {
-  const csvPath = path.join(CSV_BASE, 'forex', 'forex_solstice_equinox.csv')
-  return readAndFilterCSV(csvPath, 'Pair', pair, startDate, endDate)
+  const csvPath = path.join(CSV_BASE, "forex", "forex_solstice_equinox.csv")
+  return readAndFilterCSV(csvPath, "Pair", pair, startDate, endDate)
 }
 
 export async function readCommodityCSV(commodity, startDate, endDate) {
-  const csvPath = path.join(CSV_BASE, 'commodities', 'commodities_solstice_equinox.csv')
-  return readAndFilterCSV(csvPath, 'Commodity', commodity, startDate, endDate)
+  const csvPath = path.join(CSV_BASE, "commodities", "commodities_solstice_equinox.csv")
+  return readAndFilterCSV(csvPath, "Commodity", commodity, startDate, endDate)
 }
 
 export async function readStressCSV(indicator, startDate, endDate) {
-  const csvPath = path.join(CSV_BASE, 'stress', 'stress_solstice_equinox.csv')
-  return readAndFilterCSV(csvPath, 'Indicator', indicator, startDate, endDate)
+  const csvPath = path.join(CSV_BASE, "stress", "stress_solstice_equinox.csv")
+  return readAndFilterCSV(csvPath, "Indicator", indicator, startDate, endDate)
 }
 
 export async function readRatesMacroCSV(symbol, startDate, endDate) {
-  const csvPath = path.join(CSV_BASE, 'rates-macro', 'rates_macro_solstice_equinox.csv')
-  return readAndFilterCSV(csvPath, 'Symbol', symbol, startDate, endDate)
+  const csvPath = path.join(CSV_BASE, "rates-macro", "rates_macro_solstice_equinox.csv")
+  return readAndFilterCSV(csvPath, "Symbol", symbol, startDate, endDate)
 }
 
 // ============================================================================
@@ -434,19 +421,19 @@ export async function readRatesMacroCSV(symbol, startDate, endDate) {
 
 export async function readFibonacciCSV(symbol, startDate, endDate) {
   try {
-    const fibDir = path.join(CSV_BASE, 'fibonacci')
+    const fibDir = path.join(CSV_BASE, "fibonacci")
 
     // Try CSV first
-    const csvPath = path.join(fibDir, 'fibonacci_levels.csv')
+    const csvPath = path.join(fibDir, "fibonacci_levels.csv")
     if (fs.existsSync(csvPath)) {
-      const csvContent = fs.readFileSync(csvPath, 'utf-8')
+      const csvContent = fs.readFileSync(csvPath, "utf-8")
       const parsed = Papa.parse(csvContent, {
         header: true,
         skipEmptyLines: true,
         dynamicTyping: true,
       })
 
-      const filtered = parsed.data.filter(row => {
+      const filtered = parsed.data.filter((row) => {
         const matchesSymbol = row.symbol === symbol || row.Symbol === symbol
         const rowDate = row.date || row.Date
         const matchesDate = (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate)
@@ -460,14 +447,14 @@ export async function readFibonacciCSV(symbol, startDate, endDate) {
     }
 
     // Fallback to JSON
-    const jsonPath = path.join(fibDir, 'fibonacci_levels.json')
+    const jsonPath = path.join(fibDir, "fibonacci_levels.json")
     if (fs.existsSync(jsonPath)) {
-      const jsonContent = fs.readFileSync(jsonPath, 'utf-8')
+      const jsonContent = fs.readFileSync(jsonPath, "utf-8")
       const jsonData = JSON.parse(jsonContent)
 
       const dataArray = Array.isArray(jsonData) ? jsonData : Object.values(jsonData)
 
-      const filtered = dataArray.filter(item => {
+      const filtered = dataArray.filter((item) => {
         const matchesSymbol = item.symbol === symbol || item.Symbol === symbol
         const rowDate = item.date || item.Date
         const matchesDate = (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate)
@@ -490,38 +477,38 @@ export async function readFibonacciCSV(symbol, startDate, endDate) {
 
 export async function readAstroAlignmentCSV(startDate, endDate, eventType = null) {
   try {
-    const astroDir = path.join(CSV_BASE, 'astro')
+    const astroDir = path.join(CSV_BASE, "astro")
 
     const files = {
       seasonal: {
-        filename: 'seasonal_anchors.csv',
-        eventField: 'type',
-        dateField: 'date',
+        filename: "seasonal_anchors.csv",
+        eventField: "type",
+        dateField: "date",
       },
       aspects: {
-        filename: 'aspects.csv',
-        eventField: 'aspect_type',
-        dateField: 'date',
+        filename: "aspects.csv",
+        eventField: "aspect_type",
+        dateField: "date",
       },
       ingresses: {
-        filename: 'ingresses.csv',
-        eventField: 'sign',
-        dateField: 'date',
+        filename: "ingresses.csv",
+        eventField: "sign",
+        dateField: "date",
       },
       retrogrades: {
-        filename: 'retrogrades.csv',
-        eventField: 'status',
-        dateField: 'date',
+        filename: "retrogrades.csv",
+        eventField: "status",
+        dateField: "date",
       },
       lunar_phases: {
-        filename: 'lunar_phases.csv',
-        eventField: 'phase',
-        dateField: 'date',
+        filename: "lunar_phases.csv",
+        eventField: "phase",
+        dateField: "date",
       },
       lunar_cycle: {
-        filename: 'lunar_cycle_18yr.csv',
-        eventField: 'key_phase',
-        dateField: 'date',
+        filename: "lunar_cycle_18yr.csv",
+        eventField: "key_phase",
+        dateField: "date",
       },
     }
 
@@ -538,45 +525,45 @@ export async function readAstroAlignmentCSV(startDate, endDate, eventType = null
       }
 
       try {
-        const content = fs.readFileSync(filePath, 'utf-8')
+        const content = fs.readFileSync(filePath, "utf-8")
         const parsed = Papa.parse(content, {
           header: true,
           skipEmptyLines: true,
         })
 
         const filtered = parsed.data
-          .filter(row => {
+          .filter((row) => {
             const rowDate = row[config.dateField]
             if (!rowDate) return false
 
             return (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate)
           })
-          .map(row => ({
+          .map((row) => ({
             ...row,
             event_type: type,
             date: row[config.dateField],
             event: row[config.eventField] || type,
-            ...(type === 'seasonal' && {
+            ...(type === "seasonal" && {
               event: row.type,
               sign: row.sign,
-              fibonacci_anchor: row.fibonacci_anchor === 'True',
+              fibonacci_anchor: row.fibonacci_anchor === "True",
               anchor_type: row.anchor_type,
             }),
-            ...(type === 'aspects' && {
+            ...(type === "aspects" && {
               event: `${row.body1} ${row.aspect_type} ${row.body2}`,
               body1: row.body1,
               body2: row.body2,
               aspect_nature: row.aspect_nature,
               orb: parseFloat(row.orb),
-              exact: row.exact === 'True',
+              exact: row.exact === "True",
             }),
-            ...(type === 'retrogrades' && {
+            ...(type === "retrogrades" && {
               event: `${row.body} ${row.status} retrograde`,
               body: row.body,
               sign: row.sign,
-              stationary: row.stationary === 'True',
+              stationary: row.stationary === "True",
             }),
-            ...(type === 'ingresses' && {
+            ...(type === "ingresses" && {
               event: `${row.body} enters ${row.sign}`,
               body: row.body,
               sign: row.sign,
@@ -595,27 +582,27 @@ export async function readAstroAlignmentCSV(startDate, endDate, eventType = null
 
     return results.length > 0 ? results : null
   } catch (error) {
-    console.warn('⚠ Error reading astro alignment data:', error.message)
+    console.warn("⚠ Error reading astro alignment data:", error.message)
     return null
   }
 }
 
 export async function readPriceTouchCSV(symbol, startDate, endDate) {
   try {
-    const touchPath = path.join(CSV_BASE, 'price-touches', `${symbol.toLowerCase()}_touches.csv`)
+    const touchPath = path.join(CSV_BASE, "price-touches", `${symbol.toLowerCase()}_touches.csv`)
 
     if (!fs.existsSync(touchPath)) {
       return null
     }
 
-    const content = fs.readFileSync(touchPath, 'utf-8')
+    const content = fs.readFileSync(touchPath, "utf-8")
     const parsed = Papa.parse(content, {
       header: true,
       skipEmptyLines: true,
       dynamicTyping: true,
     })
 
-    const filtered = parsed.data.filter(row => {
+    const filtered = parsed.data.filter((row) => {
       return (!startDate || row.date >= startDate) && (!endDate || row.date <= endDate)
     })
 

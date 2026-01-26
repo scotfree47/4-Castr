@@ -1,12 +1,12 @@
-"use client"
-
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Eye, TrendingUp, TrendingDown, Award } from "lucide-react"
+import { Award, Eye } from "lucide-react"
 import React, { useCallback, useEffect, useState } from "react"
+// ADD THIS IMPORT
+import type { ForecastedSwing } from "@/lib/services/confluenceEngine"
 
 // Sentinels - exclude from featured tickers
 const SENTINELS = {
@@ -23,16 +23,6 @@ interface SwingPoint {
   price: number
   date: string
   barIndex: number
-}
-
-interface ForecastedSwing {
-  type: "high" | "low"
-  price: number
-  date: string
-  convergingMethods: string[]
-  baseConfidence: number
-  astroBoost: number
-  finalConfidence: number
 }
 
 interface ForecastTicker {
@@ -340,6 +330,17 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
         {tickers.map((ticker) => {
           if (!ticker.currentPrice || !ticker.forecastedSwing?.price) return null
 
+          // Calculate display metrics from backend data
+          const priceDiff = Math.abs(ticker.forecastedSwing.price - ticker.currentPrice)
+          const percentMove = (priceDiff / ticker.currentPrice) * 100
+          const atrMultiple = ticker.atr14 ? priceDiff / ticker.atr14 : 0
+
+          // Get validation quality scores
+          const fibQuality = ticker.forecastedSwing.fibOverlap?.quality || "none"
+          const gannQuality = ticker.forecastedSwing.gannValidation?.quality || "none"
+          const lunarRec = ticker.forecastedSwing.lunarTiming?.recommendation || "neutral"
+          const atrState = ticker.forecastedSwing.atrAnalysis?.state || "neutral"
+
           const currentPos = ingressData
             ? getTimelinePosition(
                 new Date().toISOString().split("T")[0],
@@ -350,7 +351,6 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
           const swingPos = ingressData
             ? getTimelinePosition(ticker.forecastedSwing.date, ingressData.start, ingressData.end)
             : 75
-          const metrics = calculateATRMetrics(ticker, category)
 
           return (
             <div
@@ -372,27 +372,39 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                         {ticker.forecastedSwing.type === "high" ? "↗️" : "↘️"}{" "}
                         {ticker.forecastedSwing.type.toUpperCase()}
                       </Badge>
+                      {/* ATR State indicator */}
+                      <Badge
+                        variant="outline"
+                        className={
+                          atrState === "compression"
+                            ? "bg-blue-500/10 text-blue-400 border-blue-500/40"
+                            : atrState === "expansion"
+                              ? "bg-orange-500/10 text-orange-400 border-orange-500/40"
+                              : "bg-gray-500/10 text-gray-400 border-gray-500/40"
+                        }
+                      >
+                        {atrState === "compression"
+                          ? "🔵 Setup"
+                          : atrState === "expansion"
+                            ? "🟠 Active"
+                            : "⚪ Neutral"}
+                      </Badge>
                     </div>
 
-                    {/* Price Display with ATR% Requirement */}
+                    {/* Price Display with ATR Multiple */}
                     <div className="text-sm mt-1 space-y-0.5">
                       <div className="opacity-80">
                         ${ticker.currentPrice.toFixed(2)} → $
                         {ticker.forecastedSwing.price.toFixed(2)}
                       </div>
-                      <div
-                        className={`text-xs font-semibold ${
-                          metrics.meetsThreshold ? "text-green-400" : "text-red-400/60"
-                        }`}
-                      >
-                        {metrics.percentMove.toFixed(1)}% move / {metrics.thresholds.minPercent}%
-                        min required
+                      <div className="text-xs font-semibold text-green-400">
+                        {percentMove.toFixed(1)}% move · {atrMultiple.toFixed(2)}× ATR
                       </div>
                     </div>
                   </div>
                 </div>
                 <Badge variant="outline" className="font-mono font-bold text-base">
-                  {((ticker.forecastedSwing.finalConfidence || 0) * 100).toFixed(0)}%
+                  {(ticker.forecastedSwing.finalConfidence * 100).toFixed(0)}%
                 </Badge>
               </div>
 
@@ -430,45 +442,63 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                 </div>
               )}
 
-              {/* Last Swing Info */}
-              <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-                <div>
-                  <span className="opacity-60">Last {ticker.lastSwing?.type || "swing"}:</span>{" "}
-                  <span className="font-medium">${(ticker.lastSwing?.price || 0).toFixed(2)}</span>
+              {/* Framework Validation Grid */}
+              <div className="grid grid-cols-3 gap-2 text-xs mb-2">
+                <div className="text-center">
+                  <div className="opacity-60 mb-0.5">Fib+ATR</div>
+                  <Badge
+                    variant="outline"
+                    className={
+                      fibQuality === "excellent"
+                        ? "bg-green-500/20 text-green-400 border-green-500/60"
+                        : fibQuality === "good"
+                          ? "bg-blue-500/20 text-blue-400 border-blue-500/60"
+                          : "bg-gray-500/20 text-gray-400 border-gray-500/60"
+                    }
+                  >
+                    {fibQuality === "excellent" ? "🟢" : fibQuality === "good" ? "🔵" : "⚪"}
+                  </Badge>
                 </div>
-                <div>
-                  <span className="opacity-60">On:</span>{" "}
-                  <span className="font-medium">{ticker.lastSwing?.date || "N/A"}</span>
+                <div className="text-center">
+                  <div className="opacity-60 mb-0.5">Gann</div>
+                  <Badge
+                    variant="outline"
+                    className={
+                      gannQuality === "excellent"
+                        ? "bg-green-500/20 text-green-400 border-green-500/60"
+                        : gannQuality === "good"
+                          ? "bg-blue-500/20 text-blue-400 border-blue-500/60"
+                          : "bg-gray-500/20 text-gray-400 border-gray-500/60"
+                    }
+                  >
+                    {gannQuality === "excellent" ? "🟢" : gannQuality === "good" ? "🔵" : "⚪"}
+                  </Badge>
+                </div>
+                <div className="text-center">
+                  <div className="opacity-60 mb-0.5">Lunar</div>
+                  <Badge
+                    variant="outline"
+                    className={
+                      lunarRec === "favorable_entry"
+                        ? "bg-purple-500/20 text-purple-400 border-purple-500/60"
+                        : lunarRec === "caution"
+                          ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/60"
+                          : "bg-gray-500/20 text-gray-400 border-gray-500/60"
+                    }
+                  >
+                    {ticker.forecastedSwing.lunarTiming?.phase.split(" ")[0] || "N/A"}
+                  </Badge>
                 </div>
               </div>
 
-              {/* ATR Multiple Display */}
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  {ticker.forecastedSwing.type === "high" ? (
-                    <TrendingUp className="h-3 w-3 text-green-600" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-red-600" />
-                  )}
-                  <div className="flex items-center gap-1">
-                    <span
-                      className={
-                        metrics.meetsThreshold
-                          ? ticker.forecastedSwing.type === "high"
-                            ? "text-green-600 font-semibold"
-                            : "text-red-600 font-semibold"
-                          : "text-muted-foreground"
-                      }
-                    >
-                      {metrics.displayText}
-                    </span>
-                    {metrics.meetsThreshold && (
-                      <span className="text-xs opacity-60">
-                        (≥{metrics.thresholds.minMultiple}× threshold)
-                      </span>
-                    )}
-                  </div>
-                </div>
+              {/* Converging Methods */}
+              <div className="text-xs opacity-80">
+                <span className="font-semibold">
+                  {ticker.forecastedSwing.convergingMethods.length} methods:
+                </span>{" "}
+                {ticker.forecastedSwing.convergingMethods.slice(0, 2).join(", ")}
+                {ticker.forecastedSwing.convergingMethods.length > 2 &&
+                  ` +${ticker.forecastedSwing.convergingMethods.length - 2}`}
               </div>
             </div>
           )

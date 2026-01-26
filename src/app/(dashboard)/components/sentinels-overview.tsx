@@ -16,13 +16,14 @@ import {
   TrendingUpDown,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+
 const SENTINELS = {
   equity: ["SPY", "QQQ", "XLY"],
-  commodity: ["GLD", "USO", "HG"],
-  forex: ["EURUSD", "USDJPY", "GBPUSD"],
-  crypto: ["BTC", "ETH", "SOL"],
+  commodity: ["GLD", "USO", "HG1!"],
+  forex: ["EUR/USD", "USD/JPY", "GBP/USD"],
+  crypto: ["Bitcoin", "Ethereum", "Solana"],
   "rates-macro": ["TLT", "DXY", "TNX"],
-  stress: ["VIX", "MOVE", "SKEW"],
+  stress: ["VIX", "MOVE", "TRIN"],
 }
 
 const GROUP_CONFIG = [
@@ -72,14 +73,12 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
     api.on("select", () => {
       const index = api.selectedScrollSnap()
       setCurrent(index)
-      // Notify parent of category change
       if (onCategoryChange && metrics[index]) {
         onCategoryChange(metrics[index].categoryId)
       }
     })
   }, [api, metrics, onCategoryChange])
 
-  // Notify parent of initial category
   useEffect(() => {
     if (metrics.length > 0 && onCategoryChange) {
       onCategoryChange(metrics[0].categoryId)
@@ -136,11 +135,20 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
 
             console.log(`🔍 Fetching ${group.id}: ${symbolsParam}`)
 
-            // Fetch ticker ratings
+            // Use cache-first ticker ratings API
             const ratingsRes = await fetch(
               `/api/ticker-ratings?mode=batch&symbols=${symbolsParam}&minScore=0`,
-              { headers: { "Cache-Control": "no-cache" } }
+              {
+                headers: { "Cache-Control": "no-cache" },
+                cache: "no-store",
+              }
             )
+
+            if (!ratingsRes.ok) {
+              console.error(`❌ ${group.id} API error:`, ratingsRes.status)
+              return createEmptyMetric(group)
+            }
+
             const ratingsResult = await ratingsRes.json()
 
             console.log(
@@ -242,21 +250,6 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
-  }
-
-  const getWindowTypeColor = (type: string) => {
-    switch (type) {
-      case "high_probability":
-        return "bg-green-500/5 text-green-400 border-green-500/30 shadow-green-500/10"
-      case "moderate":
-        return "bg-blue-500/5 text-blue-400 border-blue-500/30 shadow-blue-500/10"
-      case "avoid":
-        return "bg-gray-500/5 text-gray-400 border-gray-500/30 shadow-gray-500/10"
-      case "extreme_volatility":
-        return "bg-orange-500/5 text-orange-400 border-orange-500/30 shadow-orange-500/10"
-      default:
-        return "bg-background/20 border-border/40"
-    }
   }
 
   return (
