@@ -8,6 +8,7 @@ import {
 } from "@/lib/indicators/keyLevels"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { ATR, BollingerBands, EMA, MACD, OBV, RSI } from "technicalindicators"
+import { getCurrentIngressPeriod } from "../utils"
 
 // ============================================================================
 // FRAMEWORK CONFIGURATION
@@ -962,6 +963,8 @@ function determineSector(symbol: string, category: string): string {
   return "unknown"
 }
 
+{
+  /*
 async function getCurrentIngressPeriod() {
   const today = new Date().toISOString().split("T")[0]
   const { data } = await getSupabaseAdmin()
@@ -997,6 +1000,8 @@ async function getCurrentIngressPeriod() {
     sign: current.sign || "Unknown",
     daysRemaining,
   }
+}
+*/
 }
 
 function calculateMomentumScore(

@@ -324,7 +324,7 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
           </a>
         </Button>
       </CardHeader>
-      <Separator orientation="horizontal" className="mx-4 sm:mx-6 md:mx-8" />
+      <Separator className="mx-auto" />
 
       <CardContent className="space-y-4">
         {tickers.map((ticker) => {

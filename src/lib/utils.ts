@@ -1,12 +1,13 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { getSupabaseAdmin } from "./supabase.js"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 // ============================================================================
-// SYMBOL NORMALIZATION (Enhanced from existing)
+// SYMBOL NORMALIZATION
 // ============================================================================
 
 const SYMBOL_ALIASES: Record<string, string> = {
@@ -129,4 +130,150 @@ export function formatSymbolForDisplay(symbol: string, category?: string): strin
   }
 
   return canonical
+}
+
+// ============================================================================
+// INGRESS PERIOD CALCULATIONS
+// ============================================================================
+
+export interface IngressPeriod {
+  sign: string
+  month: string
+  start: string
+  end: string
+  daysInPeriod: number
+  dayOfPeriod: number
+  daysRemaining: number
+  progress: number
+}
+
+/**
+ * Get current solar ingress period
+ * SINGLE SOURCE OF TRUTH - use this everywhere instead of local implementations
+ */
+export async function getCurrentIngressPeriod(): Promise<IngressPeriod> {
+  const supabase = getSupabaseAdmin()
+  const today = new Date().toISOString().split("T")[0]
+
+  // Get current ingress (most recent before today)
+  const { data: current } = await supabase
+    .from("astro_events")
+    .select("*")
+    .eq("event_type", "ingress") // IMPORTANT: 'ingress' not 'solar_ingress'
+    .eq("body", "Sun")
+    .lte("date", today)
+    .order("date", { ascending: false })
+    .limit(1)
+
+  // Get next ingress
+  const { data: next } = await supabase
+    .from("astro_events")
+    .select("*")
+    .eq("event_type", "ingress")
+    .eq("body", "Sun")
+    .gt("date", today)
+    .order("date", { ascending: true })
+    .limit(1)
+
+  if (!current || current.length === 0) {
+    // Fallback to estimated period
+    return estimateIngressPeriod(new Date())
+  }
+
+  const currentIngress = current[0]
+  const nextIngress = next && next.length > 0 ? next[0] : null
+
+  const startDate = new Date(currentIngress.date)
+  const endDate = nextIngress
+    ? new Date(nextIngress.date)
+    : new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000)
+  const now = new Date()
+
+  const daysInPeriod = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+  const dayOfPeriod = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  const progress = Math.round((dayOfPeriod / daysInPeriod) * 100)
+
+  return {
+    sign: currentIngress.sign || "Unknown",
+    month: getMonthName(startDate),
+    start: currentIngress.date,
+    end: endDate.toISOString().split("T")[0],
+    daysInPeriod,
+    dayOfPeriod,
+    daysRemaining,
+    progress,
+  }
+}
+
+/**
+ * Fallback when database has no ingress data
+ */
+function estimateIngressPeriod(date: Date): IngressPeriod {
+  const sign = getZodiacSign(date)
+  const bounds = getIngressBounds(date, sign)
+
+  const daysInPeriod = Math.ceil(
+    (bounds.end.getTime() - bounds.start.getTime()) / (1000 * 60 * 60 * 24)
+  )
+  const dayOfPeriod =
+    Math.floor((date.getTime() - bounds.start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  const daysRemaining = Math.ceil((bounds.end.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+
+  return {
+    sign,
+    month: getMonthName(bounds.start),
+    start: bounds.start.toISOString().split("T")[0],
+    end: bounds.end.toISOString().split("T")[0],
+    daysInPeriod,
+    dayOfPeriod,
+    daysRemaining,
+    progress: Math.round((dayOfPeriod / daysInPeriod) * 100),
+  }
+}
+
+function getZodiacSign(date: Date): string {
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+
+  if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return "Aquarius"
+  if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return "Pisces"
+  if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return "Aries"
+  if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return "Taurus"
+  if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return "Gemini"
+  if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return "Cancer"
+  if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return "Leo"
+  if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return "Virgo"
+  if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return "Libra"
+  if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return "Scorpio"
+  if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return "Sagittarius"
+  return "Capricorn"
+}
+
+function getIngressBounds(date: Date, sign: string): { start: Date; end: Date } {
+  const year = date.getFullYear()
+  const bounds: Record<string, { month: number; day: number }> = {
+    Aquarius: { month: 1, day: 20 },
+    Pisces: { month: 2, day: 19 },
+    Aries: { month: 3, day: 21 },
+    Taurus: { month: 4, day: 20 },
+    Gemini: { month: 5, day: 21 },
+    Cancer: { month: 6, day: 21 },
+    Leo: { month: 7, day: 23 },
+    Virgo: { month: 8, day: 23 },
+    Libra: { month: 9, day: 23 },
+    Scorpio: { month: 10, day: 23 },
+    Sagittarius: { month: 11, day: 22 },
+    Capricorn: { month: 12, day: 22 },
+  }
+
+  const start = new Date(year, bounds[sign].month - 1, bounds[sign].day)
+  const end = new Date(start)
+  end.setDate(end.getDate() + 30)
+
+  return { start, end }
+}
+
+function getMonthName(date: Date): string {
+  return date.toLocaleDateString("en-US", { month: "long" })
 }

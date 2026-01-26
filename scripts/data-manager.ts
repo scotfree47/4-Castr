@@ -3423,7 +3423,6 @@ async function main() {
         .from("ticker_analysis_cache")
         .select("*", { count: "exact", head: true })
         .eq("ingress_period", ingress.period)
-
       console.log(`📦 Cache for ${ingress.period}: ${count || 0} records`)
     },
     "cron-update-prices": cronUpdatePricesDelayTolerant,
@@ -3446,10 +3445,11 @@ async function main() {
     "universe-stats": universeStats,
     "check-ingress": checkCurrentIngress,
 
-    // NEW: Diagnostic commands
+    // Diagnostic commands
     "debug-symbols": debugSymbolFormats,
     "fix-symbols": fixSymbolFormats,
     "verify-ingress": verifyIngressCalculation,
+    "show-equity-mismatch": showEquityMismatch,
   }
 
   if (!command || !commands[command]) {
@@ -3578,6 +3578,51 @@ async function debugSymbolFormats() {
 
       console.log(`   📊 ${symbol}: ${count || 0} bars`)
     }
+  }
+}
+
+async function showEquityMismatch() {
+  console.log("🔍 Equity Symbol Mismatch Analysis\n")
+
+  // Get universe symbols
+  const { data: universeData } = await supabase
+    .from("ticker_universe")
+    .select("symbol")
+    .eq("category", "equity")
+    .eq("active", true)
+
+  const universeSymbols = new Set(universeData?.map((d: any) => d.symbol) || [])
+
+  // Get data symbols
+  const { data: dataSymbols } = await supabase
+    .from("financial_data")
+    .select("symbol")
+    .eq("category", "equity")
+
+  const uniqueDataSymbols = new Set(dataSymbols?.map((d: any) => d.symbol) || [])
+
+  console.log(`Universe has: ${universeSymbols.size} symbols`)
+  console.log(`Data has: ${uniqueDataSymbols.size} symbols`)
+
+  // Find universe symbols WITHOUT data
+  const noData = [...universeSymbols].filter((s) => !uniqueDataSymbols.has(s))
+  console.log(`\n❌ In universe but NO price data (${noData.length}):`)
+  console.log(noData.slice(0, 20).join(", "), noData.length > 20 ? "..." : "")
+
+  // Find data symbols NOT in universe
+  const notInUniverse = [...uniqueDataSymbols].filter((s) => !universeSymbols.has(s))
+  console.log(`\n⚠️  Has price data but NOT in universe (${notInUniverse.length}):`)
+  console.log(notInUniverse.slice(0, 20).join(", "), notInUniverse.length > 20 ? "..." : "")
+
+  // Sample a few mismatched symbols to see patterns
+  if (noData.length > 0) {
+    console.log(`\n📋 Sample universe symbols (first 10):`)
+    console.log([...universeSymbols].slice(0, 10).join(", "))
+  }
+
+  if (notInUniverse.length > 0) {
+    console.log(`\n📋 Sample data symbols (first 10):`)
+    console.log([...uniqueDataSymbols].slice(0, 10).join(", "))
   }
 }
 
