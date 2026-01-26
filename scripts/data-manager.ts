@@ -3642,7 +3642,7 @@ async function verifyIngressCalculation() {
   const { data: current } = await supabase
     .from("astro_events")
     .select("*")
-    .eq("event_type", "solar_ingress") // Changed from "ingress"
+    .eq("event_type", "ingress") // Changed from "ingress"
     .eq("body", "Sun")
     .lte("date", today)
     .order("date", { ascending: false })
@@ -3663,7 +3663,7 @@ async function verifyIngressCalculation() {
   const { data: next } = await supabase
     .from("astro_events")
     .select("*")
-    .eq("event_type", "solar_ingress")
+    .eq("event_type", "ingress")
     .eq("body", "Sun")
     .gt("date", today)
     .order("date", { ascending: true })
@@ -3706,7 +3706,7 @@ async function checkCurrentIngress() {
   const { data } = await supabase
     .from("astro_events")
     .select("*")
-    .eq("event_type", "solar_ingress") // FIXED
+    .eq("event_type", "ingress") // FIXED
     .eq("body", "Sun")
     .lte("date", today)
     .order("date", { ascending: false })
