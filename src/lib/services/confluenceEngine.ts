@@ -420,6 +420,58 @@ function analyzeLunarTiming(
   return { phase, daysToPhase, entryFavorability, exitFavorability, recommendation }
 }
 
+export async function calculateAstroConfirmation(
+  forecastDate: string,
+  currentPrice: number,
+  keyLevels: Array<{ price: number; type: string; strength: number }>
+): Promise<{ score: number; reasons: string[] }> {
+  const reasons: string[] = []
+  let totalScore = 0
+
+  // 1. Proximity to key levels (40% weight)
+  if (keyLevels.length > 0) {
+    const proximityScores = keyLevels.map((level) => {
+      const distance = Math.abs((level.price - currentPrice) / currentPrice) * 100
+      let score = 0
+      if (distance < 1) score = 95
+      else if (distance < 2) score = 85
+      else if (distance < 3) score = 75
+      else if (distance < 5) score = 65
+      else score = 50
+      return score * (level.strength / 10) // Weight by level strength
+    })
+    const proximityScore = Math.max(...proximityScores)
+    totalScore += proximityScore * 0.4
+
+    if (proximityScore >= 85) reasons.push("Near critical confluence zone")
+  } else {
+    totalScore += 50 * 0.4 // Neutral if no levels provided
+  }
+
+  // 2. Aspect score (40% weight) - 1-day window around forecast
+  const aspectScore = await calculateAspectScore(forecastDate, 1)
+  totalScore += aspectScore * 0.4
+
+  if (aspectScore >= 85) reasons.push("Highly harmonious aspects")
+  else if (aspectScore >= 75) reasons.push("Favorable planetary aspects")
+  else if (aspectScore < 40) reasons.push("Challenging aspect configuration")
+
+  // 3. Seasonal score (20% weight)
+  const ingressPeriod = await getCurrentIngressPeriod()
+  const seasonalScore = await calculateSeasonalScore(
+    new Date(forecastDate).getTime(),
+    ingressPeriod.end
+  )
+  totalScore += seasonalScore * 0.2
+
+  if (seasonalScore >= 75) reasons.push("Strong seasonal alignment")
+
+  return {
+    score: Math.round(totalScore),
+    reasons: reasons.length > 0 ? reasons : ["Standard astrological conditions"],
+  }
+}
+
 // ============================================================================
 // CORE TICKER RATING
 // ============================================================================
@@ -1576,6 +1628,7 @@ export async function detectConvergenceForecastedSwings(
     forecastedSwing: ForecastedSwing
     ingressValidity: boolean
     atr14: number
+    keyLevels: Array<{ price: number; type: string; strength: number }>
   }>
 > {
   const today = new Date().toISOString().split("T")[0]
@@ -1627,6 +1680,19 @@ export async function detectConvergenceForecastedSwings(
       }))
 
       const currentPrice = bars[bars.length - 1].close
+
+      const analysis = calculateEnhancedLevels(bars, currentPrice, {
+        swingLength: 20,
+        pivotBars: 5,
+        currentTime: Date.now(),
+      })
+
+      const keyLevels = analysis.supportResistance.map((sr) => ({
+        price: sr.price,
+        type: sr.type,
+        strength: sr.strength,
+      }))
+
       const lastSwing = findLastSwing(bars)
       if (!lastSwing) continue
 
@@ -1756,6 +1822,7 @@ export async function detectConvergenceForecastedSwings(
         forecastedSwing,
         ingressValidity: new Date(bestConvergence.date) <= new Date(ingressEnd),
         atr14,
+        keyLevels,
       })
     } catch (error) {
       // Silent fail per ticker

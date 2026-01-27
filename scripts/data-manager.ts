@@ -2134,76 +2134,88 @@ async function fetchHistoricalData(
   return []
 }
 
-async function backfillHistoricalData(category?: string, days: number = 365): Promise<void> {
-  console.log(`📊 Backfilling ${days} days of historical data...\n`)
+async function backfillData(options: {
+  categories?: string[]
+  symbols?: string[]
+  days?: number
+  source?: "universe" | "category_map"
+}): Promise<void> {
+  const { categories, symbols, days = 365, source = "category_map" } = options
 
-  let query = supabase
-    .from("ticker_universe")
-    .select("symbol, category, data_source")
-    .eq("active", true)
+  console.log(`📊 Backfilling ${days} days from ${source}...\n`)
 
-  if (category) {
-    query = query.eq("category", category)
-  }
+  // STEP 1: Determine which tickers to process
+  let tickersToProcess: Array<{ symbol: string; category: string }> = []
 
-  const { data: tickers } = await query.limit(50)
+  if (source === "universe") {
+    // Get from ticker_universe table
+    let query = supabase.from("ticker_universe").select("symbol, category").eq("active", true)
 
-  if (!tickers || tickers.length === 0) {
-    console.log("❌ No tickers found in universe\n")
-    return
-  }
-
-  let processed = 0
-  let inserted = 0
-
-  for (const ticker of tickers) {
-    const bars = await fetchHistoricalData(ticker.symbol, ticker.category, days)
-
-    if (bars.length > 0) {
-      for (let i = 0; i < bars.length; i += 500) {
-        const batch = bars.slice(i, i + 500)
-        const { error } = await supabase
-          .from("financial_data")
-          .upsert(batch, { onConflict: "symbol,date" })
-
-        if (!error) {
-          inserted += batch.length
-        }
-      }
-      console.log(`   ✅ ${ticker.symbol}: ${bars.length} bars`)
+    if (categories && categories.length > 0) {
+      query = query.in("category", categories)
+    }
+    if (symbols && symbols.length > 0) {
+      query = query.in("symbol", symbols)
     }
 
-    processed++
+    const { data: tickers } = await query.limit(1000)
 
-    if (processed % 5 === 0) {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+    if (!tickers || tickers.length === 0) {
+      console.log("❌ No tickers found in universe\n")
+      return
+    }
+
+    tickersToProcess = tickers.map((t: any) => ({
+      symbol: t.symbol,
+      category: t.category,
+    }))
+  } else {
+    // Get from CATEGORY_MAP
+    const categoriesToFetch = categories || Object.keys(CATEGORY_MAP)
+
+    for (const cat of categoriesToFetch) {
+      const categorySymbols = CATEGORY_MAP[cat as keyof typeof CATEGORY_MAP]
+      if (!categorySymbols) continue
+
+      const filteredSymbols = symbols
+        ? categorySymbols.filter((s: string) => symbols.includes(s))
+        : categorySymbols
+
+      tickersToProcess.push(
+        ...filteredSymbols.map((s: string) => ({
+          symbol: s,
+          category: cat,
+        }))
+      )
     }
   }
 
-  console.log(`\n✅ Backfilled ${inserted.toLocaleString()} data points for ${processed} tickers\n`)
-}
+  console.log(`🔍 Processing ${tickersToProcess.length} tickers...\n`)
 
-async function backfillFromCategoryMap(category?: string, days: number = 365): Promise<void> {
-  console.log(`📊 Backfilling from CATEGORY_MAP (${days} days)...\n`)
-
-  const categories = category ? [category] : Object.keys(CATEGORY_MAP)
-
+  // STEP 2: Fetch and insert data
   let totalProcessed = 0
   let totalInserted = 0
 
-  for (const cat of categories) {
-    const symbols = CATEGORY_MAP[cat as keyof typeof CATEGORY_MAP]
-    if (!symbols || symbols.length === 0) continue
+  // Group by category for better logging
+  const byCategory = tickersToProcess.reduce(
+    (acc, t) => {
+      if (!acc[t.category]) acc[t.category] = []
+      acc[t.category].push(t.symbol)
+      return acc
+    },
+    {} as Record<string, string[]>
+  )
 
-    console.log(`\n📂 ${cat.toUpperCase()} (${symbols.length} symbols)`)
+  for (const [category, categorySymbols] of Object.entries(byCategory)) {
+    console.log(`\n📂 ${category.toUpperCase()} (${categorySymbols.length} symbols)`)
 
-    let processed = 0
-    let inserted = 0
+    let categoryInserted = 0
 
-    for (const symbol of symbols) {
-      const bars = await fetchHistoricalData(symbol, cat, days)
+    for (const symbol of categorySymbols) {
+      const bars = await fetchHistoricalData(symbol, category, days)
 
       if (bars.length > 0) {
+        // Insert in batches of 500
         for (let i = 0; i < bars.length; i += 500) {
           const batch = bars.slice(i, i + 500)
           const { error } = await supabase
@@ -2211,7 +2223,7 @@ async function backfillFromCategoryMap(category?: string, days: number = 365): P
             .upsert(batch, { onConflict: "symbol,date" })
 
           if (!error) {
-            inserted += batch.length
+            categoryInserted += batch.length
           }
         }
         console.log(`   ✅ ${symbol.padEnd(15)} ${bars.length} bars`)
@@ -2219,28 +2231,29 @@ async function backfillFromCategoryMap(category?: string, days: number = 365): P
         console.log(`   ⚠️  ${symbol.padEnd(15)} No data`)
       }
 
-      processed++
+      totalProcessed++
 
       // Rate limiting: wait 2s every 5 symbols
-      if (processed % 5 === 0) {
+      if (totalProcessed % 5 === 0) {
         await new Promise((resolve) => setTimeout(resolve, 2000))
       }
 
       // Progress update every 25 symbols
-      if (processed % 25 === 0) {
+      if (totalProcessed % 25 === 0) {
         console.log(
-          `   📊 Progress: ${processed}/${symbols.length} (${inserted.toLocaleString()} records)`
+          `   📊 Progress: ${totalProcessed}/${tickersToProcess.length} (${categoryInserted.toLocaleString()} records this category)`
         )
       }
     }
 
-    console.log(`   ✅ ${cat}: ${processed} symbols, ${inserted.toLocaleString()} records`)
-    totalProcessed += processed
-    totalInserted += inserted
+    totalInserted += categoryInserted
+    console.log(
+      `   ✅ ${category}: ${categorySymbols.length} symbols, ${categoryInserted.toLocaleString()} records`
+    )
 
-    // Wait 5s between categories
-    if (categories.length > 1) {
-      await new Promise((resolve) => setTimeout(resolve, 5000))
+    // Wait 3s between categories
+    if (Object.keys(byCategory).length > 1) {
+      await new Promise((resolve) => setTimeout(resolve, 3000))
     }
   }
 
@@ -2394,7 +2407,7 @@ async function populateFeaturedTickers(): Promise<void> {
 
   try {
     // Import confluenceEngine functions
-    const { batchCalculateRatings, detectConvergenceForecastedSwings, storeFeaturedTickers } =
+    const { batchCalculateRatings, detectConvergenceForecastedSwings, calculateAstroConfirmation } =
       await import("../src/lib/services/confluenceEngine.js")
 
     // Get current ingress to determine scope
@@ -2694,7 +2707,7 @@ async function runMonthlyIngressScan(): Promise<void> {
   }
 
   // Import analysis functions
-  const { batchCalculateRatings, detectConvergenceForecastedSwings } =
+  const { batchCalculateRatings, detectConvergenceForecastedSwings, calculateAstroConfirmation } =
     await import("../src/lib/services/confluenceEngine.js")
 
   const SENTINELS = new Set([
@@ -2774,6 +2787,12 @@ async function runMonthlyIngressScan(): Promise<void> {
     for (const conv of convergenceResults) {
       const rating = ratings.find((r) => r.symbol === conv.symbol)
 
+      const astroConfirmation = await calculateAstroConfirmation(
+        conv.forecastedSwing.date,
+        conv.currentPrice,
+        conv.keyLevels
+      )
+
       cacheRecords.push({
         symbol: conv.symbol,
         category,
@@ -2813,6 +2832,10 @@ async function runMonthlyIngressScan(): Promise<void> {
               type: conv.forecastedSwing.type,
               price: conv.forecastedSwing.price,
               date: conv.forecastedSwing.date,
+            },
+            astro_confirmation: {
+              score: astroConfirmation.score,
+              reasons: astroConfirmation.reasons,
             },
           },
           validations: {
@@ -3437,11 +3460,30 @@ async function main() {
     "add-crypto": addCryptoToUniverse,
     "add-forex": addForexToUniverse,
     "add-commodities": addCommoditiesToUniverse,
-    backfill: () => backfillHistoricalData(process.argv[3], 365),
-    "backfill-equity": () => backfillHistoricalData("equity", 365),
-    "backfill-crypto": () => backfillHistoricalData("crypto", 90),
-    "backfill-all": () => backfillFromCategoryMap(undefined, 365),
-    "backfill-map": () => backfillFromCategoryMap(process.argv[3], 365),
+    backfill: () =>
+      backfillData({
+        categories: process.argv[3] ? [process.argv[3]] : undefined,
+        days: 365,
+        source: "universe",
+      }),
+    "backfill-all": () =>
+      backfillData({
+        days: 365,
+        source: "category_map",
+      }),
+    "backfill-map": () =>
+      backfillData({
+        categories: process.argv[3] ? [process.argv[3]] : undefined,
+        days: 365,
+        source: "category_map",
+      }),
+    "backfill-universe": () =>
+      backfillData({
+        categories: process.argv[3] ? [process.argv[3]] : undefined,
+        days: 365,
+        source: "universe",
+      }),
+
     "universe-stats": universeStats,
     "check-ingress": checkCurrentIngress,
 

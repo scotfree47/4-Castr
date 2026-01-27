@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-// app/api/ingress/route.js - CORRECTED VERSION
+// app/api/ingress/route.js - FIXED VERSION
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { NextResponse } from "next/server"
 
@@ -24,11 +24,12 @@ export async function GET() {
   try {
     const today = new Date().toISOString().split("T")[0]
 
-    // ✅ Fetch the last 2 solar ingress events
+    // ✅ FIXED: Use 'ingress' not 'solar_ingress'
     const { data, error } = await getSupabaseAdmin()
       .from("astro_events")
       .select("*")
-      .eq("event_type", "solar_ingress")
+      .eq("event_type", "ingress") // CRITICAL FIX
+      .eq("body", "Sun") // CRITICAL FIX
       .lte("date", today)
       .order("date", { ascending: false })
       .limit(2)
@@ -134,6 +135,7 @@ export async function GET() {
           sign: sign,
           month: monthName,
           daysRemaining: daysRemaining,
+          period: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${sign.toLowerCase()}`,
           isFallback: true,
         },
       })
@@ -165,6 +167,9 @@ export async function GET() {
       Math.floor((nextIngressDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
     )
 
+    // ✅ Calculate ingress period string for cache lookup
+    const period = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${zodiacSign.toLowerCase()}`
+
     // ✅ Return all fields that components expect
     return NextResponse.json({
       success: true,
@@ -176,6 +181,7 @@ export async function GET() {
         sign: zodiacSign,
         month: month,
         daysRemaining: daysRemaining,
+        period: period, // CRITICAL: Added for cache queries
 
         // Legacy format fields (for backward compatibility)
         currentStart: currentIngress.date,

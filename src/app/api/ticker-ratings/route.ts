@@ -1,22 +1,97 @@
 // app/api/ticker-ratings/route.ts
-import { createErrorResponse } from "@/lib/api/errors"
+// OPTIMIZED: Prioritize cache, fall back to live calculation only when needed
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 import { batchCalculateRatings, type TickerRating } from "@/lib/services/confluenceEngine"
+import { getCurrentIngressPeriod } from "@/lib/utils"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { NextRequest, NextResponse } from "next/server"
 
-async function getFeaturedTickersFromCache(category?: string): Promise<any[]> {
+async function getRatingsFromCache(
+  category?: string,
+  symbols?: string[],
+  ingressPeriod?: string
+): Promise<TickerRating[]> {
   try {
+    // Use current ingress if not provided
+    if (!ingressPeriod) {
+      const ingress = await getCurrentIngressPeriod()
+      ingressPeriod = `${new Date(ingress.start).getFullYear()}-${String(new Date(ingress.start).getMonth() + 1).padStart(2, "0")}-${ingress.sign.toLowerCase()}`
+    }
+
     let query = getSupabaseAdmin()
-      .from("featured_tickers")
+      .from("ticker_ratings_cache")
       .select("*")
-      .order("rank", { ascending: true })
+      .eq("ingress_period", ingressPeriod)
 
     if (category) query = query.eq("category", category)
+    if (symbols && symbols.length > 0) query = query.in("symbol", symbols)
 
     const { data, error } = await query
-    if (error) return []
-    return data || []
-  } catch {
+
+    if (error || !data || data.length === 0) return []
+
+    // Transform cache format to TickerRating format
+    return data.map((cached: any): TickerRating => {
+      const d = cached.rating_data
+      return {
+        symbol: cached.symbol,
+        category: cached.category,
+        sector: d.sector || "unknown",
+        currentPrice: d.current_price || 0,
+        priceDate: d.price_date || new Date().toISOString().split("T")[0],
+        dataPoints: 0,
+        nextKeyLevel: {
+          price: d.next_key_level?.price || 0,
+          type: d.next_key_level?.type || "resistance",
+          distancePercent: d.next_key_level?.distance_percent || 0,
+          distancePoints: d.next_key_level?.distance_points || 0,
+          daysUntilEstimate: d.projections?.days_until_target || 0,
+          confidence: d.scores?.total ? d.scores.total / 100 : 0,
+        },
+        scores: {
+          confluence: d.scores?.confluence || 0,
+          proximity: d.scores?.proximity || 0,
+          momentum: d.scores?.momentum || 0,
+          seasonal: d.scores?.seasonal || 0,
+          aspectAlignment: d.scores?.aspect_alignment || 0,
+          volatility: d.scores?.volatility || 0,
+          trend: d.scores?.trend || 0,
+          volume: d.scores?.volume || 0,
+          technical: d.scores?.technical || 0,
+          fundamental: d.scores?.fundamental || 0,
+          total: d.scores?.total || 0,
+        },
+        rating: d.rating || "C",
+        confidence: d.confidence || "medium",
+        recommendation: d.recommendation || "hold",
+        ingressAlignment: {
+          sign: d.ingress_alignment?.sign || "Unknown",
+          daysRemaining: d.ingress_alignment?.days_in_period || 0,
+          favorability: d.ingress_alignment?.favorability || "neutral",
+        },
+        reasons: d.reasons || [],
+        warnings: d.warnings || [],
+        projections: {
+          reachDate: d.projections?.most_likely_date || "",
+          probability: d.projections?.reach_probability || 0,
+          confidenceInterval: {
+            earliest: d.projections?.earliest_date || "",
+            mostLikely: d.projections?.most_likely_date || "",
+            latest: d.projections?.latest_date || "",
+          },
+        },
+        rank: d.featured_rank || 0,
+        confluenceScore: d.scores?.confluence || 0,
+        tradeabilityScore: d.scores?.total || 0,
+        reason: d.reasons?.join("; ") || "",
+        atr14: d.validations?.atr?.current || 0,
+        atrMultiple: d.validations?.atr?.multiple || 0,
+      }
+    })
+  } catch (error) {
+    console.error("Cache query error:", error)
     return []
   }
 }
@@ -40,152 +115,38 @@ export async function GET(request: NextRequest) {
       mode,
     }
 
-    // MODE 1: Featured tickers (dashboard) - USE CACHE FIRST
-    if (mode === "featured") {
-      console.log("📊 Fetching featured tickers (cache-first)...")
+    // PRIORITY 1: Try cache first (unless force refresh)
+    if (!forceRefresh) {
+      console.log("   📊 Attempting cache lookup...")
+      const cachedRatings = await getRatingsFromCache(
+        categoryFilter || undefined,
+        symbols,
+        undefined
+      )
 
-      // Try cache first
-      if (!forceRefresh) {
-        const cachedTickers = await getFeaturedTickersFromCache(categoryFilter || undefined)
+      if (cachedRatings.length > 0) {
+        console.log(`   ✅ Cache hit: ${cachedRatings.length} ratings`)
 
-        if (cachedTickers.length > 0) {
-          console.log(`✅ Cache hit: ${cachedTickers.length} featured tickers`)
+        // Filter by minScore
+        ratings = cachedRatings.filter((r) => r.scores.total >= minScore)
 
-          // Convert cached format to TickerRating format
-          ratings = cachedTickers.map(
-            (cached: any): TickerRating => ({
-              symbol: cached.symbol,
-              category: cached.category,
-              sector: cached.sector || "unknown",
-              currentPrice: cached.current_price || 0,
-              priceDate: new Date().toISOString().split("T")[0],
-              dataPoints: 0,
-              nextKeyLevel: {
-                price: cached.next_key_level_price || 0,
-                type: cached.next_key_level_type || "resistance",
-                distancePercent: cached.distance_percent || 0,
-                distancePoints: Math.abs(
-                  (cached.next_key_level_price || 0) - (cached.current_price || 0)
-                ),
-                daysUntilEstimate: cached.days_until || 0,
-                confidence: (cached.confluence_score || 0) / 100,
-              },
-              scores: {
-                confluence: cached.confluence_score || 0,
-                proximity: 0,
-                momentum: 0,
-                seasonal: 0,
-                aspectAlignment: 0,
-                volatility: 0,
-                trend: 0,
-                volume: 0,
-                technical: (cached.tradeability_score || 0) * 0.7,
-                fundamental: (cached.tradeability_score || 0) * 0.3,
-                total: cached.tradeability_score || 0,
-              },
-              rating:
-                cached.tradeability_score >= 90 ? "A" : cached.tradeability_score >= 80 ? "B" : "C",
-              confidence: cached.tradeability_score >= 85 ? "high" : "medium",
-              recommendation: "hold",
-              ingressAlignment: { sign: "Unknown", daysRemaining: 0, favorability: "neutral" },
-              reasons: cached.reason ? [cached.reason] : [],
-              warnings: [],
-              projections: {
-                reachDate: new Date(Date.now() + (cached.days_until || 14) * 24 * 60 * 60 * 1000)
-                  .toISOString()
-                  .split("T")[0],
-                probability: (cached.confluence_score || 0) / 100,
-                confidenceInterval: {
-                  earliest: "",
-                  mostLikely: new Date(Date.now() + (cached.days_until || 14) * 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .split("T")[0],
-                  latest: "",
-                },
-              },
-              rank: cached.rank || 0,
-              confluenceScore: cached.confluence_score || 0,
-              tradeabilityScore: cached.tradeability_score || 0,
-              reason: cached.reason || "",
-              atr14: 0,
-              atrMultiple: 0,
-            })
-          )
+        // Sort and limit
+        ratings.sort((a, b) => b.scores.total - a.scores.total)
+        ratings = ratings.slice(0, maxResults)
 
-          metadata.source = "cache"
-          metadata.cacheHit = true
-        } else {
-          console.log("⚠️ Cache miss, calculating fresh...")
-
-          // Use batch calculation instead of deprecated function
-          const options: any = {
-            minScore: 50,
-            maxResults: 10,
-            lookbackDays: 1095,
-            includeProjections: true,
-            includeSeasonalData: true,
-            parallelism: 5,
-          }
-
-          if (categoryFilter) {
-            options.categories = [categoryFilter]
-          }
-
-          ratings = await batchCalculateRatings(options)
-          metadata.source = "calculated"
-          metadata.cacheHit = false
-        }
+        metadata.source = "cache"
+        metadata.cacheHit = true
       } else {
-        // Force refresh using batch calculation
-        console.log("🔄 Force refresh requested...")
-
-        const options: any = {
-          minScore: 50,
-          maxResults: 10,
-          lookbackDays: 1095,
-          includeProjections: true,
-          includeSeasonalData: true,
-          parallelism: 5,
-        }
-
-        if (categoryFilter) {
-          options.categories = [categoryFilter]
-        }
-
-        ratings = await batchCalculateRatings(options)
-        metadata.source = "calculated"
+        console.log("   ⚠️  Cache miss, falling back to live calculation...")
+        ratings = await performLiveCalculation(mode, categoryFilter, symbols, minScore, maxResults)
+        metadata.source = "live_calculation"
         metadata.cacheHit = false
       }
-    }
-    // MODE 2: Batch ratings
-    else {
-      console.log("📊 Batch calculating ticker ratings...")
-
-      const options: any = {
-        minScore,
-        maxResults,
-        lookbackDays: 1095,
-        includeProjections: true,
-        includeSeasonalData: true,
-        parallelism: 5,
-      }
-
-      if (categoryFilter) {
-        options.categories = [categoryFilter]
-      }
-
-      if (symbols && symbols.length > 0) {
-        options.symbols = symbols
-      }
-
-      ratings = await batchCalculateRatings(options)
-
-      metadata.filters = {
-        category: categoryFilter || "all",
-        minScore,
-        maxResults,
-        symbolsRequested: symbols?.length || 0,
-      }
+    } else {
+      console.log("   🔄 Force refresh: live calculation...")
+      ratings = await performLiveCalculation(mode, categoryFilter, symbols, minScore, maxResults)
+      metadata.source = "live_calculation_forced"
+      metadata.cacheHit = false
     }
 
     // Generate summary
@@ -210,7 +171,7 @@ export async function GET(request: NextRequest) {
       summary.byCategory[category] = ratings.filter((r) => r.category === category).length
     }
 
-    console.log(`✅ Completed: ${ratings.length} ratings (avg: ${summary.averageScore})`)
+    console.log(`   ✅ Returning ${ratings.length} ratings (avg: ${summary.averageScore})`)
 
     return NextResponse.json({
       success: true,
@@ -220,9 +181,35 @@ export async function GET(request: NextRequest) {
         metadata,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Ticker rating error:", error)
-    const errorResponse = createErrorResponse(error, "Failed to calculate ticker ratings")
-    return NextResponse.json(errorResponse, { status: errorResponse.status })
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
+}
+
+async function performLiveCalculation(
+  mode: string,
+  categoryFilter: string | null,
+  symbols: string[] | undefined,
+  minScore: number,
+  maxResults: number
+): Promise<TickerRating[]> {
+  const options: any = {
+    minScore,
+    maxResults,
+    lookbackDays: 1095,
+    includeProjections: false, // CRITICAL: Disable expensive features
+    includeSeasonalData: false, // CRITICAL: Disable expensive features
+    parallelism: 3, // CRITICAL: Reduce parallelism
+  }
+
+  if (categoryFilter) {
+    options.categories = [categoryFilter]
+  }
+
+  if (symbols && symbols.length > 0) {
+    options.symbols = symbols
+  }
+
+  return await batchCalculateRatings(options)
 }
