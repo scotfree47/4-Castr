@@ -145,6 +145,7 @@ export interface IngressPeriod {
   dayOfPeriod: number
   daysRemaining: number
   progress: number
+  period: string // CRITICAL: Added for cache queries (format: "YYYY-MM-sign")
 }
 
 /**
@@ -194,6 +195,10 @@ export async function getCurrentIngressPeriod(): Promise<IngressPeriod> {
   const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
   const progress = Math.round((dayOfPeriod / daysInPeriod) * 100)
 
+  // CRITICAL: Generate period identifier for cache lookups
+  // Format: "YYYY-MM-sign" (e.g., "2026-01-aquarius")
+  const period = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${(currentIngress.sign || "unknown").toLowerCase()}`
+
   return {
     sign: currentIngress.sign || "Unknown",
     month: getMonthName(startDate),
@@ -203,6 +208,7 @@ export async function getCurrentIngressPeriod(): Promise<IngressPeriod> {
     dayOfPeriod,
     daysRemaining,
     progress,
+    period, // CRITICAL: Added for cache system
   }
 }
 
@@ -220,6 +226,9 @@ function estimateIngressPeriod(date: Date): IngressPeriod {
     Math.floor((date.getTime() - bounds.start.getTime()) / (1000 * 60 * 60 * 24)) + 1
   const daysRemaining = Math.ceil((bounds.end.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
 
+  // Generate period identifier
+  const period = `${bounds.start.getFullYear()}-${String(bounds.start.getMonth() + 1).padStart(2, "0")}-${sign.toLowerCase()}`
+
   return {
     sign,
     month: getMonthName(bounds.start),
@@ -229,6 +238,7 @@ function estimateIngressPeriod(date: Date): IngressPeriod {
     dayOfPeriod,
     daysRemaining,
     progress: Math.round((dayOfPeriod / daysInPeriod) * 100),
+    period,
   }
 }
 

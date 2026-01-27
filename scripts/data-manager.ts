@@ -10,6 +10,8 @@ import * as fs from "fs"
 import Papa from "papaparse"
 import path from "path"
 import { fileURLToPath } from "url"
+import { syncTickerUniverse } from "../src/lib/services/symbolResolver.js"
+import { getCurrentIngressPeriod as getIngressPeriod } from "../src/lib/utils.js"
 
 // ============================================================================
 // ENVIRONMENT SETUP
@@ -29,7 +31,7 @@ const requiredEnvVars = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
-    console.error(`❌ Missing required environment variable: ${envVar}`)
+    console.error(` Missing required environment variable: ${envVar}`)
     console.error(`   Make sure it's set in .env.local or .env`)
     process.exit(1)
   }
@@ -1247,6 +1249,580 @@ const CSV_MAPPINGS: CSVMapping[] = [
 ]
 
 // ============================================================================
+// COMPREHENSIVE MULTI-SOURCE UNIVERSE EXPANSION
+// ============================================================================
+
+/**
+ * Load maximum available tickers from ALL data sources
+ * Respects rate limits, no artificial ticker limits
+ */
+async function expandUniverseComprehensive(): Promise<void> {
+  console.log("=".repeat(80))
+  console.log(" COMPREHENSIVE UNIVERSE EXPANSION")
+  console.log(" Loading from ALL available data sources...")
+  console.log("=".repeat(80))
+  console.log()
+
+  const results = {
+    polygon: 0,
+    coingecko: 0,
+    forex: 0,
+    commodities: 0,
+    indices: 0,
+    fred: 0,
+    total: 0,
+  }
+
+  // ============================================================================
+  // PHASE 1: EQUITIES (POLYGON)
+  // ============================================================================
+  console.log("\n" + "=".repeat(80))
+  console.log(" PHASE 1: EQUITIES (Polygon API)")
+  console.log("=".repeat(80))
+
+  if (!process.env.POLYGON_API_KEY) {
+    console.error(" POLYGON_API_KEY not found - skipping equities")
+  } else {
+    try {
+      console.log(" Loading ALL available US stocks (no limit)...")
+
+      let allTickers: any[] = []
+      let nextUrl: string | null = null
+      let page = 1
+
+      const baseUrl = `https://api.polygon.io/v3/reference/tickers?market=stocks&active=true&limit=1000&apiKey=${process.env.POLYGON_API_KEY}`
+
+      while (true) {
+        const url: string = nextUrl || baseUrl // ✅ FIXED: Explicit type
+        console.log(`\n Page ${page}: Fetching...`)
+
+        const response: any = await axios.get(url, { timeout: 30000 }) // ✅ FIXED: Explicit type
+
+        if (!response.data?.results || response.data.results.length === 0) {
+          console.log(`    No more results - stopping`)
+          break
+        }
+
+        const results = response.data.results
+        allTickers.push(...results)
+        console.log(
+          `    Got ${results.length} tickers (total: ${allTickers.length.toLocaleString()})`
+        )
+
+        // Check for next page
+        nextUrl = response.data.next_url
+        if (!nextUrl) {
+          console.log(`    No more pages available`)
+          break
+        }
+
+        page++
+
+        // Polygon rate limit: 5 calls/minute = 12 seconds between calls
+        console.log(`    Rate limit: waiting 12s...`)
+        await new Promise((resolve) => setTimeout(resolve, 12000))
+      }
+
+      console.log(`\n Processing ${allTickers.length.toLocaleString()} equity tickers...`)
+
+      const tickers = allTickers.map((ticker: any) => ({
+        symbol: ticker.ticker,
+        name: ticker.name,
+        exchange: ticker.primary_exchange,
+        asset_type: "stock",
+        category: "equity",
+        market_cap: ticker.market_cap || null,
+        active: ticker.active,
+        data_source: "polygon",
+        metadata: {
+          locale: ticker.locale,
+          currency: ticker.currency_name,
+          type: ticker.type,
+        },
+      }))
+
+      // Batch insert
+      const batchSize = 500
+      for (let i = 0; i < tickers.length; i += batchSize) {
+        const batch = tickers.slice(i, i + batchSize)
+        const { error } = await supabase
+          .from("ticker_universe")
+          .upsert(batch, { onConflict: "symbol" })
+
+        if (!error) {
+          results.polygon += batch.length
+          console.log(`    Batch ${Math.floor(i / batchSize) + 1}: ${batch.length} tickers`)
+        }
+      }
+
+      console.log(`\n Equities loaded: ${results.polygon.toLocaleString()}`)
+    } catch (error: any) {
+      console.error(` Error loading equities: ${error.message}`)
+    }
+  }
+
+  // ============================================================================
+  // PHASE 2: CRYPTO (COINGECKO)
+  // ============================================================================
+  console.log("\n" + "=".repeat(80))
+  console.log(" PHASE 2: CRYPTOCURRENCY (CoinGecko API)")
+  console.log("=".repeat(80))
+
+  if (!process.env.COINGECKO_API_KEY) {
+    console.error(" COINGECKO_API_KEY not found - skipping crypto")
+  } else {
+    try {
+      console.log(" Loading ALL available cryptocurrencies...")
+
+      let allCoins: any[] = []
+      let page = 1
+
+      while (true) {
+        console.log(`\n Page ${page}: Fetching...`)
+
+        const url: string = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${page}&sparkline=false&x_cg_demo_api_key=${process.env.COINGECKO_API_KEY}`
+
+        const response: any = await axios.get(url, { timeout: 30000 })
+
+        if (!response.data || response.data.length === 0) {
+          console.log(`    No more results - stopping`)
+          break
+        }
+
+        allCoins.push(...response.data)
+        console.log(
+          `    Got ${response.data.length} coins (total: ${allCoins.length.toLocaleString()})`
+        )
+
+        // CoinGecko free tier: 50 calls/minute
+        // But we'll be conservative: 30 calls/minute = 2 seconds between calls
+        console.log(`    Rate limit: waiting 2s...`)
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+
+        page++
+
+        // Stop if we got less than 250 (last page)
+        if (response.data.length < 250) {
+          console.log(`    Reached end of available data`)
+          break
+        }
+      }
+
+      console.log(`\n Processing ${allCoins.length.toLocaleString()} crypto tickers...`)
+
+      const tickers = allCoins.map((coin: any) => ({
+        symbol: coin.id, // CoinGecko ID (bitcoin, ethereum, etc.)
+        name: coin.name,
+        exchange: "CRYPTO",
+        asset_type: "crypto",
+        category: "crypto",
+        market_cap: coin.market_cap,
+        active: true,
+        data_source: "coingecko",
+        metadata: {
+          coin_id: coin.id,
+          symbol: coin.symbol,
+          rank: coin.market_cap_rank,
+        },
+      }))
+
+      // Batch insert
+      const batchSize = 500
+      for (let i = 0; i < tickers.length; i += batchSize) {
+        const batch = tickers.slice(i, i + batchSize)
+        const { error } = await supabase
+          .from("ticker_universe")
+          .upsert(batch, { onConflict: "symbol" })
+
+        if (!error) {
+          results.coingecko += batch.length
+          console.log(`    Batch ${Math.floor(i / batchSize) + 1}: ${batch.length} tickers`)
+        }
+      }
+
+      console.log(`\n Crypto loaded: ${results.coingecko.toLocaleString()}`)
+    } catch (error: any) {
+      console.error(` Error loading crypto: ${error.message}`)
+    }
+  }
+
+  // ============================================================================
+  // PHASE 3: FOREX (COMPREHENSIVE PAIRS)
+  // ============================================================================
+  console.log("\n" + "=".repeat(80))
+  console.log(" PHASE 3: FOREX (Major + Cross + Exotic Pairs)")
+  console.log("=".repeat(80))
+
+  try {
+    const FOREX_PAIRS = [
+      // Major Pairs (8)
+      "EUR/USD",
+      "USD/JPY",
+      "GBP/USD",
+      "USD/CHF",
+      "USD/CAD",
+      "AUD/USD",
+      "NZD/USD",
+      "EUR/GBP",
+
+      // Cross Pairs (28)
+      "EUR/JPY",
+      "GBP/JPY",
+      "CHF/JPY",
+      "EUR/CHF",
+      "GBP/CHF",
+      "AUD/JPY",
+      "NZD/JPY",
+      "CAD/JPY",
+      "EUR/CAD",
+      "GBP/CAD",
+      "EUR/AUD",
+      "GBP/AUD",
+      "EUR/NZD",
+      "GBP/NZD",
+      "AUD/CAD",
+      "AUD/NZD",
+      "AUD/CHF",
+      "NZD/CAD",
+      "NZD/CHF",
+      "CAD/CHF",
+      "EUR/GBP",
+      "EUR/AUD",
+      "EUR/NZD",
+      "GBP/AUD",
+      "GBP/NZD",
+      "AUD/CAD",
+      "AUD/NZD",
+      "NZD/CAD",
+
+      // Exotic Pairs (40)
+      "USD/SGD",
+      "USD/HKD",
+      "USD/ZAR",
+      "USD/THB",
+      "USD/MXN",
+      "USD/NOK",
+      "USD/SEK",
+      "USD/DKK",
+      "USD/PLN",
+      "USD/TRY",
+      "USD/BRL",
+      "USD/CNY",
+      "USD/INR",
+      "USD/KRW",
+      "USD/RUB",
+      "USD/IDR",
+      "EUR/TRY",
+      "EUR/NOK",
+      "EUR/SEK",
+      "EUR/PLN",
+      "GBP/ZAR",
+      "AUD/SGD",
+      "USD/CZK",
+      "USD/HUF",
+      "USD/ILS",
+      "USD/ARS",
+      "USD/CLP",
+      "USD/COP",
+      "USD/PEN",
+      "USD/PHP",
+      "USD/TWD",
+      "USD/VND",
+      "EUR/CZK",
+      "EUR/HUF",
+      "EUR/RON",
+      "EUR/RUB",
+      "GBP/PLN",
+      "GBP/SGD",
+      "GBP/TRY",
+      "CHF/NOK",
+    ]
+
+    console.log(` Loading ${FOREX_PAIRS.length} forex pairs...`)
+
+    const tickers = FOREX_PAIRS.map((pair) => {
+      const [from, to] = pair.split("/")
+      return {
+        symbol: pair,
+        name: `${from} to ${to}`,
+        exchange: "FOREX",
+        asset_type: "forex",
+        category: "forex",
+        active: true,
+        data_source: "exchangerate",
+        metadata: {
+          from_currency: from,
+          to_currency: to,
+        },
+      }
+    })
+
+    const { error } = await supabase
+      .from("ticker_universe")
+      .upsert(tickers, { onConflict: "symbol" })
+
+    if (!error) {
+      results.forex = tickers.length
+      console.log(` Forex loaded: ${results.forex}`)
+    }
+  } catch (error: any) {
+    console.error(` Error loading forex: ${error.message}`)
+  }
+
+  // ============================================================================
+  // PHASE 4: COMMODITIES (FUTURES + ETFS)
+  // ============================================================================
+  console.log("\n" + "=".repeat(80))
+  console.log(" PHASE 4: COMMODITIES (Futures + ETFs)")
+  console.log("=".repeat(80))
+
+  try {
+    const COMMODITIES = [
+      // Precious Metals
+      { symbol: "GC1!", name: "Gold Futures", type: "future" },
+      { symbol: "SI1!", name: "Silver Futures", type: "future" },
+      { symbol: "PL1!", name: "Platinum Futures", type: "future" },
+      { symbol: "PA1!", name: "Palladium Futures", type: "future" },
+      { symbol: "GLD", name: "Gold ETF", type: "etf" },
+      { symbol: "SLV", name: "Silver ETF", type: "etf" },
+      { symbol: "PPLT", name: "Platinum ETF", type: "etf" },
+      { symbol: "PALL", name: "Palladium ETF", type: "etf" },
+
+      // Base Metals
+      { symbol: "HG1!", name: "Copper Futures", type: "future" },
+      { symbol: "ALI1!", name: "Aluminum Futures", type: "future" },
+      { symbol: "COPX", name: "Copper Miners ETF", type: "etf" },
+
+      // Energy
+      { symbol: "CL1!", name: "Crude Oil Futures", type: "future" },
+      { symbol: "NG1!", name: "Natural Gas Futures", type: "future" },
+      { symbol: "RB1!", name: "Gasoline Futures", type: "future" },
+      { symbol: "HO1!", name: "Heating Oil Futures", type: "future" },
+      { symbol: "BZ1!", name: "Brent Crude Futures", type: "future" },
+      { symbol: "USO", name: "Oil ETF", type: "etf" },
+      { symbol: "UNG", name: "Natural Gas ETF", type: "etf" },
+      { symbol: "XLE", name: "Energy Sector ETF", type: "etf" },
+
+      // Agriculture
+      { symbol: "ZC1!", name: "Corn Futures", type: "future" },
+      { symbol: "ZS1!", name: "Soybean Futures", type: "future" },
+      { symbol: "ZW1!", name: "Wheat Futures", type: "future" },
+      { symbol: "ZL1!", name: "Soybean Oil Futures", type: "future" },
+      { symbol: "ZM1!", name: "Soybean Meal Futures", type: "future" },
+      { symbol: "ZO1!", name: "Oats Futures", type: "future" },
+      { symbol: "ZR1!", name: "Rice Futures", type: "future" },
+      { symbol: "KC1!", name: "Coffee Futures", type: "future" },
+      { symbol: "CT1!", name: "Cotton Futures", type: "future" },
+      { symbol: "SB1!", name: "Sugar Futures", type: "future" },
+      { symbol: "CC1!", name: "Cocoa Futures", type: "future" },
+      { symbol: "OJ1!", name: "Orange Juice Futures", type: "future" },
+      { symbol: "CORN", name: "Corn ETF", type: "etf" },
+      { symbol: "SOYB", name: "Soybean ETF", type: "etf" },
+      { symbol: "WEAT", name: "Wheat ETF", type: "etf" },
+      { symbol: "DBA", name: "Agriculture ETF", type: "etf" },
+
+      // Livestock
+      { symbol: "LE1!", name: "Live Cattle Futures", type: "future" },
+      { symbol: "GF1!", name: "Feeder Cattle Futures", type: "future" },
+      { symbol: "HE1!", name: "Lean Hogs Futures", type: "future" },
+    ]
+
+    console.log(` Loading ${COMMODITIES.length} commodity tickers...`)
+
+    const tickers = COMMODITIES.map((item) => ({
+      symbol: item.symbol,
+      name: item.name,
+      exchange: "COMMODITY",
+      asset_type: "commodity",
+      category: "commodity",
+      active: true,
+      data_source: "polygon",
+      metadata: {
+        commodity_type: item.type,
+      },
+    }))
+
+    const { error } = await supabase
+      .from("ticker_universe")
+      .upsert(tickers, { onConflict: "symbol" })
+
+    if (!error) {
+      results.commodities = tickers.length
+      console.log(` Commodities loaded: ${results.commodities}`)
+    }
+  } catch (error: any) {
+    console.error(` Error loading commodities: ${error.message}`)
+  }
+
+  // ============================================================================
+  // PHASE 5: INDICES (MAJOR MARKET INDICES)
+  // ============================================================================
+  console.log("\n" + "=".repeat(80))
+  console.log(" PHASE 5: MARKET INDICES")
+  console.log("=".repeat(80))
+
+  try {
+    const INDICES = [
+      // US Indices
+      { symbol: "SPY", name: "S&P 500 ETF" },
+      { symbol: "QQQ", name: "Nasdaq 100 ETF" },
+      { symbol: "DIA", name: "Dow Jones ETF" },
+      { symbol: "IWM", name: "Russell 2000 ETF" },
+      { symbol: "VTI", name: "Total Stock Market ETF" },
+
+      // Sector Indices
+      { symbol: "XLF", name: "Financial Sector ETF" },
+      { symbol: "XLE", name: "Energy Sector ETF" },
+      { symbol: "XLV", name: "Healthcare Sector ETF" },
+      { symbol: "XLK", name: "Technology Sector ETF" },
+      { symbol: "XLY", name: "Consumer Discretionary ETF" },
+      { symbol: "XLP", name: "Consumer Staples ETF" },
+      { symbol: "XLI", name: "Industrial Sector ETF" },
+      { symbol: "XLB", name: "Materials Sector ETF" },
+      { symbol: "XLRE", name: "Real Estate Sector ETF" },
+      { symbol: "XLU", name: "Utilities Sector ETF" },
+      { symbol: "XLC", name: "Communication Services ETF" },
+
+      // International
+      { symbol: "EFA", name: "EAFE ETF" },
+      { symbol: "EEM", name: "Emerging Markets ETF" },
+      { symbol: "VEA", name: "Developed Markets ETF" },
+      { symbol: "VWO", name: "Emerging Markets ETF" },
+      { symbol: "FXI", name: "China Large Cap ETF" },
+      { symbol: "EWJ", name: "Japan ETF" },
+      { symbol: "EWG", name: "Germany ETF" },
+      { symbol: "EWU", name: "United Kingdom ETF" },
+    ]
+
+    console.log(` Loading ${INDICES.length} index tickers...`)
+
+    const tickers = INDICES.map((item) => ({
+      symbol: item.symbol,
+      name: item.name,
+      exchange: "INDEX",
+      asset_type: "equity",
+      category: "equity",
+      active: true,
+      data_source: "polygon",
+      metadata: {
+        is_index: true,
+      },
+    }))
+
+    const { error } = await supabase
+      .from("ticker_universe")
+      .upsert(tickers, { onConflict: "symbol" })
+
+    if (!error) {
+      results.indices = tickers.length
+      console.log(` Indices loaded: ${results.indices}`)
+    }
+  } catch (error: any) {
+    console.error(` Error loading indices: ${error.message}`)
+  }
+
+  // ============================================================================
+  // PHASE 6: FRED MACRO INDICATORS
+  // ============================================================================
+  console.log("\n" + "=".repeat(80))
+  console.log(" PHASE 6: MACRO INDICATORS (FRED)")
+  console.log("=".repeat(80))
+
+  if (!process.env.FRED_API_KEY) {
+    console.error(" FRED_API_KEY not found - skipping macro indicators")
+  } else {
+    try {
+      const FRED_INDICATORS = [
+        // Interest Rates
+        { symbol: "FEDFUNDS", name: "Federal Funds Rate" },
+        { symbol: "DGS10", name: "10-Year Treasury Rate" },
+        { symbol: "DGS2", name: "2-Year Treasury Rate" },
+        { symbol: "DGS5", name: "5-Year Treasury Rate" },
+        { symbol: "DGS30", name: "30-Year Treasury Rate" },
+        { symbol: "T10Y2Y", name: "10Y-2Y Treasury Spread" },
+
+        // Inflation
+        { symbol: "CPIAUCSL", name: "Consumer Price Index" },
+        { symbol: "PPIACO", name: "Producer Price Index" },
+        { symbol: "PCE", name: "Personal Consumption Expenditure" },
+        { symbol: "T5YIE", name: "5-Year Inflation Expectation" },
+        { symbol: "T10YIE", name: "10-Year Inflation Expectation" },
+
+        // Employment
+        { symbol: "UNRATE", name: "Unemployment Rate" },
+        { symbol: "PAYEMS", name: "Nonfarm Payrolls" },
+        { symbol: "CIVPART", name: "Labor Force Participation" },
+        { symbol: "U6RATE", name: "U-6 Unemployment" },
+
+        // Economic Activity
+        { symbol: "GDP", name: "Gross Domestic Product" },
+        { symbol: "INDPRO", name: "Industrial Production" },
+        { symbol: "HOUST", name: "Housing Starts" },
+        { symbol: "PERMIT", name: "Building Permits" },
+        { symbol: "RSXFS", name: "Retail Sales" },
+
+        // Money Supply
+        { symbol: "M1SL", name: "M1 Money Supply" },
+        { symbol: "M2SL", name: "M2 Money Supply" },
+        { symbol: "WALCL", name: "Fed Balance Sheet" },
+      ]
+
+      console.log(` Loading ${FRED_INDICATORS.length} FRED indicators...`)
+
+      const tickers = FRED_INDICATORS.map((item) => ({
+        symbol: item.symbol,
+        name: item.name,
+        exchange: "FRED",
+        asset_type: "macro",
+        category: "rates-macro",
+        active: true,
+        data_source: "fred",
+        metadata: {
+          fred_series_id: item.symbol,
+        },
+      }))
+
+      const { error } = await supabase
+        .from("ticker_universe")
+        .upsert(tickers, { onConflict: "symbol" })
+
+      if (!error) {
+        results.fred = tickers.length
+        console.log(` FRED indicators loaded: ${results.fred}`)
+      }
+    } catch (error: any) {
+      console.error(` Error loading FRED indicators: ${error.message}`)
+    }
+  }
+
+  // ============================================================================
+  // FINAL SUMMARY
+  // ============================================================================
+  results.total =
+    results.polygon +
+    results.coingecko +
+    results.forex +
+    results.commodities +
+    results.indices +
+    results.fred
+
+  console.log("\n" + "=".repeat(80))
+  console.log(" EXPANSION COMPLETE")
+  console.log("=".repeat(80))
+  console.log()
+  console.log(` Equities (Polygon):      ${results.polygon.toLocaleString()}`)
+  console.log(` Crypto (CoinGecko):      ${results.coingecko.toLocaleString()}`)
+  console.log(` Forex Pairs:             ${results.forex.toLocaleString()}`)
+  console.log(` Commodities:             ${results.commodities.toLocaleString()}`)
+  console.log(` Indices:                 ${results.indices.toLocaleString()}`)
+  console.log(` FRED Indicators:         ${results.fred.toLocaleString()}`)
+  console.log(" " + "-".repeat(78))
+  console.log(` TOTAL:                   ${results.total.toLocaleString()}`)
+  console.log()
+  console.log("=".repeat(80))
+}
+
+// ============================================================================
 // API PROVIDERS
 // ============================================================================
 
@@ -1542,7 +2118,7 @@ class RateLimiter {
       const oldestCall = validCalls[0]
       const waitTime = provider.rateLimit.period - (now - oldestCall) + 100
       if (waitTime > 0) {
-        console.log(`   ⏳ Rate limit: waiting ${Math.ceil(waitTime / 1000)}s for ${provider.name}`)
+        console.log(`    Rate limit: waiting ${Math.ceil(waitTime / 1000)}s for ${provider.name}`)
         await new Promise((resolve) => setTimeout(resolve, waitTime))
       }
     }
@@ -1564,7 +2140,7 @@ const rateLimiter = new RateLimiter()
 
 function parseCSV(filePath: string): any[] {
   if (!fs.existsSync(filePath)) {
-    console.warn(`⚠️  CSV not found: ${filePath}`)
+    console.warn(`  CSV not found: ${filePath}`)
     return []
   }
 
@@ -1630,7 +2206,7 @@ async function fetchPriceWithFallback(
   }
 
   // Fallback to CSV if all APIs failed
-  console.log(`   ⚠️  All APIs failed for ${symbol}, trying CSV fallback...`)
+  console.log(`     All APIs failed for ${symbol}, trying CSV fallback...`)
   const csvPrice = getLatestPrice(symbol, category)
   if (csvPrice) {
     return { price: csvPrice.price, provider: "csv" }
@@ -1644,27 +2220,27 @@ async function fetchPriceWithFallback(
 // ============================================================================
 
 async function loadTickerUniverseFromPolygon(limit: number = 1000): Promise<void> {
-  console.log(`📊 Loading ticker universe from Polygon (limit: ${limit})...\n`)
+  console.log(` Loading ticker universe from Polygon (limit: ${limit})...\n`)
 
   if (!process.env.POLYGON_API_KEY) {
-    console.error("❌ POLYGON_API_KEY not found")
+    console.error(" POLYGON_API_KEY not found")
     return
   }
 
   try {
     const url = `https://api.polygon.io/v3/reference/tickers?market=stocks&active=true&limit=${limit}&apiKey=${process.env.POLYGON_API_KEY}`
-    console.log(`🔗 Fetching from Polygon API...`)
+    console.log(` Fetching from Polygon API...`)
 
     const response = await axios.get(url, { timeout: 30000 })
-    console.log(`✅ API Response received`)
+    console.log(` API Response received`)
 
     if (!response.data?.results) {
-      console.error("❌ No results from Polygon API")
+      console.error(" No results from Polygon API")
       console.error("Response:", JSON.stringify(response.data).slice(0, 200))
       return
     }
 
-    console.log(`📦 Processing ${response.data.results.length} tickers...`)
+    console.log(` Processing ${response.data.results.length} tickers...`)
 
     const tickers = response.data.results.map((ticker: any) => ({
       symbol: ticker.ticker,
@@ -1685,7 +2261,7 @@ async function loadTickerUniverseFromPolygon(limit: number = 1000): Promise<void
     const batchSize = 500
     let inserted = 0
 
-    console.log(`💾 Inserting ${tickers.length} tickers in batches of ${batchSize}...`)
+    console.log(` Inserting ${tickers.length} tickers in batches of ${batchSize}...`)
 
     for (let i = 0; i < tickers.length; i += batchSize) {
       const batch = tickers.slice(i, i + batchSize)
@@ -1695,17 +2271,15 @@ async function loadTickerUniverseFromPolygon(limit: number = 1000): Promise<void
 
       if (!error) {
         inserted += batch.length
-        console.log(
-          `   ✅ Inserted batch ${Math.floor(i / batchSize) + 1}: ${batch.length} tickers`
-        )
+        console.log(`    Inserted batch ${Math.floor(i / batchSize) + 1}: ${batch.length} tickers`)
       } else {
-        console.error(`   ❌ Error in batch ${Math.floor(i / batchSize) + 1}:`, error.message)
+        console.error(`    Error in batch ${Math.floor(i / batchSize) + 1}:`, error.message)
       }
     }
 
-    console.log(`\n✅ Loaded ${inserted} tickers into universe\n`)
+    console.log(`\n Loaded ${inserted} tickers into universe\n`)
   } catch (error: any) {
-    console.error("❌ Error loading ticker universe:", error.message)
+    console.error(" Error loading ticker universe:", error.message)
     if (error.response) {
       console.error("API Response:", error.response.status, error.response.statusText)
     }
@@ -1713,7 +2287,7 @@ async function loadTickerUniverseFromPolygon(limit: number = 1000): Promise<void
 }
 
 async function addCryptoToUniverse(): Promise<void> {
-  console.log("₿ Adding crypto tickers to universe...\n")
+  console.log(" Adding crypto tickers to universe...\n")
 
   const cryptoTickers = [
     { symbol: "Bitcoin", name: "Bitcoin", id: "bitcoin" },
@@ -1741,14 +2315,14 @@ async function addCryptoToUniverse(): Promise<void> {
   const { error } = await supabase.from("ticker_universe").upsert(records, { onConflict: "symbol" })
 
   if (error) {
-    console.error("❌ Error:", error.message)
+    console.error(" Error:", error.message)
   } else {
-    console.log(`✅ Added ${records.length} crypto tickers\n`)
+    console.log(` Added ${records.length} crypto tickers\n`)
   }
 }
 
 async function addForexToUniverse(): Promise<void> {
-  console.log("💱 Adding forex pairs to universe...\n")
+  console.log(" Adding forex pairs to universe...\n")
 
   const forexPairs = [
     "EUR/USD",
@@ -1776,14 +2350,14 @@ async function addForexToUniverse(): Promise<void> {
   const { error } = await supabase.from("ticker_universe").upsert(records, { onConflict: "symbol" })
 
   if (error) {
-    console.error("❌ Error:", error.message)
+    console.error(" Error:", error.message)
   } else {
-    console.log(`✅ Added ${records.length} forex pairs\n`)
+    console.log(` Added ${records.length} forex pairs\n`)
   }
 }
 
 async function addCommoditiesToUniverse(): Promise<void> {
-  console.log("🥇 Adding commodities to universe...\n")
+  console.log(" Adding commodities to universe...\n")
 
   const commodities = [
     { symbol: "GLD", name: "Gold ETF" },
@@ -1811,14 +2385,14 @@ async function addCommoditiesToUniverse(): Promise<void> {
   const { error } = await supabase.from("ticker_universe").upsert(records, { onConflict: "symbol" })
 
   if (error) {
-    console.error("❌ Error:", error.message)
+    console.error(" Error:", error.message)
   } else {
-    console.log(`✅ Added ${records.length} commodities\n`)
+    console.log(` Added ${records.length} commodities\n`)
   }
 }
 
 async function initializeTickerUniverse(): Promise<void> {
-  console.log("🚀 Initializing complete ticker universe...\n")
+  console.log(" Initializing complete ticker universe...\n")
   console.log("Step 1: Loading from Polygon...")
 
   await loadTickerUniverseFromPolygon(1000)
@@ -1847,11 +2421,11 @@ async function initializeTickerUniverse(): Promise<void> {
     .select("*", { count: "exact", head: true })
     .eq("category", "crypto")
 
-  console.log("\n📊 Universe Summary:")
+  console.log("\n Universe Summary:")
   console.log(`   Total:  ${totalCount?.toLocaleString()}`)
   console.log(`   Equity: ${equityCount?.toLocaleString()}`)
   console.log(`   Crypto: ${cryptoCount?.toLocaleString()}`)
-  console.log("\n✅ Ticker universe initialized!\n")
+  console.log("\n Ticker universe initialized!\n")
 }
 
 async function universeStats(): Promise<void> {
@@ -1859,7 +2433,7 @@ async function universeStats(): Promise<void> {
     .from("ticker_universe")
     .select("*", { count: "exact", head: true })
 
-  console.log(`\n📊 Ticker Universe: ${total?.toLocaleString()} tickers\n`)
+  console.log(`\n Ticker Universe: ${total?.toLocaleString()} tickers\n`)
 
   for (const category of ["equity", "crypto", "forex", "commodity", "rates-macro", "stress"]) {
     const { count } = await supabase
@@ -2057,7 +2631,7 @@ async function fetchHistoricalData(
   category: string,
   days: number = 365
 ): Promise<any[]> {
-  console.log(`📡 Fetching ${days}d history for ${symbol}...`)
+  console.log(` Fetching ${days}d history for ${symbol}...`)
 
   const { data: tickerInfo } = await supabase
     .from("ticker_universe")
@@ -2095,17 +2669,17 @@ async function fetchHistoricalData(
       }
 
       if (bars.length > 0) {
-        console.log(`   ✅ Got ${bars.length} bars from ${provider.name}`)
+        console.log(`    Got ${bars.length} bars from ${provider.name}`)
         return bars
       }
     } catch (error: any) {
-      console.log(`   ⚠️  ${provider.name} failed: ${error.message}`)
+      console.log(`     ${provider.name} failed: ${error.message}`)
       continue
     }
   }
 
   // CSV fallback for historical data
-  console.log(`   ⚠️  All APIs failed, trying CSV fallback...`)
+  console.log(`     All APIs failed, trying CSV fallback...`)
   const csvPath = PRICE_CSVS[category as keyof typeof PRICE_CSVS]
   if (csvPath && fs.existsSync(csvPath)) {
     const csvData = parseCSV(csvPath)
@@ -2114,7 +2688,7 @@ async function fetchHistoricalData(
       return rowSymbol === symbol
     })
     if (symbolData.length > 0) {
-      console.log(`   ✅ Got ${symbolData.length} bars from CSV`)
+      console.log(`    Got ${symbolData.length} bars from CSV`)
       return symbolData.map((row: any) => ({
         symbol,
         date: row.Date,
@@ -2130,7 +2704,7 @@ async function fetchHistoricalData(
     }
   }
 
-  console.log(`   ❌ No data available for ${symbol}`)
+  console.log(`    No data available for ${symbol}`)
   return []
 }
 
@@ -2142,7 +2716,7 @@ async function backfillData(options: {
 }): Promise<void> {
   const { categories, symbols, days = 365, source = "category_map" } = options
 
-  console.log(`📊 Backfilling ${days} days from ${source}...\n`)
+  console.log(` Backfilling ${days} days from ${source}...\n`)
 
   // STEP 1: Determine which tickers to process
   let tickersToProcess: Array<{ symbol: string; category: string }> = []
@@ -2161,7 +2735,7 @@ async function backfillData(options: {
     const { data: tickers } = await query.limit(1000)
 
     if (!tickers || tickers.length === 0) {
-      console.log("❌ No tickers found in universe\n")
+      console.log(" No tickers found in universe\n")
       return
     }
 
@@ -2190,7 +2764,7 @@ async function backfillData(options: {
     }
   }
 
-  console.log(`🔍 Processing ${tickersToProcess.length} tickers...\n`)
+  console.log(` Processing ${tickersToProcess.length} tickers...\n`)
 
   // STEP 2: Fetch and insert data
   let totalProcessed = 0
@@ -2207,7 +2781,7 @@ async function backfillData(options: {
   )
 
   for (const [category, categorySymbols] of Object.entries(byCategory)) {
-    console.log(`\n📂 ${category.toUpperCase()} (${categorySymbols.length} symbols)`)
+    console.log(`\n ${category.toUpperCase()} (${categorySymbols.length} symbols)`)
 
     let categoryInserted = 0
 
@@ -2226,9 +2800,9 @@ async function backfillData(options: {
             categoryInserted += batch.length
           }
         }
-        console.log(`   ✅ ${symbol.padEnd(15)} ${bars.length} bars`)
+        console.log(`    ${symbol.padEnd(15)} ${bars.length} bars`)
       } else {
-        console.log(`   ⚠️  ${symbol.padEnd(15)} No data`)
+        console.log(`     ${symbol.padEnd(15)} No data`)
       }
 
       totalProcessed++
@@ -2241,14 +2815,14 @@ async function backfillData(options: {
       // Progress update every 25 symbols
       if (totalProcessed % 25 === 0) {
         console.log(
-          `   📊 Progress: ${totalProcessed}/${tickersToProcess.length} (${categoryInserted.toLocaleString()} records this category)`
+          `    Progress: ${totalProcessed}/${tickersToProcess.length} (${categoryInserted.toLocaleString()} records this category)`
         )
       }
     }
 
     totalInserted += categoryInserted
     console.log(
-      `   ✅ ${category}: ${categorySymbols.length} symbols, ${categoryInserted.toLocaleString()} records`
+      `    ${category}: ${categorySymbols.length} symbols, ${categoryInserted.toLocaleString()} records`
     )
 
     // Wait 3s between categories
@@ -2257,9 +2831,7 @@ async function backfillData(options: {
     }
   }
 
-  console.log(
-    `\n✅ COMPLETE: ${totalProcessed} symbols, ${totalInserted.toLocaleString()} records\n`
-  )
+  console.log(`\n COMPLETE: ${totalProcessed} symbols, ${totalInserted.toLocaleString()} records\n`)
 }
 
 // ============================================================================
@@ -2267,22 +2839,22 @@ async function backfillData(options: {
 // ============================================================================
 
 async function loadAllCSVs(): Promise<void> {
-  console.log("🚀 Starting CSV data load...\n")
+  console.log(" Starting CSV data load...\n")
   for (const mapping of CSV_MAPPINGS) {
     try {
       await loadCSV(mapping)
     } catch (error: any) {
-      console.error(`❌ Error loading ${mapping.csvPath}:`, error.message)
+      console.error(` Error loading ${mapping.csvPath}:`, error.message)
     }
   }
-  console.log("✅ CSV data load complete!")
+  console.log(" CSV data load complete!")
 }
 
 async function loadCSV(mapping: CSVMapping): Promise<void> {
   const { csvPath, tableName, columnMapping, transform } = mapping
 
   if (!fs.existsSync(csvPath)) {
-    console.log(`   ⚠️  File not found, skipping: ${csvPath}`)
+    console.log(`     File not found, skipping: ${csvPath}`)
     return
   }
 
@@ -2324,17 +2896,17 @@ async function loadCSV(mapping: CSVMapping): Promise<void> {
 
     const { error } = await supabase.from(tableName).upsert(batch, { onConflict: conflictKey })
     if (error) {
-      console.error(`   ❌ Error inserting batch:`, error.message)
+      console.error(`    Error inserting batch:`, error.message)
     }
   }
 }
 
 async function updatePricesFromCSV(csvPath?: string): Promise<void> {
-  console.log("📊 Updating prices from CSV...\n")
+  console.log(" Updating prices from CSV...\n")
 
   const targetPath = csvPath || "./public/data/tickers/price_data_dec22_20260107.csv"
   if (!fs.existsSync(targetPath)) {
-    console.error("❌ CSV file not found:", targetPath)
+    console.error(" CSV file not found:", targetPath)
     return
   }
 
@@ -2372,12 +2944,12 @@ async function updatePricesFromCSV(csvPath?: string): Promise<void> {
         .upsert(batch, { onConflict: "symbol,date" })
       if (!error) updated++
     }
-    console.log(`✅ Updated ${symbol}`)
+    console.log(` Updated ${symbol}`)
   }
 }
 
 async function checkPriceFreshness(): Promise<void> {
-  console.log("🔍 Checking price data freshness...\n")
+  console.log(" Checking price data freshness...\n")
 
   const symbols = ["SPY", "QQQ", "Bitcoin", "EUR/USD"]
   for (const symbol of symbols) {
@@ -2403,7 +2975,7 @@ async function checkPriceFreshness(): Promise<void> {
 }
 
 async function populateFeaturedTickers(): Promise<void> {
-  console.log("🌟 Populating featured tickers (FAST MODE)...\n")
+  console.log(" Populating featured tickers (FAST MODE)...\n")
 
   try {
     // Import confluenceEngine functions
@@ -2423,7 +2995,7 @@ async function populateFeaturedTickers(): Promise<void> {
       .single()
 
     if (!currentIngress) {
-      console.log("⚠️  No ingress data, skipping featured refresh\n")
+      console.log("  No ingress data, skipping featured refresh\n")
       return
     }
 
@@ -2431,7 +3003,7 @@ async function populateFeaturedTickers(): Promise<void> {
       (Date.now() - new Date(currentIngress.date).getTime()) / (1000 * 60 * 60 * 24)
     )
 
-    console.log(`🌞 Current ingress: ${currentIngress.sign} (Day ${daysSinceIngress})`)
+    console.log(` Current ingress: ${currentIngress.sign} (Day ${daysSinceIngress})`)
 
     // SENTINEL SYMBOLS (excluded from featured)
     const SENTINELS = new Set([
@@ -2459,7 +3031,7 @@ async function populateFeaturedTickers(): Promise<void> {
     const allFeatured: any[] = []
 
     for (const category of categories) {
-      console.log(`\n📂 ${category.toUpperCase()}`)
+      console.log(`\n ${category.toUpperCase()}`)
 
       // STEP 1: Get symbols from ticker universe (limit to active, non-sentinels)
       const { data: tickers } = await supabase
@@ -2470,7 +3042,7 @@ async function populateFeaturedTickers(): Promise<void> {
         .limit(100) // CRITICAL: Limit to 100 per category (not 1000)
 
       if (!tickers || tickers.length === 0) {
-        console.log(`   ⚠️  No tickers found in universe`)
+        console.log(`     No tickers found in universe`)
         continue
       }
 
@@ -2479,13 +3051,13 @@ async function populateFeaturedTickers(): Promise<void> {
         .filter((s) => !SENTINELS.has(s))
         .slice(0, 50) // CRITICAL: Further limit to 50 for convergence detection
 
-      console.log(`   🔍 Checking ${symbols.length} symbols for convergence...`)
+      console.log(`    Checking ${symbols.length} symbols for convergence...`)
 
       // STEP 2: Run convergence detection (this is the expensive operation)
       const convergenceResults = await detectConvergenceForecastedSwings(symbols, category)
 
       if (convergenceResults.length > 0) {
-        console.log(`   ✅ Found ${convergenceResults.length} convergence forecasts`)
+        console.log(`    Found ${convergenceResults.length} convergence forecasts`)
 
         // Map to featured ticker format
         const featured = convergenceResults.slice(0, 10).map((result, idx) => ({
@@ -2509,9 +3081,9 @@ async function populateFeaturedTickers(): Promise<void> {
         }))
 
         allFeatured.push(...featured)
-        console.log(`   💾 Added ${featured.length} to featured list`)
+        console.log(`    Added ${featured.length} to featured list`)
       } else {
-        console.log(`   ℹ️  No convergence forecasts found, falling back to ratings...`)
+        console.log(`     No convergence forecasts found, falling back to ratings...`)
 
         // FALLBACK: Use ticker ratings (faster than convergence)
         const ratings = await batchCalculateRatings({
@@ -2542,7 +3114,7 @@ async function populateFeaturedTickers(): Promise<void> {
           }))
 
           allFeatured.push(...featured)
-          console.log(`   💾 Added ${featured.length} from ratings`)
+          console.log(`    Added ${featured.length} from ratings`)
         }
       }
 
@@ -2552,7 +3124,7 @@ async function populateFeaturedTickers(): Promise<void> {
 
     // STEP 3: Store results
     if (allFeatured.length > 0) {
-      console.log(`\n💾 Storing ${allFeatured.length} featured tickers...`)
+      console.log(`\n Storing ${allFeatured.length} featured tickers...`)
 
       // Clear old data
       for (const category of categories) {
@@ -2565,17 +3137,17 @@ async function populateFeaturedTickers(): Promise<void> {
         const { error } = await supabase.from("featured_tickers").insert(batch)
 
         if (error) {
-          console.error(`   ❌ Error storing batch: ${error.message}`)
+          console.error(`    Error storing batch: ${error.message}`)
         }
       }
 
-      console.log(`\n✅ Featured tickers refresh complete`)
+      console.log(`\n Featured tickers refresh complete`)
       console.log(`   Total: ${allFeatured.length} tickers across ${categories.length} categories`)
     } else {
-      console.log(`\n⚠️  No featured tickers found`)
+      console.log(`\n  No featured tickers found`)
     }
   } catch (error: any) {
-    console.error("❌ Error:", error.message)
+    console.error(" Error:", error.message)
     console.error(error.stack)
     throw error
   }
@@ -2584,56 +3156,6 @@ async function populateFeaturedTickers(): Promise<void> {
 // ============================================================================
 // INGRESS-AWARE CACHING SYSTEM (NEW - INSERT HERE)
 // ============================================================================
-
-async function getCurrentIngressPeriod(): Promise<{
-  period: string
-  sign: string
-  startDate: string
-  endDate: string
-  daysInPeriod: number
-}> {
-  const today = new Date().toISOString().split("T")[0]
-
-  const { data: currentIngress } = await supabase
-    .from("astro_events")
-    .select("*")
-    .eq("event_type", "ingress")
-    .eq("body", "Sun")
-    .lte("date", today)
-    .order("date", { ascending: false })
-    .limit(1)
-    .single()
-
-  if (!currentIngress) {
-    throw new Error("No ingress data found")
-  }
-
-  const { data: nextIngress } = await supabase
-    .from("astro_events")
-    .select("*")
-    .eq("event_type", "ingress")
-    .eq("body", "Sun")
-    .gt("date", today)
-    .order("date", { ascending: true })
-    .limit(1)
-    .single()
-
-  const startDate = currentIngress.date
-  const endDate =
-    nextIngress?.date ||
-    new Date(new Date(startDate).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
-  const daysInPeriod = Math.floor(
-    (Date.now() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
-  )
-
-  return {
-    period: `${new Date(startDate).getFullYear()}-${String(new Date(startDate).getMonth() + 1).padStart(2, "0")}-${currentIngress.sign.toLowerCase()}`,
-    sign: currentIngress.sign,
-    startDate,
-    endDate,
-    daysInPeriod,
-  }
-}
 
 function determineSector(symbol: string, category: string): string {
   const SECTOR_MAP: Record<string, string> = {
@@ -2686,13 +3208,13 @@ function determineSector(symbol: string, category: string): string {
 }
 
 async function runMonthlyIngressScan(): Promise<void> {
-  console.log("🌙 MONTHLY INGRESS SCAN - Full Analysis\n")
+  console.log(" MONTHLY INGRESS SCAN - Full Analysis\n")
 
-  const ingress = await getCurrentIngressPeriod()
-  console.log(`📅 Ingress Period: ${ingress.period}`)
-  console.log(`🌟 Sign: ${ingress.sign}`)
-  console.log(`📆 ${ingress.startDate} → ${ingress.endDate}`)
-  console.log(`⏱️  Day ${ingress.daysInPeriod} of period\n`)
+  const ingress = await getIngressPeriod()
+  console.log(` Ingress Period: ${ingress.period}`)
+  console.log(` Sign: ${ingress.sign}`)
+  console.log(` ${ingress.start}  ${ingress.end}`)
+  console.log(`  Day ${ingress.daysRemaining} of period (${ingress.daysRemaining} remaining)\n`)
 
   // Check if we've already scanned this period
   const { count: existingCount } = await supabase
@@ -2701,7 +3223,7 @@ async function runMonthlyIngressScan(): Promise<void> {
     .eq("ingress_period", ingress.period)
 
   if (existingCount && existingCount > 0) {
-    console.log(`⚠️  Period ${ingress.period} already scanned (${existingCount} records)`)
+    console.log(`  Period ${ingress.period} already scanned (${existingCount} records)`)
     console.log("Run 'refresh-monthly-scan' to force rescan\n")
     return
   }
@@ -2735,7 +3257,7 @@ async function runMonthlyIngressScan(): Promise<void> {
   let totalAnalyzed = 0
 
   for (const category of categories) {
-    console.log(`\n📂 ${category.toUpperCase()}`)
+    console.log(`\n ${category.toUpperCase()}`)
 
     // Get all active tickers
     const { data: tickers } = await supabase
@@ -2745,13 +3267,13 @@ async function runMonthlyIngressScan(): Promise<void> {
       .eq("active", true)
 
     if (!tickers?.length) {
-      console.log(`   ⚠️  No tickers found`)
+      console.log(`     No tickers found`)
       continue
     }
 
     const symbols = tickers.map((t) => t.symbol).filter((s) => !SENTINELS.has(s))
 
-    console.log(`   🔍 Analyzing ${symbols.length} symbols...`)
+    console.log(`    Analyzing ${symbols.length} symbols...`)
 
     // PHASE 1: Get ratings for ALL symbols
     const ratings = await batchCalculateRatings({
@@ -2764,21 +3286,21 @@ async function runMonthlyIngressScan(): Promise<void> {
       parallelism: 5,
     })
 
-    console.log(`   📊 Got ${ratings.length} ratings`)
+    console.log(`    Got ${ratings.length} ratings`)
 
     // PHASE 2: Run convergence detection on top 30%
     const topRatings = ratings
       .sort((a, b) => b.scores.total - a.scores.total)
       .slice(0, Math.ceil(ratings.length * 0.3))
 
-    console.log(`   🎯 Running convergence on top ${topRatings.length} symbols...`)
+    console.log(`    Running convergence on top ${topRatings.length} symbols...`)
 
     const convergenceResults = await detectConvergenceForecastedSwings(
       topRatings.map((r) => r.symbol),
       category
     )
 
-    console.log(`   ✅ Found ${convergenceResults.length} convergence forecasts`)
+    console.log(`    Found ${convergenceResults.length} convergence forecasts`)
 
     // PHASE 3: Store in cache
     const cacheRecords: any[] = []
@@ -2884,9 +3406,9 @@ async function runMonthlyIngressScan(): Promise<void> {
           },
           ingress_alignment: {
             sign: ingress.sign,
-            start_date: ingress.startDate,
-            end_date: ingress.endDate,
-            days_in_period: ingress.daysInPeriod,
+            start_date: ingress.start,
+            end_date: ingress.end,
+            days_in_period: ingress.daysRemaining,
             favorability: rating?.ingressAlignment?.favorability || null,
           },
           featured_rank: null,
@@ -2952,9 +3474,9 @@ async function runMonthlyIngressScan(): Promise<void> {
           },
           ingress_alignment: {
             sign: ingress.sign,
-            start_date: ingress.startDate,
-            end_date: ingress.endDate,
-            days_in_period: ingress.daysInPeriod,
+            start_date: ingress.start,
+            end_date: ingress.end,
+            days_in_period: ingress.daysRemaining,
             favorability: rating.ingressAlignment?.favorability || null,
           },
           featured_rank: null,
@@ -2973,32 +3495,32 @@ async function runMonthlyIngressScan(): Promise<void> {
         })
 
         if (error) {
-          console.error(`   ❌ Error inserting batch: ${error.message}`)
+          console.error(`    Error inserting batch: ${error.message}`)
         }
       }
 
       totalAnalyzed += cacheRecords.length
-      console.log(`   💾 Cached ${cacheRecords.length} analysis records`)
+      console.log(`    Cached ${cacheRecords.length} analysis records`)
     }
 
     // Rate limiting between categories
     await new Promise((resolve) => setTimeout(resolve, 2000))
   }
 
-  console.log(`\n✅ COMPLETE: ${totalAnalyzed} symbols analyzed and cached\n`)
+  console.log(`\n COMPLETE: ${totalAnalyzed} symbols analyzed and cached\n`)
 }
 
 async function runDailyRankUpdate(): Promise<void> {
-  console.log("📊 DAILY RANK UPDATE\n")
+  console.log(" DAILY RANK UPDATE\n")
 
-  const ingress = await getCurrentIngressPeriod()
-  console.log(`📅 Period: ${ingress.period} (Day ${ingress.daysInPeriod})\n`)
+  const ingress = await getIngressPeriod()
+  console.log(` Period: ${ingress.period} (Day ${ingress.daysRemaining})\n`)
 
   const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
   let totalUpdated = 0
 
   for (const category of categories) {
-    console.log(`📂 ${category.toUpperCase()}`)
+    console.log(` ${category.toUpperCase()}`)
 
     const { data: cached } = await supabase
       .from("ticker_ratings_cache")
@@ -3007,11 +3529,11 @@ async function runDailyRankUpdate(): Promise<void> {
       .eq("category", category)
 
     if (!cached?.length) {
-      console.log(`   ⚠️  No cache - run monthly scan first`)
+      console.log(`     No cache - run monthly scan first`)
       continue
     }
 
-    console.log(`   📊 Found ${cached.length} cached analyses`)
+    console.log(`    Found ${cached.length} cached analyses`)
 
     // Re-rank based on dynamic scoring
     const scored = cached.map((item) => {
@@ -3090,17 +3612,17 @@ async function runDailyRankUpdate(): Promise<void> {
     totalUpdated += scored.length
     const topTen = scored.filter((_, idx) => idx < 10).map((s, idx) => `${s.symbol} (#${idx + 1})`)
 
-    console.log(`   🏆 Top 10: ${topTen.join(", ")}`)
+    console.log(`    Top 10: ${topTen.join(", ")}`)
   }
 
-  console.log(`\n✅ Ranks updated: ${totalUpdated} tickers\n`)
+  console.log(`\n Ranks updated: ${totalUpdated} tickers\n`)
 
   // Sync to featured_tickers table
   await syncCacheToFeaturedTable(ingress.period)
 }
 
 async function syncCacheToFeaturedTable(ingressPeriod: string): Promise<void> {
-  console.log("🔄 Syncing cache to featured_tickers...\n")
+  console.log(" Syncing cache to featured_tickers...\n")
 
   // Query with JSONB field extraction
   const { data: topTickers } = await supabase
@@ -3113,11 +3635,11 @@ async function syncCacheToFeaturedTable(ingressPeriod: string): Promise<void> {
     .limit(60) // Get top 60 (10 per category)
 
   if (!topTickers?.length) {
-    console.log("⚠️  No featured tickers to sync")
+    console.log("  No featured tickers to sync")
     return
   }
 
-  console.log(`   📦 Found ${topTickers.length} ranked tickers`)
+  console.log(`    Found ${topTickers.length} ranked tickers`)
 
   // Clear old featured table
   await supabase.from("featured_tickers").delete().neq("symbol", "")
@@ -3149,15 +3671,15 @@ async function syncCacheToFeaturedTable(ingressPeriod: string): Promise<void> {
   if (featured.length > 0) {
     const { error } = await supabase.from("featured_tickers").insert(featured)
     if (error) {
-      console.error(`   ❌ Error syncing: ${error.message}`)
+      console.error(`    Error syncing: ${error.message}`)
     } else {
-      console.log(`   ✅ Synced ${featured.length} featured tickers\n`)
+      console.log(`    Synced ${featured.length} featured tickers\n`)
     }
   }
 }
 
 async function getFeaturedTickersFromCache(category?: string): Promise<any[]> {
-  const ingress = await getCurrentIngressPeriod()
+  const ingress = await getIngressPeriod()
 
   let query = supabase
     .from("ticker_ratings_cache")
@@ -3214,7 +3736,7 @@ async function getFeaturedTickersFromCache(category?: string): Promise<any[]> {
 // ============================================================================
 
 async function cronUpdatePricesDelayTolerant(): Promise<void> {
-  console.log("🔄 Starting smart price update...\n")
+  console.log(" Starting smart price update...\n")
 
   const args = process.argv.slice(3)
   const categoryArg = args.find((arg) => arg.startsWith("--categories="))
@@ -3226,7 +3748,7 @@ async function cronUpdatePricesDelayTolerant(): Promise<void> {
     const symbols = CATEGORY_MAP[category as keyof typeof CATEGORY_MAP]
     if (!symbols) continue
 
-    console.log(`\n📂 ${category.toUpperCase()} (${symbols.length} symbols)`)
+    console.log(`\n ${category.toUpperCase()} (${symbols.length} symbols)`)
     const records: any[] = []
     const today = new Date().toISOString().split("T")[0]
 
@@ -3243,7 +3765,7 @@ async function cronUpdatePricesDelayTolerant(): Promise<void> {
           volume: 0,
         })
         console.log(
-          `   ✅ ${symbol.padEnd(12)} ${result.price.toFixed(2).padStart(10)} (${result.provider})`
+          `    ${symbol.padEnd(12)} ${result.price.toFixed(2).padStart(10)} (${result.provider})`
         )
       }
       await new Promise((resolve) => setTimeout(resolve, 200))
@@ -3251,42 +3773,30 @@ async function cronUpdatePricesDelayTolerant(): Promise<void> {
 
     if (records.length > 0) {
       await supabase.from("financial_data").upsert(records, { onConflict: "symbol,date" })
-      console.log(`   ✅ Database updated`)
+      console.log(`    Database updated`)
     }
   }
 
   rateLimiter.reset()
-  console.log("\n✅ Price update complete\n")
+  console.log("\n Price update complete\n")
 }
 
 async function cronRefreshFeaturedDelayTolerant(): Promise<void> {
-  console.log("🌞 Checking ingress status...\n")
+  console.log(" Checking ingress status...\n")
 
-  const today = new Date().toISOString().split("T")[0]
-  const { data: currentIngress } = await supabase
-    .from("astro_events")
-    .select("*")
-    .eq("event_type", "ingress")
-    .eq("body", "Sun")
-    .lte("date", today)
-    .order("date", { ascending: false })
-    .limit(1)
-    .single()
+  try {
+    const ingress = await getIngressPeriod()
+    const daysSinceIngress = ingress.daysInPeriod
 
-  if (!currentIngress) {
-    console.log("⚠️  No ingress data\n")
+    if (daysSinceIngress <= 1 || (daysSinceIngress % 7 === 0 && daysSinceIngress <= 28)) {
+      console.log(` Refresh triggered (day ${daysSinceIngress})\n`)
+      await populateFeaturedTickers()
+    } else {
+      console.log("  No refresh needed\n")
+    }
+  } catch (error) {
+    console.log("  No ingress data\n")
     return
-  }
-
-  const daysSinceIngress = Math.floor(
-    (Date.now() - new Date(currentIngress.date).getTime()) / (1000 * 60 * 60 * 24)
-  )
-
-  if (daysSinceIngress <= 1 || (daysSinceIngress % 7 === 0 && daysSinceIngress <= 28)) {
-    console.log(`✅ Refresh triggered (day ${daysSinceIngress})\n`)
-    await populateFeaturedTickers()
-  } else {
-    console.log("⭐️  No refresh needed\n")
   }
 }
 
@@ -3295,7 +3805,7 @@ async function cronRefreshFeaturedDelayTolerant(): Promise<void> {
 // ============================================================================
 
 async function cleanOldPriceData(daysToKeep: number = 1095): Promise<void> {
-  console.log(`🧹 Cleaning price data older than ${daysToKeep} days...\n`)
+  console.log(` Cleaning price data older than ${daysToKeep} days...\n`)
 
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
@@ -3308,14 +3818,14 @@ async function cleanOldPriceData(daysToKeep: number = 1095): Promise<void> {
     .select()
 
   if (error) {
-    console.error("❌ Error:", error.message)
+    console.error(" Error:", error.message)
   } else {
-    console.log(`✅ Deleted ${data?.length || 0} old records\n`)
+    console.log(` Deleted ${data?.length || 0} old records\n`)
   }
 }
 
 async function getDataQualityReport(): Promise<void> {
-  console.log("📊 DATA QUALITY REPORT\n")
+  console.log(" DATA QUALITY REPORT\n")
 
   for (const [category, symbols] of Object.entries(CATEGORY_MAP)) {
     const { count } = await supabase
@@ -3330,7 +3840,7 @@ async function getDataQualityReport(): Promise<void> {
 }
 
 async function verifyDatabaseSchema(): Promise<void> {
-  console.log("🔎 Verifying Database Schema...\n")
+  console.log(" Verifying Database Schema...\n")
 
   const expectedTables = [
     "financial_data",
@@ -3344,15 +3854,15 @@ async function verifyDatabaseSchema(): Promise<void> {
     const { count, error } = await supabase.from(table).select("*", { count: "exact", head: true })
 
     if (error) {
-      console.log(`   ❌ ${table.padEnd(25)} | Error: ${error.message}`)
+      console.log(`    ${table.padEnd(25)} | Error: ${error.message}`)
     } else {
-      console.log(`   ✅ ${table.padEnd(25)} | ${(count || 0).toLocaleString()} rows`)
+      console.log(`    ${table.padEnd(25)} | ${(count || 0).toLocaleString()} rows`)
     }
   }
 }
 
 async function exportToCSV(category?: string, outputDir: string = "./backups"): Promise<void> {
-  console.log("💾 Exporting data to CSV...\n")
+  console.log(" Exporting data to CSV...\n")
 
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true })
@@ -3378,18 +3888,18 @@ async function exportToCSV(category?: string, outputDir: string = "./backups"): 
     const filename = `${outputDir}/${cat}_${timestamp}.csv`
 
     fs.writeFileSync(filename, csv)
-    console.log(`   ✅ Exported ${data.length} records to ${filename}`)
+    console.log(`    Exported ${data.length} records to ${filename}`)
   }
 }
 
 async function testAPIProviders(): Promise<void> {
-  console.log("🧪 Testing API Providers...\n")
+  console.log(" Testing API Providers...\n")
 
   const testSymbols = { equity: "SPY", crypto: "Bitcoin", forex: "EUR/USD" }
 
   for (const provider of API_PROVIDERS) {
-    console.log(`📡 ${provider.name.toUpperCase()}`)
-    console.log(`   Enabled: ${provider.enabled() ? "✅" : "❌"}`)
+    console.log(` ${provider.name.toUpperCase()}`)
+    console.log(`   Enabled: ${provider.enabled() ? "" : ""}`)
 
     if (!provider.enabled()) continue
 
@@ -3407,10 +3917,10 @@ async function testAPIProviders(): Promise<void> {
     try {
       const price = await provider.fetch(testSymbol, testCategory)
       if (price) {
-        console.log(`   ✅ ${testSymbol} = ${price.toFixed(2)}\n`)
+        console.log(`    ${testSymbol} = ${price.toFixed(2)}\n`)
       }
     } catch (error: any) {
-      console.log(`   ❌ ${error.message}\n`)
+      console.log(`    ${error.message}\n`)
     }
 
     await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -3421,7 +3931,8 @@ async function testAPIProviders(): Promise<void> {
 // MAIN CLI
 // ============================================================================
 
-export { getCurrentIngressPeriod, getFeaturedTickersFromCache }
+export { getCurrentIngressPeriod } from "../src/lib/utils.js"
+export { getFeaturedTickersFromCache }
 
 async function main() {
   const command = process.argv[2]
@@ -3436,17 +3947,17 @@ async function main() {
     "monthly-scan": runMonthlyIngressScan,
     "daily-rank": runDailyRankUpdate,
     "refresh-monthly-scan": async () => {
-      const ingress = await getCurrentIngressPeriod()
+      const ingress = await getIngressPeriod()
       await supabase.from("ticker_analysis_cache").delete().eq("ingress_period", ingress.period)
       await runMonthlyIngressScan()
     },
     "check-cache": async () => {
-      const ingress = await getCurrentIngressPeriod()
+      const ingress = await getIngressPeriod()
       const { count } = await supabase
         .from("ticker_analysis_cache")
         .select("*", { count: "exact", head: true })
         .eq("ingress_period", ingress.period)
-      console.log(`📦 Cache for ${ingress.period}: ${count || 0} records`)
+      console.log(` Cache for ${ingress.period}: ${count || 0} records`)
     },
     "cron-update-prices": cronUpdatePricesDelayTolerant,
     "cron-refresh-featured": cronRefreshFeaturedDelayTolerant,
@@ -3486,17 +3997,19 @@ async function main() {
 
     "universe-stats": universeStats,
     "check-ingress": checkCurrentIngress,
+    "expand-universe-all": expandUniverseComprehensive,
 
     // Diagnostic commands
     "debug-symbols": debugSymbolFormats,
     "fix-symbols": fixSymbolFormats,
     "verify-ingress": verifyIngressCalculation,
     "show-equity-mismatch": showEquityMismatch,
+    "sync-universe": syncTickerUniverse,
   }
 
   if (!command || !commands[command]) {
     console.log(`
-📊 Data Manager - Unified data operations tool
+ Data Manager - Unified data operations tool
 
 Usage: npx tsx scripts/data-manager.ts [command] [options]
 
@@ -3519,7 +4032,15 @@ Cron Commands:
   cron-refresh-featured          Ingress-aware featured ticker refresh
 
 Ticker Universe:
-  init-universe                  Initialize complete ticker universe
+  init-universe                  Initialize universe (1,000 equities + crypto + forex)
+  expand-universe-all            Load ALL available tickers from ALL sources
+                               - Equities: ALL from Polygon (no limit)
+                               - Crypto: ALL from CoinGecko (no limit)
+                               - Forex: 76 major/cross/exotic pairs
+                               - Commodities: 39 futures + ETFs
+                               - Indices: 24 market indices
+                               - Macro: 23 FRED indicators
+                               Est. total: 10,000+ symbols
   load-polygon-tickers           Load equity tickers from Polygon
   add-crypto                     Add crypto tickers to universe
   add-forex                      Add forex pairs to universe
@@ -3533,7 +4054,7 @@ Historical Data Backfill:
   backfill-all                   Backfill ALL 1,029 symbols from CATEGORY_MAP (12 months)
   backfill-map [category]        Backfill specific category from CATEGORY_MAP
 
-🛠️  Maintenance Commands:
+  Maintenance Commands:
   quality-report                 Get comprehensive data quality report
   verify-schema                  Verify database tables exist
   export-csv [category]          Export data to CSV backups
@@ -3542,8 +4063,8 @@ Historical Data Backfill:
 
 Examples:
   npx tsx scripts/data-manager.ts init-universe
-  npx tsx scripts/data-manager.ts backfill-all          # Fetch all 1,029 tickers
-  npx tsx scripts/data-manager.ts backfill-map equity    # Just equity (500 symbols)
+  npx tsx scripts/data-manager.ts backfill-all
+  npx tsx scripts/data-manager.ts backfill-map equity
   npx tsx scripts/data-manager.ts quality-report
   npx tsx scripts/data-manager.ts universe-stats
     `)
@@ -3552,10 +4073,10 @@ Examples:
 
   try {
     await commands[command]()
-    console.log("\n✅ Operation complete")
+    console.log("\n Operation complete")
     process.exit(0)
   } catch (error) {
-    console.error("\n❌ Fatal error:", error)
+    console.error("\n Fatal error:", error)
     process.exit(1)
   }
 }
@@ -3570,12 +4091,12 @@ main().catch((error) => {
 })
 
 async function debugSymbolFormats() {
-  console.log("🔍 Symbol Format Diagnostic\n")
+  console.log(" Symbol Format Diagnostic\n")
 
   const categories = ["equity", "crypto", "forex", "commodity", "rates-macro", "stress"]
 
   for (const category of categories) {
-    console.log(`\n📂 ${category.toUpperCase()}`)
+    console.log(`\n ${category.toUpperCase()}`)
 
     // Get symbols from universe
     const { data: universeTickers } = await supabase
@@ -3605,9 +4126,9 @@ async function debugSymbolFormats() {
     // Find mismatches
     const mismatches = universeSymbols.filter((s: string) => !uniquePriceSymbols.includes(s))
     if (mismatches.length > 0) {
-      console.log(`   ❌ No price data for:`, mismatches.join(", "))
+      console.log(`    No price data for:`, mismatches.join(", "))
     } else {
-      console.log(`   ✅ All universe symbols have price data`)
+      console.log(`    All universe symbols have price data`)
     }
 
     // Check bar counts for sample symbols
@@ -3618,13 +4139,13 @@ async function debugSymbolFormats() {
         .eq("symbol", symbol)
         .eq("category", category)
 
-      console.log(`   📊 ${symbol}: ${count || 0} bars`)
+      console.log(`    ${symbol}: ${count || 0} bars`)
     }
   }
 }
 
 async function showEquityMismatch() {
-  console.log("🔍 Equity Symbol Mismatch Analysis\n")
+  console.log(" Equity Symbol Mismatch Analysis\n")
 
   // Get universe symbols
   const { data: universeData } = await supabase
@@ -3648,28 +4169,28 @@ async function showEquityMismatch() {
 
   // Find universe symbols WITHOUT data
   const noData = [...universeSymbols].filter((s) => !uniqueDataSymbols.has(s))
-  console.log(`\n❌ In universe but NO price data (${noData.length}):`)
+  console.log(`\n In universe but NO price data (${noData.length}):`)
   console.log(noData.slice(0, 20).join(", "), noData.length > 20 ? "..." : "")
 
   // Find data symbols NOT in universe
   const notInUniverse = [...uniqueDataSymbols].filter((s) => !universeSymbols.has(s))
-  console.log(`\n⚠️  Has price data but NOT in universe (${notInUniverse.length}):`)
+  console.log(`\n  Has price data but NOT in universe (${notInUniverse.length}):`)
   console.log(notInUniverse.slice(0, 20).join(", "), notInUniverse.length > 20 ? "..." : "")
 
   // Sample a few mismatched symbols to see patterns
   if (noData.length > 0) {
-    console.log(`\n📋 Sample universe symbols (first 10):`)
+    console.log(`\n Sample universe symbols (first 10):`)
     console.log([...universeSymbols].slice(0, 10).join(", "))
   }
 
   if (notInUniverse.length > 0) {
-    console.log(`\n📋 Sample data symbols (first 10):`)
+    console.log(`\n Sample data symbols (first 10):`)
     console.log([...uniqueDataSymbols].slice(0, 10).join(", "))
   }
 }
 
 async function fixSymbolFormats() {
-  console.log("🔧 Normalizing symbol formats...\n")
+  console.log(" Normalizing symbol formats...\n")
 
   const fixes = [
     // Crypto
@@ -3702,7 +4223,7 @@ async function fixSymbolFormats() {
       .eq("category", fix.category)
 
     if (!universeError) {
-      console.log(`✅ ticker_universe: ${fix.from} → ${fix.to} (${fix.category})`)
+      console.log(` ticker_universe: ${fix.from}  ${fix.to} (${fix.category})`)
     }
 
     // Update financial_data
@@ -3713,98 +4234,43 @@ async function fixSymbolFormats() {
       .eq("category", fix.category)
 
     if (!dataError) {
-      console.log(`✅ financial_data: ${fix.from} → ${fix.to} (${fix.category})`)
+      console.log(` financial_data: ${fix.from}  ${fix.to} (${fix.category})`)
     }
   }
 
-  console.log("\n✅ Symbol normalization complete")
+  console.log("\n Symbol normalization complete")
 }
 
 async function verifyIngressCalculation() {
-  console.log("🌞 Verifying ingress calculation\n")
+  console.log(" Verifying ingress calculation\n")
 
-  const today = new Date().toISOString().split("T")[0]
+  try {
+    const ingress = await getIngressPeriod()
 
-  // FIXED: Use correct event_type filter
-  const { data: current } = await supabase
-    .from("astro_events")
-    .select("*")
-    .eq("event_type", "ingress") // Changed from "ingress"
-    .eq("body", "Sun")
-    .lte("date", today)
-    .order("date", { ascending: false })
-    .limit(1)
-
-  if (!current || current.length === 0) {
-    console.log("❌ No solar_ingress data found in astro_events")
-    console.log("   Checking what event_types exist...")
-
-    const { data: types } = await supabase.from("astro_events").select("event_type").limit(100)
-
-    const uniqueTypes = [...new Set(types?.map((t: any) => t.event_type) || [])]
-    console.log("   Available event_types:", uniqueTypes.join(", "))
-    return
-  }
-
-  // Get next ingress
-  const { data: next } = await supabase
-    .from("astro_events")
-    .select("*")
-    .eq("event_type", "ingress")
-    .eq("body", "Sun")
-    .gt("date", today)
-    .order("date", { ascending: true })
-    .limit(1)
-
-  const currentIngress = current[0]
-  const nextIngress = next && next.length > 0 ? next[0] : null
-
-  console.log(`Current Ingress: ${currentIngress.sign || "Unknown"}`)
-  console.log(`Start Date: ${currentIngress.date}`)
-  console.log(
-    `Next Ingress: ${nextIngress?.sign || "Unknown"} on ${nextIngress?.date || "Unknown"}`
-  )
-
-  // Calculate days CORRECTLY
-  const start = new Date(currentIngress.date)
-  const end = nextIngress
-    ? new Date(nextIngress.date)
-    : new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000)
-  const now = new Date()
-
-  const daysInPeriod = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-  const dayOfPeriod = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
-  const daysRemaining = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-
-  console.log(`\n📊 Period: ${daysInPeriod} days total`)
-  console.log(`📍 Current: Day ${dayOfPeriod} of ${daysInPeriod}`)
-  console.log(`⏳ Remaining: ${daysRemaining} days`)
-  console.log(`📈 Progress: ${Math.round((dayOfPeriod / daysInPeriod) * 100)}%`)
-
-  if (dayOfPeriod > daysInPeriod || dayOfPeriod < 1) {
-    console.log(`\n❌ INVALID: dayOfPeriod should be 1-${daysInPeriod}`)
-  } else {
-    console.log(`\n✅ Ingress calculation is correct`)
+    console.log(`Current Ingress: ${ingress.sign}`)
+    console.log(`Start Date: ${ingress.start}`)
+    console.log(`End Date: ${ingress.end}`)
+    console.log(`\n Period: ${ingress.daysInPeriod + 1} days total`)
+    console.log(` Current: Day ${ingress.daysInPeriod + 1}`)
+    console.log(` Remaining: ${ingress.daysRemaining} days`)
+    console.log(
+      ` Progress: ${Math.round(((ingress.daysInPeriod + 1) / (ingress.daysInPeriod + ingress.daysRemaining + 1)) * 100)}%`
+    )
+    console.log(`\n Ingress calculation is correct`)
+  } catch (error: any) {
+    console.error(`\n Error: ${error.message}`)
   }
 }
 
 async function checkCurrentIngress() {
-  const today = new Date().toISOString().split("T")[0]
-  const { data } = await supabase
-    .from("astro_events")
-    .select("*")
-    .eq("event_type", "ingress") // FIXED
-    .eq("body", "Sun")
-    .lte("date", today)
-    .order("date", { ascending: false })
-    .limit(1)
-    .single()
-
-  if (data) {
-    const days =
-      Math.floor((Date.now() - new Date(data.date).getTime()) / (1000 * 60 * 60 * 24)) + 1
-    console.log(`🌞 Current ingress: ${data.sign} (${data.date}, Day ${days})`)
-  } else {
-    console.log("❌ No solar ingress data found")
+  try {
+    const ingress = await getIngressPeriod()
+    console.log(
+      ` Current ingress: ${ingress.sign} (${ingress.start}, Day ${ingress.daysInPeriod + 1})`
+    )
+    console.log(` Period: ${ingress.period}`)
+    console.log(` Days remaining: ${ingress.daysRemaining}`)
+  } catch (error: any) {
+    console.log(` Error: ${error.message}`)
   }
 }

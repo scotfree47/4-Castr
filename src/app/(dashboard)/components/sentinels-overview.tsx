@@ -1,3 +1,5 @@
+// sentinels-overview.tsx
+
 "use client"
 
 import { Badge } from "@/components/ui/badge"
@@ -16,6 +18,40 @@ import {
   TrendingUpDown,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+
+interface SentinelsOverviewProps {
+  onCategoryChange?: (category: string) => void
+}
+
+interface SentinelData {
+  symbol: string
+  category: string
+  currentPrice: number
+  nextKeyLevel: {
+    price: number
+    type: "support" | "resistance"
+    distancePercent: number
+  }
+  scores: {
+    total: number
+    confluence: number
+    momentum: number
+  }
+  convergence?: {
+    has_convergence: boolean
+    confidence?: number
+    forecasted_swing?: {
+      type: "high" | "low"
+      price: number
+      date: string
+    }
+    astro_confirmation?: {
+      score: number
+      reasons: string[]
+    }
+  }
+  atr14?: number
+}
 
 const SENTINELS = {
   equity: ["SPY", "QQQ", "XLY"],
@@ -42,7 +78,6 @@ interface SentinelMetric {
   strongestChange: number
   nearestSupport: number | null
   nearestResistance: number | null
-  description: string
   avgChange: string
   trend: "up" | "down" | "neutral"
   icon: any
@@ -50,22 +85,23 @@ interface SentinelMetric {
   footerIcon: any
   sentinels: Array<{ symbol: string; display: string }>
   categoryId: string
+  hasConvergence: boolean
+  convergenceData?: {
+    confidence: number
+    forecastedPrice: number
+    forecastedDate: string
+    forecastedType: "high" | "low"
+    astroScore?: number
+    astroReasons?: string[]
+  }
 }
 
-interface SentinelsOverviewProps {
-  onCategoryChange?: (category: string) => void
-}
-
-export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps = {}) {
+export default function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps = {}) {
   const [api, setApi] = useState<any>()
   const [current, setCurrent] = useState(0)
   const [metrics, setMetrics] = useState<SentinelMetric[]>([])
   const [loading, setLoading] = useState(true)
   const [ingressData, setIngressData] = useState<any>(null)
-
-  useEffect(() => {
-    initializeData()
-  }, [])
 
   useEffect(() => {
     if (!api) return
@@ -85,115 +121,79 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
     }
   }, [metrics, onCategoryChange])
 
-  const initializeData = async () => {
-    try {
-      setLoading(true)
-      const ingress = await getCurrentIngress()
-      setIngressData(ingress)
-      await fetchAllMetrics(ingress)
-    } catch (error) {
-      console.error("❌ Error initializing sentinels:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
 
-  const getCurrentIngress = async () => {
-    try {
-      const res = await fetch("/api/ingress", {
-        headers: { "Cache-Control": "no-cache" },
-      })
-      const result = await res.json()
-
-      if (result.success && result.data) {
-        return result.data
-      }
-
-      console.error("Error fetching ingress:", result.error)
-      return null
-    } catch (err) {
-      console.error("Error in getCurrentIngress:", err)
-      return null
-    }
-  }
-
-  const fetchAllMetrics = async (ingress: any) => {
-    if (!ingress) {
-      console.warn("⚠️ No ingress data available")
-      setMetrics(GROUP_CONFIG.map(createEmptyMetric))
-      return
-    }
-
-    console.log("📊 Fetching sentinels metrics for all categories...")
-
-    try {
-      const results = await Promise.all(
-        GROUP_CONFIG.map(async (group) => {
-          try {
-            const symbols = SENTINELS[group.id as keyof typeof SENTINELS]
-            const symbolsParam = symbols.join(",")
-
-            console.log(`🔍 Fetching ${group.id}: ${symbolsParam}`)
-
-            // Use cache-first ticker ratings API
-            const ratingsRes = await fetch(
-              `/api/ticker-ratings?mode=batch&symbols=${symbolsParam}&minScore=0`,
-              {
-                headers: { "Cache-Control": "no-cache" },
-                cache: "no-store",
-              }
-            )
-
-            if (!ratingsRes.ok) {
-              console.error(`❌ ${group.id} API error:`, ratingsRes.status)
-              return createEmptyMetric(group)
-            }
-
-            const ratingsResult = await ratingsRes.json()
-
-            console.log(
-              `   📈 ${group.id} ratings:`,
-              ratingsResult.success
-                ? `${ratingsResult.data?.ratings?.length || 0} tickers`
-                : "FAILED"
-            )
-
-            if (
-              ratingsResult.success &&
-              ratingsResult.data?.ratings &&
-              ratingsResult.data.ratings.length > 0
-            ) {
-              const metric = processGroupRatings(group, ratingsResult.data.ratings, ingress)
-              console.log(
-                `   ✅ ${group.id} metric:`,
-                metric.strongestSymbol,
-                metric.strongestPrice
-              )
-              return metric
-            }
-
-            console.warn(`   ⚠️ ${group.id}: No ratings data, using empty metric`)
-            return createEmptyMetric(group)
-          } catch (err) {
-            console.error(`❌ Error fetching ${group.id}:`, err)
-            return createEmptyMetric(group)
-          }
+        // Fetch current ingress period
+        const ingressRes = await fetch("/api/ingress", {
+          headers: { "Cache-Control": "no-cache" },
         })
-      )
+        const ingressResult = await ingressRes.json()
 
-      console.log("✅ All metrics fetched, setting state...")
-      setMetrics(results)
-    } catch (error) {
-      console.error("❌ Critical error fetching metrics:", error)
-      setMetrics(GROUP_CONFIG.map(createEmptyMetric))
+        if (ingressResult.success && ingressResult.data) {
+          setIngressData(ingressResult.data)
+        }
+
+        // Fetch sentinel data from cache for each category
+        const results = await Promise.all(
+          GROUP_CONFIG.map(async (group) => {
+            try {
+              const symbols = SENTINELS[group.id as keyof typeof SENTINELS]
+              const symbolsParam = symbols.join(",")
+
+              const response = await fetch(
+                `/api/ticker-ratings?category=${group.id}&symbols=${symbolsParam}`,
+                {
+                  headers: { "Cache-Control": "no-cache" },
+                  cache: "no-store",
+                }
+              )
+
+              if (!response.ok) {
+                console.error(`❌ ${group.id} API error:`, response.status)
+                return createEmptyMetric(group, ingressResult.data)
+              }
+
+              const result = await response.json()
+
+              if (result.success && result.data.ratings) {
+                return processGroupRatings(group, result.data.ratings, ingressResult.data)
+              }
+
+              return createEmptyMetric(group, ingressResult.data)
+            } catch (err) {
+              console.error(`Error fetching ${group.id}:`, err)
+              return createEmptyMetric(group, ingressResult.data)
+            }
+          })
+        )
+
+        setMetrics(results)
+      } catch (error) {
+        console.error("Error fetching sentinel data:", error)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
-  const processGroupRatings = (group: any, ratings: any[], ingress: any): SentinelMetric => {
-    if (!ratings || ratings.length === 0) return createEmptyMetric(group)
+    fetchData()
+  }, [])
+
+  const processGroupRatings = (
+    group: any,
+    ratings: SentinelData[],
+    ingress: any
+  ): SentinelMetric => {
+    if (!ratings || ratings.length === 0) {
+      return createEmptyMetric(group, ingress)
+    }
 
     const validRatings = ratings.filter((r) => r.currentPrice > 0)
-    if (validRatings.length === 0) return createEmptyMetric(group)
+    if (validRatings.length === 0) {
+      return createEmptyMetric(group, ingress)
+    }
 
     // Calculate average total score
     const avgScore = validRatings.reduce((sum, r) => sum + r.scores.total, 0) / validRatings.length
@@ -204,6 +204,19 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
     const TrendIcon = avgScore >= 50 ? TrendingUp : TrendingDown
     const trend: "up" | "down" | "neutral" = avgScore >= 50 ? "up" : "down"
 
+    // Check for convergence data
+    const hasConvergence = strongest.convergence?.has_convergence || false
+    const convergenceData = hasConvergence
+      ? {
+          confidence: strongest.convergence?.confidence || 0,
+          forecastedPrice: strongest.convergence?.forecasted_swing?.price || 0,
+          forecastedDate: strongest.convergence?.forecasted_swing?.date || "",
+          forecastedType: strongest.convergence?.forecasted_swing?.type || "high",
+          astroScore: strongest.convergence?.astro_confirmation?.score,
+          astroReasons: strongest.convergence?.astro_confirmation?.reasons,
+        }
+      : undefined
+
     return {
       title: group.title,
       strongestSymbol: strongest.symbol,
@@ -213,28 +226,28 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
         strongest.nextKeyLevel?.type === "support" ? strongest.nextKeyLevel.price : null,
       nearestResistance:
         strongest.nextKeyLevel?.type === "resistance" ? strongest.nextKeyLevel.price : null,
-      description: `Strongest of ${validRatings.length} sentinels`,
       avgChange: `${avgScore.toFixed(0)}`,
       trend,
       icon: group.icon,
-      footer: `${ingress.month || "Current"}'s Score: ${avgScore.toFixed(0)}`,
+      footer: `${ingress?.month || "Current"}'s Score: ${avgScore.toFixed(0)}`,
       footerIcon: TrendIcon,
       sentinels: validRatings.map((r) => ({
         symbol: r.symbol,
-        display: `${r.symbol} ${r.currentPrice.toFixed(2)} [${r.rating}]`,
+        display: `${r.symbol} $${r.currentPrice.toFixed(2)} [${r.scores.total}]`,
       })),
       categoryId: group.id,
+      hasConvergence,
+      convergenceData,
     }
   }
 
-  const createEmptyMetric = (group: any): SentinelMetric => ({
+  const createEmptyMetric = (group: any, ingress: any): SentinelMetric => ({
     title: group.title,
     strongestSymbol: "—",
     strongestPrice: 0,
     strongestChange: 0,
     nearestSupport: null,
     nearestResistance: null,
-    description: "No data available",
     avgChange: "0",
     trend: "neutral",
     icon: group.icon,
@@ -242,6 +255,7 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
     footerIcon: TrendingUp,
     sentinels: [],
     categoryId: group.id,
+    hasConvergence: false,
   })
 
   if (loading) {
@@ -307,6 +321,51 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
                           )}
                         </div>
                       )}
+
+                      {/* Convergence Info */}
+                      {metric.hasConvergence && metric.convergenceData && (
+                        <div className="mt-3 bg-secondary/50 rounded p-2 text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                              <Activity className="h-3 w-3" />
+                              Convergence
+                            </span>
+                            <span className="font-medium">
+                              {Math.round(metric.convergenceData.confidence * 100)}%
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            {metric.convergenceData.forecastedType === "high" ? (
+                              <TrendingUp className="h-3 w-3 text-green-500" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3 text-red-500" />
+                            )}
+                            <span>
+                              ${metric.convergenceData.forecastedPrice.toFixed(2)} on{" "}
+                              {new Date(metric.convergenceData.forecastedDate).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {/* Astro Confirmation */}
+                          {metric.convergenceData.astroScore && (
+                            <div className="mt-2 pt-2 border-t border-border/50">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-muted-foreground">Astro Score</span>
+                                <span className="font-medium">
+                                  {metric.convergenceData.astroScore}/100
+                                </span>
+                              </div>
+                              {metric.convergenceData.astroReasons &&
+                                metric.convergenceData.astroReasons.length > 0 && (
+                                  <ul className="text-[10px] text-muted-foreground space-y-0.5">
+                                    {metric.convergenceData.astroReasons.map((reason, idx) => (
+                                      <li key={idx}>• {reason}</li>
+                                    ))}
+                                  </ul>
+                                )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <Badge
@@ -363,7 +422,9 @@ export function SentinelsOverview({ onCategoryChange }: SentinelsOverviewProps =
         {metrics.map((_, index) => (
           <button
             key={index}
-            className={`h-2 w-8 rounded-lg transition-colors ${index === current ? "bg-primary" : "bg-muted-foreground hover:bg-primary"}`}
+            className={`h-2 w-8 rounded-lg transition-colors ${
+              index === current ? "bg-primary" : "bg-muted-foreground hover:bg-primary"
+            }`}
             onClick={() => api?.scrollTo(index)}
           />
         ))}

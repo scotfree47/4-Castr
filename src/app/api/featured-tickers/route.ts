@@ -3,8 +3,8 @@
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-import { getCurrentIngressPeriod } from "@/lib/utils"
 import { getSupabaseAdmin } from "@/lib/supabase"
+import { getCurrentIngressPeriod } from "@/lib/utils"
 import { NextRequest, NextResponse } from "next/server"
 
 interface CachedRating {
@@ -99,6 +99,34 @@ interface CachedRating {
   }
 }
 
+interface ForecastResult {
+  symbol: string
+  currentPrice: number
+  lastSwing: {
+    type: "high" | "low"
+    price: number
+    date: string
+    barIndex: number
+  }
+  forecastedSwing: {
+    type: "high" | "low"
+    price: number
+    date: string
+    convergingMethods: string[]
+    baseConfidence: number
+    astroBoost: number
+    finalConfidence: number
+    atrHorizon?: string
+    fibOverlap?: any
+    gannValidation?: any
+    lunarTiming?: any
+    atrAnalysis?: any
+  }
+  ingressValidity: boolean
+  rank: number
+  atr14: number
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -149,7 +177,7 @@ export async function GET(request: NextRequest) {
     console.log(`   ✅ Found ${cached.length} cached featured tickers`)
 
     // Transform cache format to forecast format
-    const forecasts = cached.map((item: CachedRating) => {
+    const forecasts: ForecastResult[] = cached.map((item: CachedRating) => {
       const d = item.rating_data
 
       return {

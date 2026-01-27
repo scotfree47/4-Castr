@@ -1,5 +1,6 @@
 // src/lib/dataProviders.js
 // Consolidated data providers: API adapters + CSV readers
+// ENHANCED VERSION with comprehensive symbol mappings
 
 import axios from "axios"
 import fs from "fs"
@@ -16,56 +17,374 @@ const CSV_BASE = path.join(process.cwd(), "csv-pull", "market-data", "data")
 const POLYGON_DELAY = 500 // 500ms = 2 calls/second
 let lastPolygonCall = 0
 
-// Symbol mappings for different providers
+// ============================================================================
+// COMPREHENSIVE SYMBOL MAPPINGS
+// ============================================================================
+
 const SYMBOL_MAPS = {
+  // ---------------------------------------------------------------------------
+  // POLYGON API MAPPINGS
+  // ---------------------------------------------------------------------------
   polygon: {
-    // Indices (keep I: prefix for Polygon API)
+    // Indices (Polygon uses I: prefix)
     TNX: "I:TNX",
+    TYX: "I:TYX",
+    FVX: "I:FVX",
+    IRX: "I:IRX",
     DXY: "I:DXY",
     VIX: "I:VIX",
+    VXN: "I:VXN",
+    VVIX: "I:VVIX",
     MOVE: "I:MOVE",
     TRIN: "I:TRIN",
+    SPX: "I:SPX",
+    NDX: "I:NDX",
 
-    // Futures (Polygon uses =F suffix)
-    "CL1!": "CL=F",
-    "GC1!": "GC=F",
-    "HG1!": "HG=F",
-    "ZW1!": "ZW=F",
-    "ZC1!": "ZC=F",
+    // Futures (Polygon format)
+    "CL1!": "CL=F",    // Crude Oil
+    "GC1!": "GC=F",    // Gold
+    "HG1!": "HG=F",    // Copper
+    "SI1!": "SI=F",    // Silver
+    "NG1!": "NG=F",    // Natural Gas
+    "ZW1!": "ZW=F",    // Wheat
+    "ZC1!": "ZC=F",    // Corn
+    "KC1!": "KC=F",    // Coffee
+    "SB1!": "SB=F",    // Sugar
+    "LE1!": "LE=F",    // Live Cattle
+    "ZS1!": "ZS=F",    // Soybeans
+
+    // Forex (Polygon uses C: prefix)
+    "EUR/USD": "C:EURUSD",
+    "GBP/USD": "C:GBPUSD",
+    "USD/JPY": "C:USDJPY",
+    "USD/CAD": "C:USDCAD",
+    "USD/CHF": "C:USDCHF",
+    "AUD/USD": "C:AUDUSD",
+    "NZD/USD": "C:NZDUSD",
+    "EUR/GBP": "C:EURGBP",
+    "EUR/JPY": "C:EURJPY",
+    "GBP/JPY": "C:GBPJPY",
+    "AUD/JPY": "C:AUDJPY",
+    "AUD/CAD": "C:AUDCAD",
+    "AUD/CHF": "C:AUDCHF",
+    "AUD/NZD": "C:AUDNZD",
+    "AUD/SGD": "C:AUDSGD",
+    "CAD/CHF": "C:CADCHF",
+    "CAD/JPY": "C:CADJPY",
+    "CHF/JPY": "C:CHFJPY",
+    "EUR/AUD": "C:EURAUD",
+    "EUR/CAD": "C:EURCAD",
+    "EUR/CHF": "C:EURCHF",
+    "EUR/NOK": "C:EURNOK",
+    "EUR/NZD": "C:EURNZD",
+    "EUR/PLN": "C:EURPLN",
+    "EUR/SEK": "C:EURSEK",
+    "EUR/TRY": "C:EURTRY",
+    "GBP/AUD": "C:GBPAUD",
+    "GBP/CAD": "C:GBPCAD",
+    "GBP/CHF": "C:GBPCHF",
+    "GBP/NZD": "C:GBPNZD",
+    "GBP/ZAR": "C:GBPZAR",
+    "NZD/CAD": "C:NZDCAD",
+    "NZD/CHF": "C:NZDCHF",
+    "NZD/JPY": "C:NZDJPY",
+    "USD/BRL": "C:USDBRL",
+    "USD/CNY": "C:USDCNY",
+    "USD/DKK": "C:USDDKK",
+    "USD/HKD": "C:USDHKD",
+    "USD/IDR": "C:USDIDR",
+    "USD/INR": "C:USDINR",
+    "USD/KRW": "C:USDKRW",
+    "USD/MXN": "C:USDMXN",
+    "USD/NOK": "C:USDNOK",
+    "USD/PLN": "C:USDPLN",
+    "USD/RUB": "C:USDRUB",
+    "USD/SEK": "C:USDSEK",
+    "USD/SGD": "C:USDSGD",
+    "USD/THB": "C:USDTHB",
+    "USD/TRY": "C:USDTRY",
+    "USD/ZAR": "C:USDZAR",
+
+    // Crypto (Polygon uses X: prefix)
+    BTC: "X:BTCUSD",
+    BITCOIN: "X:BTCUSD",
+    ETH: "X:ETHUSD",
+    ETHEREUM: "X:ETHUSD",
+    BNB: "X:BNBUSD",
+    SOL: "X:SOLUSD",
+    SOLANA: "X:SOLUSD",
+    ADA: "X:ADAUSD",
+    CARDANO: "X:ADAUSD",
+    XRP: "X:XRPUSD",
+    DOT: "X:DOTUSD",
+    POLKADOT: "X:DOTUSD",
+    LINK: "X:LINKUSD",
+    CHAINLINK: "X:LINKUSD",
+    XLM: "X:XLMUSD",
+    STELLAR: "X:XLMUSD",
+    BCH: "X:BCHUSD",
+
+    // Commodities (ETFs)
+    GOLD_ETF: "GLD",
+    SILVER_ETF: "SLV",
+    CRUDE_OIL_ETF: "USO",
+    COPPER_ETF: "COPX",
+    NAT_GAS: "UNG",
   },
 
+  // ---------------------------------------------------------------------------
+  // YAHOO FINANCE MAPPINGS
+  // ---------------------------------------------------------------------------
   yahoo: {
-    // Indices
+    // Indices (Yahoo uses ^ prefix)
     TNX: "^TNX",
+    TYX: "^TYX",
+    FVX: "^FVX",
+    IRX: "^IRX",
     DXY: "DX-Y.NYB",
     VIX: "^VIX",
+    VXN: "^VXN",
+    VVIX: "^VVIX",
     SPX: "^GSPC",
     NDX: "^NDX",
 
-    // Futures
+    // Futures (Yahoo uses =F suffix)
     "CL1!": "CL=F",
     "GC1!": "GC=F",
     "HG1!": "HG=F",
+    "SI1!": "SI=F",
+    "NG1!": "NG=F",
+    "ZW1!": "ZW=F",
+    "ZC1!": "ZC=F",
+    "KC1!": "KC=F",
+    "SB1!": "SB=F",
+    "LE1!": "LE=F",
+    "ZS1!": "ZS=F",
 
     // Forex (Yahoo uses =X suffix)
     "EUR/USD": "EURUSD=X",
-    "USD/JPY": "JPY=X",
     "GBP/USD": "GBPUSD=X",
-    "GBP/JPY": "GBPJPY=X",
+    "USD/JPY": "JPY=X",
+    "USD/CAD": "CAD=X",
+    "USD/CHF": "CHF=X",
     "AUD/USD": "AUDUSD=X",
+    "NZD/USD": "NZDUSD=X",
+    "EUR/GBP": "EURGBP=X",
+    "EUR/JPY": "EURJPY=X",
+    "GBP/JPY": "GBPJPY=X",
+    "AUD/JPY": "AUDJPY=X",
+
+    // Crypto (Yahoo uses -USD suffix)
+    BTC: "BTC-USD",
+    BITCOIN: "BTC-USD",
+    ETH: "ETH-USD",
+    ETHEREUM: "ETH-USD",
+    BNB: "BNB-USD",
+    SOL: "SOL-USD",
+    SOLANA: "SOL-USD",
+    ADA: "ADA-USD",
+    CARDANO: "ADA-USD",
+    XRP: "XRP-USD",
+    DOT: "DOT-USD",
+    POLKADOT: "DOT-USD",
+    LINK: "LINK-USD",
+    CHAINLINK: "LINK-USD",
+    XLM: "XLM-USD",
+    STELLAR: "XLM-USD",
+    BCH: "BCH-USD",
+
+    // Class shares (Yahoo uses hyphen instead of period)
+    "BRK.B": "BRK-B",
+    "BF.B": "BF-B",
+    "LEN.B": "LEN.B", // Actually uses period
   },
 
-  coingecko: {
-    // Crypto: normalize to CoinGecko IDs
-    bitcoin: "bitcoin",
-    ethereum: "ethereum",
-    solana: "solana",
-    binancecoin: "binancecoin",
-    ripple: "ripple",
-    cardano: "cardano",
-    "avalanche-2": "avalanche-2",
-    polkadot: "polkadot",
+  // ---------------------------------------------------------------------------
+  // TWELVE DATA MAPPINGS
+  // ---------------------------------------------------------------------------
+  twelve_data: {
+    // Forex (TwelveData uses slash format)
+    "EUR/USD": "EUR/USD",
+    "GBP/USD": "GBP/USD",
+    "USD/JPY": "USD/JPY",
+    "USD/CAD": "USD/CAD",
+    "USD/CHF": "USD/CHF",
+    "AUD/USD": "AUD/USD",
+    "NZD/USD": "NZD/USD",
+    "EUR/GBP": "EUR/GBP",
+    "EUR/JPY": "EUR/JPY",
+    "GBP/JPY": "GBP/JPY",
+    "AUD/JPY": "AUD/JPY",
+    "AUD/CAD": "AUD/CAD",
+    "AUD/CHF": "AUD/CHF",
+    "AUD/NZD": "AUD/NZD",
+    "AUD/SGD": "AUD/SGD",
+    "EUR/AUD": "EUR/AUD",
+    "EUR/NOK": "EUR/NOK",
+    "EUR/PLN": "EUR/PLN",
+    "EUR/SEK": "EUR/SEK",
+    "EUR/TRY": "EUR/TRY",
+    "GBP/CAD": "GBP/CAD",
+    "GBP/CHF": "GBP/CHF",
+    "GBP/ZAR": "GBP/ZAR",
+    "USD/BRL": "USD/BRL",
+    "USD/CNY": "USD/CNY",
+    "USD/IDR": "USD/IDR",
+    "USD/INR": "USD/INR",
+    "USD/KRW": "USD/KRW",
+    "USD/PLN": "USD/PLN",
+    "USD/RUB": "USD/RUB",
+    "USD/TRY": "USD/TRY",
+
+    // Crypto (TwelveData uses pair format)
+    BTC: "BTC/USD",
+    BITCOIN: "BTC/USD",
+    ETH: "ETH/USD",
+    ETHEREUM: "ETH/USD",
+
+    // Stocks (standard format)
+    SQ: "SQ",
   },
+
+  // ---------------------------------------------------------------------------
+  // ALPHA VANTAGE MAPPINGS
+  // ---------------------------------------------------------------------------
+  alpha_vantage: {
+    // Forex pairs (AlphaVantage uses slash format)
+    "EUR/USD": { from: "EUR", to: "USD" },
+    "GBP/USD": { from: "GBP", to: "USD" },
+    "USD/JPY": { from: "USD", to: "JPY" },
+    "USD/CAD": { from: "USD", to: "CAD" },
+    "USD/CHF": { from: "USD", to: "CHF" },
+    "AUD/USD": { from: "AUD", to: "USD" },
+    "NZD/USD": { from: "NZD", to: "USD" },
+    "EUR/GBP": { from: "EUR", to: "GBP" },
+    "EUR/JPY": { from: "EUR", to: "JPY" },
+    "EUR/CAD": { from: "EUR", to: "CAD" },
+    "EUR/CHF": { from: "EUR", to: "CHF" },
+    "EUR/NZD": { from: "EUR", to: "NZD" },
+    "GBP/AUD": { from: "GBP", to: "AUD" },
+    "GBP/NZD": { from: "GBP", to: "NZD" },
+    "AUD/CAD": { from: "AUD", to: "CAD" },
+    "AUD/NZD": { from: "AUD", to: "NZD" },
+    "CAD/CHF": { from: "CAD", to: "CHF" },
+    "CAD/JPY": { from: "CAD", to: "JPY" },
+    "CHF/JPY": { from: "CHF", to: "JPY" },
+    "NZD/CAD": { from: "NZD", to: "CAD" },
+    "NZD/CHF": { from: "NZD", to: "CHF" },
+    "NZD/JPY": { from: "NZD", to: "JPY" },
+    "USD/DKK": { from: "USD", to: "DKK" },
+    "USD/HKD": { from: "USD", to: "HKD" },
+    "USD/MXN": { from: "USD", to: "MXN" },
+    "USD/NOK": { from: "USD", to: "NOK" },
+    "USD/SEK": { from: "USD", to: "SEK" },
+    "USD/SGD": { from: "USD", to: "SGD" },
+    "USD/THB": { from: "USD", to: "THB" },
+    "USD/ZAR": { from: "USD", to: "ZAR" },
+  },
+
+  // ---------------------------------------------------------------------------
+  // COINGECKO MAPPINGS
+  // ---------------------------------------------------------------------------
+  coingecko: {
+    // Crypto: canonical -> CoinGecko ID
+    BTC: "bitcoin",
+    BITCOIN: "bitcoin",
+    bitcoin: "bitcoin",
+
+    ETH: "ethereum",
+    ETHEREUM: "ethereum",
+    ethereum: "ethereum",
+
+    BNB: "binancecoin",
+    binancecoin: "binancecoin",
+
+    SOL: "solana",
+    SOLANA: "solana",
+    solana: "solana",
+
+    ADA: "cardano",
+    CARDANO: "cardano",
+    cardano: "cardano",
+
+    XRP: "ripple",
+    ripple: "ripple",
+
+    DOT: "polkadot",
+    POLKADOT: "polkadot",
+    polkadot: "polkadot",
+
+    LINK: "chainlink",
+    CHAINLINK: "chainlink",
+    chainlink: "chainlink",
+
+    XLM: "stellar",
+    STELLAR: "stellar",
+    stellar: "stellar",
+
+    BCH: "bitcoin-cash",
+  },
+
+  // ---------------------------------------------------------------------------
+  // EXCHANGE RATE API MAPPINGS
+  // ---------------------------------------------------------------------------
+  exchangerate: {
+    // Forex (uses slash format)
+    "EUR/USD": "EUR/USD",
+    "GBP/USD": "GBP/USD",
+    "USD/JPY": "USD/JPY",
+    "USD/CAD": "USD/CAD",
+    "AUD/USD": "AUD/USD",
+    "NZD/USD": "NZD/USD",
+    "EUR/GBP": "EUR/GBP",
+    "EUR/JPY": "EUR/JPY",
+    "GBP/JPY": "GBP/JPY",
+    "AUD/JPY": "AUD/JPY",
+  },
+
+  // ---------------------------------------------------------------------------
+  // FRED (Federal Reserve Economic Data) MAPPINGS
+  // ---------------------------------------------------------------------------
+  fred: {
+    // These are direct series IDs - no mapping needed
+    // Just documenting them here for reference
+    CPI: "CPIAUCSL",           // Consumer Price Index
+    GDP: "GDP",                // Gross Domestic Product
+    FEDFUNDS: "FEDFUNDS",      // Federal Funds Rate
+    UNRATE: "UNRATE",          // Unemployment Rate
+    M1: "M1SL",                // M1 Money Supply
+    M2: "M2SL",                // M2 Money Supply
+    DGS2: "DGS2",              // 2-Year Treasury
+    DGS5: "DGS5",              // 5-Year Treasury
+    DGS10: "DGS10",            // 10-Year Treasury
+    DGS30: "DGS30",            // 30-Year Treasury
+    HOUST: "HOUST",            // Housing Starts
+    INDPRO: "INDPRO",          // Industrial Production
+    PAYEMS: "PAYEMS",          // Nonfarm Payrolls
+    PERMIT: "PERMIT",          // Building Permits
+    PPI: "PPIACO",             // Producer Price Index
+    PCE: "PCE",                // Personal Consumption Expenditure
+  },
+}
+
+// ============================================================================
+// REVERSE MAPPINGS (for converting from API format back to canonical)
+// ============================================================================
+
+const REVERSE_MAPS = {
+  polygon: {},
+  yahoo: {},
+  twelve_data: {},
+  coingecko: {},
+}
+
+// Build reverse mappings
+for (const [provider, mappings] of Object.entries(SYMBOL_MAPS)) {
+  if (provider === 'alpha_vantage' || provider === 'fred') continue
+
+  for (const [canonical, apiFormat] of Object.entries(mappings)) {
+    REVERSE_MAPS[provider][apiFormat] = canonical
+  }
 }
 
 // ============================================================================
@@ -85,7 +404,21 @@ async function rateLimitedFetch(fetchFn) {
 export function getMappedSymbol(symbol, provider, category) {
   const normalized = normalizeSymbol(symbol, category)
 
-  return SYMBOL_MAPS[provider]?.[normalized] || normalized
+  // Check if we have a mapping for this symbol
+  const mapping = SYMBOL_MAPS[provider]?.[normalized]
+
+  if (mapping) {
+    console.log(`✓ Symbol mapping: ${symbol} → ${mapping} (${provider})`)
+    return mapping
+  }
+
+  // No mapping found, return normalized symbol
+  return normalized
+}
+
+export function getCanonicalSymbol(apiSymbol, provider) {
+  // Try to convert from API format back to canonical format
+  return REVERSE_MAPS[provider]?.[apiSymbol] || apiSymbol
 }
 
 // ============================================================================
@@ -104,7 +437,7 @@ export async function fetchFromPolygon(symbol, startDate, endDate) {
 
       if (response.data.results && response.data.results.length > 0) {
         return response.data.results.map((bar) => ({
-          symbol,
+          symbol, // Use original symbol
           date: new Date(bar.t).toISOString().split("T")[0],
           open: bar.o,
           high: bar.h,
@@ -124,7 +457,7 @@ export async function fetchFromPolygon(symbol, startDate, endDate) {
 
 export async function fetchFromTwelveData(symbol, startDate, endDate) {
   try {
-    const mappedSymbol = getMappedSymbol(symbol, "twelve")
+    const mappedSymbol = getMappedSymbol(symbol, "twelve_data")
     const url = "https://api.twelvedata.com/time_series"
 
     console.log(`Twelve Data: Fetching ${mappedSymbol} (original: ${symbol})`)
@@ -170,7 +503,7 @@ export async function fetchFromYahooFinance(symbol, startDate, endDate) {
     console.log(`Yahoo Finance: Fetching ${mappedSymbol} (original: ${symbol})`)
 
     const result = await yahooFinance.historical(mappedSymbol, {
-      period1: startDate, // 'YYYY-MM-DD' or Date object
+      period1: startDate,
       period2: endDate,
       interval: "1d",
     })
@@ -180,9 +513,8 @@ export async function fetchFromYahooFinance(symbol, startDate, endDate) {
       return null
     }
 
-    // Normalize to standard format
     return result.map((bar) => ({
-      symbol, // Original symbol (unmapped)
+      symbol, // Original symbol
       date: bar.date.toISOString().split("T")[0],
       open: bar.open,
       high: bar.high,
@@ -193,43 +525,82 @@ export async function fetchFromYahooFinance(symbol, startDate, endDate) {
     }))
   } catch (error) {
     console.error(`Yahoo Finance error for ${symbol}:`, error.message)
-    return null // Critical: triggers fallback chain
+    return null
   }
 }
 
 export async function fetchFromAlphaVantage(symbol, startDate, endDate) {
   try {
-    const url = "https://www.alphavantage.co/query"
+    // Check if this is a forex pair
+    const forexMapping = SYMBOL_MAPS.alpha_vantage[symbol]
 
-    const response = await axios.get(url, {
-      params: {
-        function: "TIME_SERIES_DAILY",
-        symbol: symbol,
-        outputsize: "full",
-        apikey: process.env.ALPHA_VANTAGE_API_KEY,
-      },
-    })
+    if (forexMapping && forexMapping.from && forexMapping.to) {
+      // Forex pair
+      const url = "https://www.alphavantage.co/query"
 
-    const timeSeries = response.data["Time Series (Daily)"]
-    if (!timeSeries) return null
+      const response = await axios.get(url, {
+        params: {
+          function: "FX_DAILY",
+          from_symbol: forexMapping.from,
+          to_symbol: forexMapping.to,
+          outputsize: "full",
+          apikey: process.env.ALPHA_VANTAGE_API_KEY,
+        },
+      })
 
-    const results = []
-    for (const [date, values] of Object.entries(timeSeries)) {
-      if (date >= startDate && date <= endDate) {
-        results.push({
-          symbol,
-          date,
-          open: parseFloat(values["1. open"]),
-          high: parseFloat(values["2. high"]),
-          low: parseFloat(values["3. low"]),
-          close: parseFloat(values["4. close"]),
-          volume: parseInt(values["5. volume"]),
-          source: "alpha_vantage",
-        })
+      const timeSeries = response.data["Time Series FX (Daily)"]
+      if (!timeSeries) return null
+
+      const results = []
+      for (const [date, values] of Object.entries(timeSeries)) {
+        if (date >= startDate && date <= endDate) {
+          results.push({
+            symbol,
+            date,
+            open: parseFloat(values["1. open"]),
+            high: parseFloat(values["2. high"]),
+            low: parseFloat(values["3. low"]),
+            close: parseFloat(values["4. close"]),
+            source: "alpha_vantage",
+          })
+        }
       }
-    }
 
-    return results.length > 0 ? results : null
+      return results.length > 0 ? results : null
+    } else {
+      // Stock
+      const url = "https://www.alphavantage.co/query"
+
+      const response = await axios.get(url, {
+        params: {
+          function: "TIME_SERIES_DAILY",
+          symbol: symbol,
+          outputsize: "full",
+          apikey: process.env.ALPHA_VANTAGE_API_KEY,
+        },
+      })
+
+      const timeSeries = response.data["Time Series (Daily)"]
+      if (!timeSeries) return null
+
+      const results = []
+      for (const [date, values] of Object.entries(timeSeries)) {
+        if (date >= startDate && date <= endDate) {
+          results.push({
+            symbol,
+            date,
+            open: parseFloat(values["1. open"]),
+            high: parseFloat(values["2. high"]),
+            low: parseFloat(values["3. low"]),
+            close: parseFloat(values["4. close"]),
+            volume: parseInt(values["5. volume"]),
+            source: "alpha_vantage",
+          })
+        }
+      }
+
+      return results.length > 0 ? results : null
+    }
   } catch (error) {
     console.error(`Alpha Vantage error for ${symbol}:`, error.message)
     return null
@@ -238,10 +609,10 @@ export async function fetchFromAlphaVantage(symbol, startDate, endDate) {
 
 export async function fetchFromCoinGecko(coinId, days = 30) {
   try {
-    // Ensure coinId is normalized (lowercase)
-    const normalizedId = normalizeSymbol(coinId, "crypto")
+    // Get mapped CoinGecko ID
+    const geckoId = getMappedSymbol(coinId, "coingecko")
 
-    const url = `https://api.coingecko.com/api/v3/coins/${normalizedId}/market_chart`
+    const url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart`
 
     const response = await axios.get(url, {
       params: {
@@ -253,7 +624,7 @@ export async function fetchFromCoinGecko(coinId, days = 30) {
 
     if (response.data.prices && response.data.prices.length > 0) {
       return response.data.prices.map(([timestamp, price]) => ({
-        symbol: normalizedId, // Use normalized ID
+        symbol: coinId, // Original symbol
         date: new Date(timestamp).toISOString().split("T")[0],
         close: price,
         source: "coingecko",
@@ -299,11 +670,14 @@ export async function fetchFromCoinMarketCap(symbol) {
 
 export async function fetchFromFRED(seriesId, startDate, endDate) {
   try {
+    // Get proper FRED series ID
+    const fredId = SYMBOL_MAPS.fred[seriesId] || seriesId
+
     const url = "https://api.stlouisfed.org/fred/series/observations"
 
     const response = await axios.get(url, {
       params: {
-        series_id: seriesId,
+        series_id: fredId,
         api_key: process.env.FRED_API_KEY,
         file_type: "json",
         observation_start: startDate,
@@ -313,7 +687,7 @@ export async function fetchFromFRED(seriesId, startDate, endDate) {
 
     if (response.data.observations && response.data.observations.length > 0) {
       return response.data.observations.map((obs) => ({
-        symbol: seriesId,
+        symbol: seriesId, // Original symbol
         date: obs.date,
         value: parseFloat(obs.value),
         source: "fred",
@@ -354,7 +728,7 @@ export async function fetchWithFallback(symbol, startDate, endDate, adapters, ca
 }
 
 // ============================================================================
-// CSV READERS - MARKET DATA
+// CSV READERS - MARKET DATA (unchanged from original)
 // ============================================================================
 
 async function readAndFilterCSV(csvPath, symbolKey, symbolValue, startDate, endDate) {
@@ -416,7 +790,7 @@ export async function readRatesMacroCSV(symbol, startDate, endDate) {
 }
 
 // ============================================================================
-// CSV READERS - FIBONACCI & ASTRO
+// CSV READERS - FIBONACCI & ASTRO (unchanged from original)
 // ============================================================================
 
 export async function readFibonacciCSV(symbol, startDate, endDate) {

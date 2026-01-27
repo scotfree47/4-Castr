@@ -1,5 +1,4 @@
 import { Calendar } from "./components/calendar"
-import { TradingWindowsCalendar } from "./components/trading-windows-calendar"
 import { events } from "./data"
 
 export default function CalendarPage() {
@@ -10,11 +9,6 @@ export default function CalendarPage() {
           <h1 className="text-2xl font-bold tracking-tight">Calendar</h1>
           <p className="text-muted-foreground">Trading opportunities and astronomical events</p>
         </div>
-      </div>
-
-      {/* Trading Windows Calendar - Bi-Scaling View */}
-      <div className="px-3 lg:px-6">
-        <TradingWindowsCalendar defaultCategory="equity" defaultDays={30} />
       </div>
 
       {/* Traditional Calendar Events */}
