@@ -23,34 +23,104 @@ interface SentinelsOverviewProps {
   onCategoryChange?: (category: string) => void
 }
 
+interface ValidationData {
+  fib: {
+    quality: string
+    ratio: number | null
+    score: number
+  }
+  gann: {
+    quality: string
+    time_symmetry: boolean
+    price_square: boolean
+    angle_holding: boolean
+    score: number
+  }
+  lunar: {
+    phase: string | null
+    recommendation: string | null
+    entry_favorability: string | null
+    exit_favorability: string | null
+    days_to_phase: number | null
+  }
+  atr: {
+    state: string | null
+    current: number
+    current_percent: number | null
+    average_percent: number | null
+    multiple: number
+    strength: string | null
+  }
+}
+
+interface IngressAlignment {
+  sign: string
+  start_date: string
+  end_date: string
+  days_in_period: number
+  favorability: string | null
+}
+
 interface SentinelData {
   symbol: string
   category: string
-  currentPrice: number
-  nextKeyLevel: {
-    price: number
-    type: "support" | "resistance"
-    distancePercent: number
-  }
-  scores: {
-    total: number
-    confluence: number
-    momentum: number
-  }
-  convergence?: {
-    has_convergence: boolean
-    confidence?: number
-    forecasted_swing?: {
-      type: "high" | "low"
+  ingress_period: string
+  calculated_at: string
+  rating_data: {
+    current_price: number
+    price_date: string
+    next_key_level: {
       price: number
-      date: string
+      type: "support" | "resistance"
+      distance_percent: number
+      distance_points: number
     }
-    astro_confirmation?: {
-      score: number
-      reasons: string[]
+    scores: {
+      confluence: number
+      proximity: number
+      momentum: number
+      seasonal: number
+      aspect_alignment: number
+      volatility: number
+      trend: number
+      volume: number
+      technical: number
+      fundamental: number
+      total: number
     }
+    rating: string | null
+    confidence: string | null
+    recommendation: string | null
+    convergence: {
+      has_convergence: boolean
+      methods?: string[]
+      confidence?: number
+      forecasted_swing?: {
+        type: "high" | "low"
+        price: number
+        date: string
+      }
+      astro_confirmation?: {
+        score: number
+        reasons: string[]
+      }
+    }
+    validations: ValidationData
+    sector: string
+    reasons: string[]
+    warnings: string[]
+    projections: {
+      days_until_target: number
+      reach_probability: number
+      earliest_date: string | null
+      most_likely_date: string
+      latest_date: string | null
+    }
+    ingress_alignment: IngressAlignment
+    featured_rank: number | null
+    dynamic_score: number | null
+    last_rank_update: string | null
   }
-  atr14?: number
 }
 
 const SENTINELS = {
@@ -190,42 +260,50 @@ export default function SentinelsOverview({ onCategoryChange }: SentinelsOvervie
       return createEmptyMetric(group, ingress)
     }
 
-    const validRatings = ratings.filter((r) => r.currentPrice > 0)
+    const validRatings = ratings.filter((r) => r.rating_data.current_price > 0)
     if (validRatings.length === 0) {
       return createEmptyMetric(group, ingress)
     }
 
     // Calculate average total score
-    const avgScore = validRatings.reduce((sum, r) => sum + r.scores.total, 0) / validRatings.length
+    const avgScore =
+      validRatings.reduce((sum, r) => sum + r.rating_data.scores.total, 0) / validRatings.length
 
     // Find strongest by total score
-    const strongest = validRatings.reduce((max, r) => (r.scores.total > max.scores.total ? r : max))
+    const strongest = validRatings.reduce((max, r) =>
+      r.rating_data.scores.total > max.rating_data.scores.total ? r : max
+    )
 
     const TrendIcon = avgScore >= 50 ? TrendingUp : TrendingDown
     const trend: "up" | "down" | "neutral" = avgScore >= 50 ? "up" : "down"
 
     // Check for convergence data
-    const hasConvergence = strongest.convergence?.has_convergence || false
+    const hasConvergence = strongest.rating_data.convergence?.has_convergence || false
     const convergenceData = hasConvergence
       ? {
-          confidence: strongest.convergence?.confidence || 0,
-          forecastedPrice: strongest.convergence?.forecasted_swing?.price || 0,
-          forecastedDate: strongest.convergence?.forecasted_swing?.date || "",
-          forecastedType: strongest.convergence?.forecasted_swing?.type || "high",
-          astroScore: strongest.convergence?.astro_confirmation?.score,
-          astroReasons: strongest.convergence?.astro_confirmation?.reasons,
+          confidence: strongest.rating_data.convergence?.confidence || 0,
+          forecastedPrice: strongest.rating_data.convergence?.forecasted_swing?.price || 0,
+          forecastedDate: strongest.rating_data.convergence?.forecasted_swing?.date || "",
+          forecastedType:
+            strongest.rating_data.convergence?.forecasted_swing?.type || ("high" as const),
+          astroScore: strongest.rating_data.convergence?.astro_confirmation?.score,
+          astroReasons: strongest.rating_data.convergence?.astro_confirmation?.reasons,
         }
       : undefined
 
     return {
       title: group.title,
       strongestSymbol: strongest.symbol,
-      strongestPrice: strongest.currentPrice,
-      strongestChange: strongest.scores.total,
+      strongestPrice: strongest.rating_data.current_price,
+      strongestChange: strongest.rating_data.scores.total,
       nearestSupport:
-        strongest.nextKeyLevel?.type === "support" ? strongest.nextKeyLevel.price : null,
+        strongest.rating_data.next_key_level?.type === "support"
+          ? strongest.rating_data.next_key_level.price
+          : null,
       nearestResistance:
-        strongest.nextKeyLevel?.type === "resistance" ? strongest.nextKeyLevel.price : null,
+        strongest.rating_data.next_key_level?.type === "resistance"
+          ? strongest.rating_data.next_key_level.price
+          : null,
       avgChange: `${avgScore.toFixed(0)}`,
       trend,
       icon: group.icon,
@@ -233,7 +311,7 @@ export default function SentinelsOverview({ onCategoryChange }: SentinelsOvervie
       footerIcon: TrendIcon,
       sentinels: validRatings.map((r) => ({
         symbol: r.symbol,
-        display: `${r.symbol} $${r.currentPrice.toFixed(2)} [${r.scores.total}]`,
+        display: `${r.symbol} $${r.rating_data.current_price.toFixed(2)} [${r.rating_data.scores.total}]`,
       })),
       categoryId: group.id,
       hasConvergence,

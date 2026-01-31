@@ -18,7 +18,12 @@
       "Bash(kill:*)",
       "Bash(wc:*)",
       "Bash(npm run data:featured:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npx tsx scripts/data-manager.ts)",
+      "Bash(npx tsx:*)",
+      "Bash(node test-fmp-key.mjs:*)",
+      "Bash(node check-ticker-count.mjs:*)",
+      "Bash(node test-query.mjs:*)"
     ]
   }
 }

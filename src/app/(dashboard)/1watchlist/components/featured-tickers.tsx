@@ -7,44 +7,117 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Eye, TrendingUp, TrendingDown, Award } from "lucide-react"
+import { Award, Eye, TrendingDown, TrendingUp } from "lucide-react"
 import React, { useCallback, useEffect, useState } from "react"
 
 // Sentinels - exclude from featured tickers
 const SENTINELS = {
   equity: ["SPY", "QQQ", "XLY"],
-  commodity: ["GLD", "USO", "HG"],
-  forex: ["EURUSD", "USDJPY", "GBPUSD", "EUR/USD", "USD/JPY", "GBP/USD"],
-  crypto: ["BTC", "ETH", "SOL", "Bitcoin", "Ethereum", "Solana"],
+  commodity: ["GLD", "USO", "HG1!"],
+  forex: ["EUR/USD", "USD/JPY", "GBP/USD"],
+  crypto: ["Bitcoin", "Ethereum", "Solana"],
   "rates-macro": ["TLT", "DXY", "TNX"],
-  stress: ["VIX", "MOVE", "SKEW"],
+  stress: ["VIX", "MOVE", "TRIN"],
 }
 
-interface SwingPoint {
-  type: "high" | "low"
-  price: number
-  date: string
-  barIndex: number
+interface ValidationData {
+  fib: {
+    quality: string
+    ratio: number | null
+    score: number
+  }
+  gann: {
+    quality: string
+    time_symmetry: boolean
+    price_square: boolean
+    angle_holding: boolean
+    score: number
+  }
+  lunar: {
+    phase: string | null
+    recommendation: string | null
+    entry_favorability: string | null
+    exit_favorability: string | null
+    days_to_phase: number | null
+  }
+  atr: {
+    state: string | null
+    current: number
+    current_percent: number | null
+    average_percent: number | null
+    multiple: number
+    strength: string | null
+  }
 }
 
-interface ForecastedSwing {
-  type: "high" | "low"
-  price: number
-  date: string
-  convergingMethods: string[]
-  baseConfidence: number
-  astroBoost: number
-  finalConfidence: number
+interface IngressAlignment {
+  sign: string
+  start_date: string
+  end_date: string
+  days_in_period: number
+  favorability: string | null
 }
 
 interface ForecastTicker {
   symbol: string
-  currentPrice: number
-  lastSwing: SwingPoint
-  forecastedSwing: ForecastedSwing
-  ingressValidity: boolean
-  rank?: number
-  atr14?: number
+  category: string
+  ingress_period: string
+  calculated_at: string
+  rating_data: {
+    current_price: number
+    price_date: string
+    next_key_level: {
+      price: number
+      type: "support" | "resistance"
+      distance_percent: number
+      distance_points: number
+    }
+    scores: {
+      confluence: number
+      proximity: number
+      momentum: number
+      seasonal: number
+      aspect_alignment: number
+      volatility: number
+      trend: number
+      volume: number
+      technical: number
+      fundamental: number
+      total: number
+    }
+    rating: string | null
+    confidence: string | null
+    recommendation: string | null
+    convergence: {
+      has_convergence: boolean
+      methods?: string[]
+      confidence?: number
+      forecasted_swing?: {
+        type: "high" | "low"
+        price: number
+        date: string
+      }
+      astro_confirmation?: {
+        score: number
+        reasons: string[]
+      }
+    }
+    validations: ValidationData
+    sector: string
+    reasons: string[]
+    warnings: string[]
+    projections: {
+      days_until_target: number
+      reach_probability: number
+      earliest_date: string | null
+      most_likely_date: string
+      latest_date: string | null
+    }
+    ingress_alignment: IngressAlignment
+    featured_rank: number | null
+    dynamic_score: number | null
+    last_rank_update: string | null
+  }
 }
 
 interface FeaturedTickersProps {
@@ -66,6 +139,14 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
     return type === "high"
       ? "bg-green-500/10 text-green-400 border-green-500/40"
       : "bg-red-500/10 text-red-400 border-red-500/40"
+  }
+
+  const getTimelinePosition = (date: string, start: string, end: string) => {
+    const targetTime = new Date(date).getTime()
+    const startTime = new Date(start).getTime()
+    const endTime = new Date(end).getTime()
+    const position = ((targetTime - startTime) / (endTime - startTime)) * 100
+    return Math.max(0, Math.min(100, position))
   }
 
   // ATR% thresholds per category
@@ -104,7 +185,11 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
   }
 
   const calculateATRMetrics = (ticker: ForecastTicker, category: string) => {
-    const { currentPrice, forecastedSwing, atr14 } = ticker
+    const { rating_data } = ticker
+    const currentPrice = rating_data.current_price
+    const forecastedPrice =
+      rating_data.convergence.forecasted_swing?.price || rating_data.next_key_level.price
+    const atr14 = rating_data.validations.atr.current
     const thresholds = getATRThresholds(category, ticker.symbol)
 
     if (!atr14 || atr14 === 0) {
@@ -117,7 +202,7 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
       }
     }
 
-    const priceDiff = Math.abs(forecastedSwing.price - currentPrice)
+    const priceDiff = Math.abs(forecastedPrice - currentPrice)
     const atrMultiple = priceDiff / atr14
     const percentMove = (priceDiff / currentPrice) * 100
     const meetsThreshold = atrMultiple >= thresholds.minMultiple
@@ -196,53 +281,68 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
               .slice(0, 10)
               .map((rating: any, idx: number) => ({
                 symbol: rating.symbol,
-                currentPrice: rating.currentPrice || 0,
-                lastSwing: {
-                  type: rating.nextKeyLevel?.type === "resistance" ? "low" : "high",
-                  price: rating.currentPrice ? rating.currentPrice * 0.98 : 0,
-                  date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-                  barIndex: 0,
+                category: rating.category,
+                ingress_period: rating.ingress_period,
+                calculated_at: rating.calculated_at,
+                rating_data: {
+                  current_price: rating.rating_data.current_price,
+                  price_date: rating.rating_data.price_date,
+                  next_key_level: rating.rating_data.next_key_level,
+                  scores: rating.rating_data.scores,
+                  rating: rating.rating_data.rating,
+                  confidence: rating.rating_data.confidence,
+                  recommendation: rating.rating_data.recommendation,
+                  convergence: {
+                    has_convergence: false,
+                    confidence: rating.rating_data.scores.total / 100,
+                  },
+                  validations: rating.rating_data.validations,
+                  sector: rating.rating_data.sector,
+                  reasons: rating.rating_data.reasons,
+                  warnings: rating.rating_data.warnings,
+                  projections: rating.rating_data.projections,
+                  ingress_alignment: rating.rating_data.ingress_alignment,
+                  featured_rank: idx + 1,
+                  dynamic_score: rating.rating_data.scores.total,
+                  last_rank_update: null,
                 },
-                forecastedSwing: {
-                  type: rating.nextKeyLevel?.type === "resistance" ? "high" : "low",
-                  price: rating.nextKeyLevel?.price || rating.currentPrice || 0,
-                  date:
-                    rating.projections?.reachDate ||
-                    new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-                  convergingMethods: ["Technical Analysis"],
-                  baseConfidence: rating.scores?.total ? rating.scores.total / 100 : 0,
-                  astroBoost: 0,
-                  finalConfidence: rating.scores?.total ? rating.scores.total / 100 : 0,
-                },
-                ingressValidity: true,
-                rank: idx + 1,
-                atr14: rating.atr14,
               }))
-              .filter(
-                (ticker: ForecastTicker) =>
-                  ticker.currentPrice > 0 && ticker.forecastedSwing.price > 0
-              )
 
             setTickers(regularTickers)
             setSummary({
-              totalAnalyzed: ratingsResult.data.ratings.length,
-              forecastsFound: regularTickers.length,
+              total: regularTickers.length,
+              avgConfidence:
+                regularTickers.reduce(
+                  (sum: number, t: ForecastTicker) => sum + t.rating_data.scores.total,
+                  0
+                ) / regularTickers.length,
             })
             return
           }
         }
-      } else {
-        const rankedTickers = filteredForecasts.map((ticker: ForecastTicker, idx: number) => ({
-          ...ticker,
-          rank: idx + 1,
-        }))
-
-        setTickers(rankedTickers)
-        setSummary(result.data?.summary || null)
       }
-    } catch (err: any) {
+
+      const rankedForecasts = filteredForecasts.map((f: ForecastTicker, idx: number) => ({
+        ...f,
+        rating_data: {
+          ...f.rating_data,
+          featured_rank: idx + 1,
+        },
+      }))
+
+      setTickers(rankedForecasts)
+      setSummary({
+        total: rankedForecasts.length,
+        avgConfidence:
+          rankedForecasts.reduce(
+            (sum: number, t: ForecastTicker) =>
+              sum + (t.rating_data.convergence.confidence || 0) * 100,
+            0
+          ) / rankedForecasts.length,
+      })
+    } catch (err) {
       console.error("Error loading featured tickers:", err)
-      setError(err.message)
+      setError(err instanceof Error ? err.message : "Failed to load tickers")
     } finally {
       setLoading(false)
     }
@@ -251,13 +351,6 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
   useEffect(() => {
     loadFeaturedTickers()
   }, [loadFeaturedTickers])
-
-  const getTimelinePosition = (date: string, ingressStart: string, ingressEnd: string) => {
-    const start = new Date(ingressStart).getTime()
-    const end = new Date(ingressEnd).getTime()
-    const current = new Date(date).getTime()
-    return Math.max(0, Math.min(100, ((current - start) / (end - start)) * 100))
-  }
 
   if (loading) {
     return (
@@ -340,7 +433,9 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
 
       <CardContent className="space-y-4">
         {tickers.map((ticker) => {
-          if (!ticker.currentPrice || !ticker.forecastedSwing?.price) return null
+          const { rating_data } = ticker
+
+          if (!rating_data.current_price || !rating_data.next_key_level.price) return null
 
           const currentPos = ingressData
             ? getTimelinePosition(
@@ -349,10 +444,25 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                 ingressData.end
               )
             : 50
+
+          const forecastDate =
+            rating_data.convergence.forecasted_swing?.date ||
+            rating_data.projections.most_likely_date
+
           const swingPos = ingressData
-            ? getTimelinePosition(ticker.forecastedSwing.date, ingressData.start, ingressData.end)
+            ? getTimelinePosition(forecastDate, ingressData.start, ingressData.end)
             : 75
+
           const metrics = calculateATRMetrics(ticker, category)
+
+          const swingType =
+            rating_data.convergence.forecasted_swing?.type ||
+            (rating_data.next_key_level.type === "resistance" ? "high" : "low")
+
+          const targetPrice =
+            rating_data.convergence.forecasted_swing?.price || rating_data.next_key_level.price
+
+          const confidence = rating_data.convergence.confidence || rating_data.scores.total / 100
 
           return (
             <div
@@ -363,24 +473,22 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                    #{ticker.rank}
+                    #{rating_data.featured_rank || 0}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="outline" className="font-mono text-sm font-bold">
                         {ticker.symbol}
                       </Badge>
-                      <Badge className={getSwingTypeColor(ticker.forecastedSwing.type)}>
-                        {ticker.forecastedSwing.type === "high" ? "↗️" : "↘️"}{" "}
-                        {ticker.forecastedSwing.type.toUpperCase()}
+                      <Badge className={getSwingTypeColor(swingType)}>
+                        {swingType === "high" ? "↗️" : "↘️"} {swingType.toUpperCase()}
                       </Badge>
                     </div>
 
                     {/* Price Display with ATR% Requirement */}
                     <div className="text-sm mt-1 space-y-0.5">
                       <div className="opacity-80">
-                        ${ticker.currentPrice.toFixed(2)} → $
-                        {ticker.forecastedSwing.price.toFixed(2)}
+                        ${rating_data.current_price.toFixed(2)} → ${targetPrice.toFixed(2)}
                       </div>
                       <div
                         className={`text-xs font-semibold ${
@@ -394,7 +502,7 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                   </div>
                 </div>
                 <Badge variant="outline" className="font-mono font-bold text-base">
-                  {((ticker.forecastedSwing.finalConfidence || 0) * 100).toFixed(0)}%
+                  {(confidence * 100).toFixed(0)}%
                 </Badge>
               </div>
 
@@ -426,28 +534,30 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                   </div>
                   <div className="flex items-center justify-between text-[10px] mt-0.5 opacity-60">
                     <span>{ingressData.start}</span>
-                    <span>{ticker.forecastedSwing.date}</span>
+                    <span>{forecastDate}</span>
                     <span>{ingressData.end}</span>
                   </div>
                 </div>
               )}
 
-              {/* Last Swing Info */}
+              {/* Target Info */}
               <div className="grid grid-cols-2 gap-2 text-xs mb-2">
                 <div>
-                  <span className="opacity-60">Last {ticker.lastSwing?.type || "swing"}:</span>{" "}
-                  <span className="font-medium">${(ticker.lastSwing?.price || 0).toFixed(2)}</span>
+                  <span className="opacity-60">Target Level:</span>{" "}
+                  <span className="font-medium">
+                    ${rating_data.next_key_level.price.toFixed(2)}
+                  </span>
                 </div>
                 <div>
-                  <span className="opacity-60">On:</span>{" "}
-                  <span className="font-medium">{ticker.lastSwing?.date || "N/A"}</span>
+                  <span className="opacity-60">Est. Date:</span>{" "}
+                  <span className="font-medium">{forecastDate}</span>
                 </div>
               </div>
 
               {/* ATR Multiple Display */}
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  {ticker.forecastedSwing.type === "high" ? (
+                  {swingType === "high" ? (
                     <TrendingUp className="h-3 w-3 text-green-600" />
                   ) : (
                     <TrendingDown className="h-3 w-3 text-red-600" />
@@ -456,7 +566,7 @@ export const FeaturedTickers = React.memo(function FeaturedTickers({
                     <span
                       className={
                         metrics.meetsThreshold
-                          ? ticker.forecastedSwing.type === "high"
+                          ? swingType === "high"
                             ? "text-green-600 font-semibold"
                             : "text-red-600 font-semibold"
                           : "text-muted-foreground"

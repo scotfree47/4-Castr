@@ -1,549 +1,434 @@
-# ShadCN Dashboard + Landing Page Template
+# Astrological Trading Dashboard
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-[![GitHub Stars](https://img.shields.io/github/stars/silicondeck/shadcn-dashboard-landing-template?style=social)](https://github.com/silicondeck/shadcn-dashboard-landing-template)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)](https://reactjs.org/)
 
-![Dashboard Preview](vite-version/public/dashboard.png)
+![Dashboard Preview](public/dashboard-dark.png)
 
-Introducing a sleek, modern, and open-source admin dashboard template built with the latest web technologies, including React + TypeScript + Vite and Next.js + TypeScript. Powered by shadcn/ui v3 and Tailwind CSS v4, this project offers a clean, responsive, and highly customizable UI. Developed and maintained by [ShadcnStore](https://shadcnstore.com), this free and open-source template is designed to accelerate your development process. Whether you're building an admin panel, SaaS dashboard, or launching an AI-driven product, this dashboard provides a beautiful, production-ready interface for your application — complete with a seamless dashboard and a fully-featured landing page to help you hit the ground running.
+A professional financial market analysis platform combining W.D. Gann's astrological methodologies with modern technical indicators. Built for traders who understand planetary cycles, seasonal anchors, and Fibonacci confluence as edge factors in equity, crypto, forex, and commodity markets.
 
-🚀 **Free & Open Source** by [**ShadcnStore**](https://shadcnstore.com) - Your gateway to premium UI components and templates.
-
-<div align="center">
-
-🎯 <a href="https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/dashboard" target="_blank">**View Live Demo**</a> | 🧩 <a href="https://shadcnstore.com/blocks" target="_blank">**Explore Premium Blocks**</a>
-
-</div>
+Built on [ShadCN Dashboard Template](https://github.com/silicondeck/shadcn-dashboard-landing-template) - Modern, responsive UI powered by shadcn/ui and Tailwind CSS.
 
 ---
 
-## 🌟 Live Demo
+## 🌟 Live Features
 
-Experience the template in action:
+Experience real-time market intelligence:
 
-- **[🖥️ Dashboard Demo](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/dashboard)** - Complete admin dashboard with apps
-- **[🌐 Landing Page Demo](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/landing)** - Beautiful marketing landing page
-
-> **Note**: This template includes both a complete dashboard (with mail, tasks, chat, calendar apps) and a marketing landing page in both Vite and Next.js versions.
+- **📊 Multi-Asset Dashboard** - Track equities, crypto, forex, commodities with unified analytics
+- **🌙 Gann Cycle Analysis** - Planetary aspects, lunar phases, seasonal anchors aligned to price action
+- **📈 Technical Confluence** - Fibonacci retracements, confidence scoring, post-reversal detection
+- **🎨 Glassmorphism UI** - Professional interface with dark/light modes and customizable themes
 
 ---
 
 ## ✨ What's Included
 
-🎯 **Two Complete Templates:**
+🎯 **Complete Trading Intelligence:**
 
-- **🖥️ Admin Dashboard** - Modern, feature-rich dashboard with 30+ pages
-- **🌐 Landing Page** - Business-ready landing page template
+- **Multi-Asset Coverage** - 100+ symbols across equities, crypto, forex, commodities, and macro indicators
+- **Gann Methodology** - 18-year lunar cycles, planetary ingresses, retrogrades, aspects (conjunctions, squares, oppositions)
+- **Technical Analysis** - Fibonacci levels, confidence scoring, convergence detection
+- **Automated Data Pipeline** - CSV batch processing, scheduled price updates, featured ticker rotation
 
-⚡ **Dual Framework Support:**
+⚡ **Production-Ready Stack:**
 
-- **Vite** - Lightning-fast development experience
-- **Next.js 15** - Production-ready with App Router
+- **Next.js 16** - App Router with TypeScript, optimized for Vercel deployment
+- **shadcn/ui v3** - Modern component library with Radix UI primitives
+- **Tailwind CSS v4** - Utility-first styling with glassmorphism design system
+- **Supabase Ready** - Database schema prepared for user authentication and portfolio tracking
 
-🎨 **Live Theme Customization:**
+🎨 **Advanced UI/UX:**
 
-- **tweakcn integration** - Real-time theme editing
-- **Built-in customizer** - Preview all possible combinations live
-- **Multiple layouts** - Sidebar variants & collapsible options
+- **Live Theme Customization** - Real-time color and layout switching
+- **Responsive Design** - Mobile-first with optimized touch interactions
+- **Dark/Light Modes** - Seamless theme transitions with glassmorphism effects
+- **Professional Charts** - Recharts integration with custom Gann cycle overlays
 
 ---
 
 ## 🚀 Key Features
 
-### 📊 **Dashboard Features**
+### 📊 **Market Analysis**
 
-- **2 Dashboard Variants** - Overview & Analytics dashboards
-- **App Demos** - Mail, Tasks, Chat, Calendar, Users applications
-- **30+ Pages** - Authentication, Settings, Errors, FAQ, Pricing
-- **Data Tables** - Advanced tables with sorting, filtering, and pagination
-- **Charts & Analytics** - Recharts integration with beautiful visualizations
+- **Featured Tickers** - Top-rated symbols by confidence score across all asset classes
+- **Post-Reversal Detection** - Identify symbols showing bullish/bearish trend changes
+- **Convergence Forecasting** - Multi-factor alignment of Gann dates + Fibonacci levels
+- **Trading Windows** - Optimal entry/exit timing based on planetary cycle confluence
 
-### 🎨 **Design & Theming**
+### 🌙 **Gann Methodology**
 
-- **Live Theme Customizer** - Real-time color and layout switching
-- **tweakcn Integration** - Professional theme management
-- **Multiple Layouts** - Sidebar variants, collapsible navigation
-- **Responsive Design** - Mobile-first approach with container queries
-- **Dark/Light Mode** - Seamless theme switching
+- **Seasonal Anchors** - Solstices, equinoxes as primary cycle markers
+- **Planetary Aspects** - Geocentric angular relationships (0°, 90°, 120°, 180°)
+- **Lunar Analysis** - 18.6-year Saros cycle, monthly phases, void-of-course periods
+- **Ingress Events** - Planet-to-zodiac sign transitions with market correlation
+- **Fibonacci Integration** - Retracement levels calculated from anchor dates
 
-### ⚡ **Developer Experience**
+### ⚡ **Data Infrastructure**
 
-- **Modern Tech Stack** - React 19, TypeScript, Tailwind CSS v4
-- **Cross-Platform** - Works with both Vite and Next.js
-- **Type Safety** - Full TypeScript support throughout
-- **Component Library** - Latest shadcn/ui v3 with Radix UI
-- **Easy Customization** - Well-structured, modular codebase
+- **Multi-Source Aggregation** - Yahoo Finance, Polygon, CoinGecko, Alpha Vantage, FRED
+- **Automated Pipeline** - Scheduled updates via cron jobs or Vercel Cron
+- **CSV Processing** - Batch historical data with astronomy-engine calculations
+- **Confidence Scoring** - Python-based multi-factor weighting system
+- **API Routes** - REST endpoints for chart data, ratings, featured symbols
 
 ---
 
 ## 🏗️ Project Structure
 
 ```text
-📁 shadcn-dashboard/
-├── 📁 vite-version/              # Vite + React version
-│   ├── 📁 src/
-│   │   ├── 📁 app/               # Demo pages & applications
-│   │   │   ├── 📁 dashboard/     # Dashboard variants
-│   │   │   ├── 📁 dashboard-2/   # Alternative dashboard layout
-│   │   │   ├── 📁 landing/       # Landing page template
-│   │   │   ├── 📁 auth/          # Authentication pages
-│   │   │   ├── 📁 mail/          # Email application demo
-│   │   │   ├── 📁 tasks/         # Task management demo
-│   │   │   ├── 📁 chat/          # Chat application demo
-│   │   │   ├── 📁 calendar/      # Calendar demo
-│   │   │   ├── 📁 settings/      # User settings pages
-│   │   │   ├── 📁 errors/        # Error pages (404, 500, etc.)
-│   │   │   ├── 📁 users/         # User management pages
-│   │   │   ├── 📁 faqs/          # FAQ pages
-│   │   │   └── 📁 pricing/       # Pricing pages
-│   │   ├── 📁 components/        # UI components
-│   │   │   ├── 📁 ui/            # shadcn/ui v3 components
-│   │   │   ├── 📁 layouts/       # Layout components
-│   │   │   └── 📁 theme-customizer/ # Live theme editor
-│   │   ├── 📁 hooks/             # Custom React hooks
-│   │   ├── 📁 lib/               # Utilities & configurations
-│   │   └── 📁 types/             # TypeScript type definitions
-│   └── 📄 package.json           # Vite dependencies
+📁 astrological-trading-dashboard/
+├── 📁 src/
+│   ├── 📁 app/
+│   │   ├── 📁 (dashboard)/         # Main dashboard pages
+│   │   ├── 📁 landing/             # Marketing landing page
+│   │   ├── 📁 (auth)/              # Authentication (sign-in, sign-up, recovery)
+│   │   └── 📁 api/                 # API routes
+│   │       ├── 📄 chart-data/      # OHLC + technical indicators
+│   │       ├── 📄 ticker-ratings/  # Confidence scores with Gann alignment
+│   │       ├── 📄 featured-tickers/ # Top-rated symbols by category
+│   │       ├── 📄 post-reversal-tickers/ # Trend reversal detection
+│   │       └── 📄 astro/           # Astronomical event data
+│   ├── 📁 components/
+│   │   ├── 📁 ui/                  # shadcn/ui components
+│   │   ├── 📁 layouts/             # Layout wrappers
+│   │   └── 📁 theme-customizer/    # Live theme editor
+│   ├── 📁 lib/
+│   │   ├── 📁 indicators/          # Technical analysis utilities
+│   │   ├── 📁 services/            # Data fetching services
+│   │   └── 📁 ai/                  # AI analysis (future)
+│   ├── 📁 contexts/                # React contexts (theme, sidebar)
+│   └── 📁 types/                   # TypeScript definitions
 │
-├── 📁 nextjs-version/            # Next.js 15 version
+├── 📁 csv-pull/market-data/        # Data pipeline
+│   ├── 📁 data/
+│   │   ├── 📁 astro/               # Lunar phases, aspects, ingresses, retrogrades
+│   │   ├── 📁 scores/              # Confidence scores, featured symbols
+│   │   ├── 📁 fibonacci/           # Retracement levels
+│   │   └── 📁 [asset-classes]/     # Price data (equities, crypto, forex, commodities)
 │   ├── 📁 src/
-│   │   ├── 📁 app/               # App Router with route groups
-│   │   │   ├── 📁 (auth)/        # Authentication route group
-│   │   │   │   ├── 📁 login/     # Login pages
-│   │   │   │   ├── 📁 signup/    # Registration pages
-│   │   │   │   ├── 📁 forgot-password/ # Password recovery
-│   │   │   │   └── 📁 errors/    # Error pages (404, 500, etc.)
-│   │   │   ├── 📁 (dashboard)/   # Dashboard route group
-│   │   │   │   ├── 📁 dashboard/ # Main dashboard
-│   │   │   │   ├── 📁 dashboard-2/ # Alternative dashboard
-│   │   │   │   ├── 📁 mail/      # Email application
-│   │   │   │   ├── 📁 tasks/     # Task management
-│   │   │   │   ├── 📁 chat/      # Chat application
-│   │   │   │   ├── 📁 calendar/  # Calendar demo
-│   │   │   │   ├── 📁 settings/  # User settings
-│   │   │   │   ├── 📁 users/     # User management
-│   │   │   │   ├── 📁 faqs/      # FAQ pages
-│   │   │   │   ├── 📁 pricing/   # Pricing pages
-│   │   │   │   └── 📄 layout.tsx # Dashboard layout
-│   │   │   ├── 📁 landing/       # Landing page template
-│   │   │   ├── 📄 layout.tsx     # Root layout
-│   │   │   ├── 📄 loading.tsx    # Global loading component
-│   │   │   ├── 📄 not-found.tsx  # 404 page
-│   │   │   └── 📄 page.tsx       # Homepage
-│   │   ├── 📁 components/        # Same component structure as Vite
-│   │   ├── 📁 hooks/             # Custom React hooks
-│   │   ├── 📁 lib/               # Utilities & configurations
-│   │   └── 📁 types/             # TypeScript type definitions
-│   └── 📄 package.json           # Next.js dependencies
+│   │   ├── 📁 fetchers/            # API integrations (Polygon, CoinGecko, FMP, etc.)
+│   │   ├── 📁 gann/                # Gann cycle calculations
+│   │   ├── 📁 config/              # Symbols, dates, API sources
+│   │   ├── 📄 fetch_astro_data.py  # Astronomy-engine wrapper
+│   │   └── 📄 calculate_confidence_scores.py # Multi-factor scoring
+│   └── 📄 package.json             # Pipeline dependencies
 │
-├── 📄 README.md                  # This file
-└── 📄 LICENSE                    # MIT License
+├── 📁 scripts/                     # Data management scripts
+│   ├── 📄 data-manager.ts          # CLI for data operations
+│   └── 📄 precompute-astro.cjs     # Pre-compute astronomical events
+│
+├── 📁 session-notes/               # Development session logs (gitignored)
+└── 📄 package.json                 # Main project dependencies
 ```
 
 ---
 
-## � Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - **Node.js** 18+
+- **Python** 3.8+ (for astronomical calculations)
 - **pnpm** (recommended) or npm
 
-### 1. Clone the Repository
+### 1. Clone & Install
 
 ```bash
-git clone https://github.com/silicondeck/shadcn-dashboard-landing-template
-cd shadcn-dashboard
+git clone <your-repo-url>
+cd astrological-trading-dashboard
+pnpm install
 ```
 
-### 2. Choose Your Framework
+### 2. Configure Environment
 
-#### 🔥 **Vite Version** (Recommended for Development)
+Create `.env.local`:
 
 ```bash
-cd vite-version
-pnpm install
-pnpm dev
+# Required for price data
+YAHOO_FINANCE_API_KEY=your_key_here
+POLYGON_API_KEY=your_key_here
+ALPHA_VANTAGE_API_KEY=your_key_here
+
+# Optional: Supabase (for user auth)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 ```
 
-**Access at:** `http://localhost:5173`
-
-#### ⚡ **Next.js Version** (Production-Ready)
+### 3. Initialize Data
 
 ```bash
-cd nextjs-version
-pnpm install
+# Install Python dependencies for astronomy calculations
+cd csv-pull/market-data
+pip install -r requirements.txt --break-system-packages
+cd ../..
+
+# Initialize market universe and load historical data
+pnpm run data:init        # Set up initial symbol universe
+pnpm run data:load        # Load all CSV data
+pnpm run data:featured    # Populate featured tickers
+```
+
+### 4. Start Development
+
+```bash
 pnpm dev
 ```
 
 **Access at:** `http://localhost:3000`
 
-### 3. Start Building
-
-- **Dashboard:** Navigate to [/dashboard](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/dashboard) or [/dashboard-2](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/dashboard-2)
-- **Landing Page:** Visit [/landing](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/landing) for the business template
-- **Theme Customizer:** Use the built-in customizer to preview themes live
-- **Apps:** Explore [Mail](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/mail), [Tasks](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/tasks), [Chat](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/chat), [Calendar](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/calendar), [Users](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/users)
-- **Authentication:** Check out [Signin](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/auth/sign-in), [Signup](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/auth/sign-up), [Forgot Password](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/auth/forgot-password)
-- **Settings:** Visit [Account](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/settings/account), [Appearance](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/settings/appearance), [Billing](https://shadcnstore.com/templates/dashboard/shadcn-dashboard-landing-template/settings/billing)
+- **Dashboard:** `/dashboard` - Main trading interface
+- **Landing:** `/landing` - Marketing page
+- **Featured Tickers:** Navigate categories (equities, crypto, forex, commodities)
+- **Theme Customizer:** Toggle glassmorphism effects and color schemes
 
 ---
 
-## 🛠️ Development Commands
+## 📊 Data Management
 
-### Vite Version
+### Daily Operations
 
 ```bash
-pnpm dev          # Start development server
-pnpm build        # Build for production
-pnpm preview      # Preview production build
-pnpm lint         # Run ESLint
+pnpm run data:prices      # Update latest price data for all symbols
+pnpm run data:check       # Check data freshness across asset classes
+pnpm run data:featured    # Refresh featured ticker rankings
 ```
 
-### Next.js Version
+### Maintenance & Backfill
 
 ```bash
-pnpm dev          # Start development server
-pnpm build        # Build for production
-pnpm start        # Start production server
-pnpm lint         # Run Next.js linter
+pnpm run data:backfill -- --days=365  # Backfill historical prices
+pnpm run data:ingress     # Check upcoming planetary ingresses
 ```
+
+### Automated Updates (Cron)
+
+```bash
+pnpm run cron:prices      # Scheduled price updates (daily)
+pnpm run cron:featured    # Scheduled featured refresh (weekly)
+```
+
+**For Vercel Deployment:** Configure `vercel.json` with cron schedules or use external cron service.
 
 ---
 
-## 🎨 Theme Customization
+## 🎨 Customization
 
-### **Live Theme Customizer**
+### Theme Customization
 
-This template includes a powerful **live theme customizer** powered by **tweakcn**:
+- **Live Editor:** Click theme icon in dashboard header
+- **Presets:** 10+ color schemes with glassmorphism variants
+- **Layout Options:** Sidebar collapsible, floating, or fixed
+- **Mode:** Dark, light, or system preference
 
-![Customizer Preview](vite-version/public/customizer.png)
+### Gann Configuration
 
-1. **Open the customizer** - Click the theme customizer button
-2. **Choose colors** - Pick from preset themes or create custom palettes
-3. **Layout options** - Switch between sidebar variants and layouts
-4. **Real-time preview** - See changes instantly across all components
-5. **Export themes** - Save your custom themes for production use
+Edit `csv-pull/market-data/src/config/gannDates.js`:
 
-### **Built-in Themes**
+```javascript
+export const SEASONAL_ANCHORS = {
+  winterSolstice: '12-21',
+  vernalEquinox: '03-20',
+  summerSolstice: '06-21',
+  autumnalEquinox: '09-22'
+};
 
-- 🌊 **Default** - Clean blue theme
-- 🌙 **Dark** - Professional dark theme
-- 🌸 **Rose** - Warm pink accents
-- 🌿 **Green** - Fresh green palette
-- 🌅 **Orange** - Vibrant orange theme
-- 🔴 **Red** - Bold red accents
-- 💜 **Violet** - Modern purple theme
-
-### **Custom Theme Creation**
-
-#### **Adding Custom Themes to the Customizer**
-To add your own custom themes to the live customizer, create theme objects in your theme configuration:
-
-```typescript
-// src/config/theme-data.ts (or similar file)
-export const customTheme = {
-  name: "Custom Brand",
-  cssVars: {
-    light: {
-      primary: "210 100% 50%",
-      "primary-foreground": "0 0% 98%",
-      secondary: "210 100% 95%",
-      "secondary-foreground": "210 100% 20%",
-      accent: "210 100% 90%",
-      "accent-foreground": "210 100% 15%",
-      // Add more color variables as needed
-    },
-    dark: {
-      primary: "210 100% 60%",
-      "primary-foreground": "210 100% 15%",
-      // Dark mode variants
-    }
-  }
-}
+export const PLANETARY_ASPECTS = [0, 60, 90, 120, 180]; // Degrees
 ```
 
-#### **Manual CSS Variable Customization**
-To directly modify theme colors, update your CSS variables in `globals.css` or `index.css`:
+### Symbol Universe
 
-```css
-:root {
-  --primary: oklch(0.5 0.2 240);
-  --primary-foreground: oklch(0.98 0.02 240);
-  --secondary: oklch(0.96 0.01 240);
-  --secondary-foreground: oklch(0.2 0.02 240);
-  /* Customize other variables */
-}
-
-.dark {
-  --primary: oklch(0.7 0.2 240);
-  --primary-foreground: oklch(0.15 0.02 240);
-  /* Dark mode variants */
-}
-```
-
-### **Removing the Theme Customizer**
-
-If you want to remove the theme customizer from your project:
-
-#### **Vite Version:**
-1. Remove the theme customizer component: `src/components/theme-customizer.tsx`
-2. Remove the theme customizer button from your layout
-3. Remove theme-related imports from your main layout file
-4. Delete the `src/components/theme-customizer/` folder if it exists
-
-#### **Next.js Version:**
-1. Remove the theme customizer component: `src/components/theme-customizer.tsx`
-2. Remove the theme customizer button from `src/app/layout.tsx`
-3. Remove theme-related imports from your layout files
-4. Delete the `src/components/theme-customizer/` folder if it exists
-
-> 📖 **Learn More:** For comprehensive theming documentation, visit the [official shadcn/ui theming guide](https://ui.shadcn.com/docs/theming) which covers CSS variables, color formats, and advanced customization techniques.
+Edit `csv-pull/market-data/src/config/symbols.js` to add/remove tracked assets.
 
 ---
 
-## 📦 Tech Stack
+## 🛠️ Technology Stack
 
-### **Core Framework**
+### Frontend
 
-- **React 19** - Latest React with concurrent features
-- **TypeScript** - Full type safety
-- **Vite** - Ultra-fast development
-- **Next.js 15** - Production-ready with App Router
-
-### **UI & Styling**
-
-- **shadcn/ui v3** - Latest component library
+- **Next.js 16** - React framework with App Router
+- **TypeScript 5** - Type-safe development
+- **Tailwind CSS 4** - Utility-first styling
+- **shadcn/ui v3** - Component library
 - **Radix UI** - Accessible primitives
-- **Tailwind CSS v4** - Utility-first styling
-- **tweakcn** - Advanced theme management
-- **Lucide React** - Beautiful icons
+- **Recharts** - Data visualization
+- **Framer Motion** - Animations
 
-### **State & Data**
+### Data & Analysis
 
-- **Zustand** - Lightweight state management
-- **React Hook Form** - Forms with validation
-- **Zod** - Schema validation
-- **TanStack Table** - Advanced data tables
+- **astronomy-engine** - Planetary position calculations
+- **technicalindicators** - RSI, MACD, Bollinger Bands
+- **yahoo-finance2** - Price data fetching
+- **papaparse** - CSV processing
+- **danfojs-node** - DataFrame operations
+- **csv-writer** - Data export
 
-### **Development**
+### Backend & Infrastructure
 
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
-- **TypeScript** - Static type checking
-
----
-
-## 📋 What's Included
-
-### **🖥️ Dashboard Pages**
-
-- **Dashboard** - Overview with analytics cards and charts
-- **Dashboard v2** - Alternative dashboard with different metrics
-
-### **📱 Application Demos**
-
-![Apps Preview](vite-version/public/apps.png)
-
-- **📧 Mail** - Complete email interface (Inbox, Read, Compose)
-- **✅ Tasks** - Task management with drag & drop
-- **💬 Chat** - Real-time chat interface
-- **📅 Calendar** - Event scheduling and management
-- **👥 Users** - User management and profiles with advanced tables
-
-### **🔐 Authentication**
-
-- **Login** - 3 login page variants with different layouts
-- **Sign Up** - 3 registration page variants with different designs  
-- **Forgot Password** - 3 password recovery page variants
-
-### **⚙️ Settings & Profile**
-
-- **User Settings** - Manage your personal information and preferences
-- **Account Settings** - Profile management
-- **Plans & Billing** - Subscription and payment pages
-- **Appearance** - Theme and display preferences
-- **Notifications** - Notification preferences
-- **Connections** - Social media integrations
-
-### **❌ Error Pages**
-
-- **404** - Page not found
-- **401** - Unauthorized access
-- **403** - Forbidden
-- **500** - Internal server error
-- **Under Maintenance** - Maintenance mode page
-
-### **🌐 Landing Page Template**
-
-- **Hero Section** - Compelling headlines and CTAs
-- **About Section** - Company/product introduction with interactive elements
-- **Features Section** - Product/service highlights with icons
-- **Stats Section** - Key metrics and achievements display
-- **Logo Carousel** - Partner/client logos showcase
-- **Team Section** - Team member profiles and information
-- **Testimonials Section** - Customer reviews and social proof
-- **Blog Section** - Latest blog posts and articles
-- **Pricing Section** - Pricing tables and plans
-- **FAQ Section** - Frequently asked questions with expandable answers
-- **Contact Section** - Contact forms and information
-- **CTA Section** - Call-to-action components
-- **Navigation & Footer** - Complete navigation and footer components
-- **Theme Customizer** - Live theme switching for landing page
-
-### **📄 Additional Pages**
-
-- **FAQ** - Frequently asked questions
-- **Pricing** - Detailed pricing pages
+- **Supabase** - Database (optional, schema ready)
+- **Vercel** - Deployment platform
+- **Python 3.8+** - Astronomical calculations
+- **Node.js 18+** - Runtime environment
 
 ---
 
-## 🌟 Why Choose This Template?
+## 📈 W.D. Gann Methodology
 
-### **🆓 Completely Free & Open Source**
+This platform implements Gann's principles for market timing:
 
-- **MIT Licensed** - Use for personal and commercial projects
-- **No restrictions** - Modify, distribute, and sell
-- **Community driven** - Contributions welcome
+### Core Concepts
 
-### **🏢 Business Ready**
+1. **Time = Price** - Market movements correlate to planetary cycles
+2. **Seasonal Anchors** - Solstices/equinoxes as major turning points
+3. **Angular Relationships** - 0°, 90°, 120°, 180° planetary aspects
+4. **Fibonacci Confluence** - Price retracements from cycle dates
+5. **Lunar Dominance** - 18.6-year Saros cycle influences
 
-- **Production code** - Clean, maintainable, and scalable
-- **Professional design** - Modern UI that looks great
-- **Complete templates** - Dashboard + Landing page included
+### Implementation
 
-### **🎨 Advanced Theming**
+- **Aspect Calculation:** Geocentric positions via astronomy-engine
+- **Scoring System:** Multi-factor weighting (proximity to anchor, aspect strength, Fibonacci touch)
+- **Confidence Levels:** 0-100 scale combining time cycles + price levels
+- **Trading Windows:** Optimal entry zones when 3+ factors converge
 
-- **Live customization** - See changes in real-time
-- **tweakcn integration** - Professional theme management
-- **Multiple layouts** - Sidebar variants and options
+### Historical Performance
 
-### **⚡ Developer Friendly**
+Gann's methods require:
+- Long observation periods (18+ month cycles)
+- Confluence confirmation (never single-factor)
+- Risk management (stop losses independent of astrology)
 
-- **Modern stack** - Latest React, TypeScript, Tailwind CSS
-- **Great DX** - Fast development with Vite
-- **Type safe** - Full TypeScript coverage
-- **Well documented** - Clear code and comments
+**Disclaimer:** Astrological analysis is supplementary to fundamental/technical research. Past performance ≠ future results.
 
 ---
 
-## 🚀 Take It Further with ShadcnStore
+## 🎯 Use Cases
 
-This free template is just the beginning! **ShadcnStore** offers a complete ecosystem of free & premium UI components, dashboards and templates to accelerate your development:
+### **For Traders**
 
-### **🎁 Available Now**
+- Identify high-probability reversal zones
+- Time entries/exits using planetary cycles
+- Screen multi-asset universe for confluence setups
+- Track featured symbols with strongest Gann alignment
 
-- **[Premium Blocks](https://shadcnstore.com/blocks)** - 150+ production-ready UI blocks
-  - **Application Blocks** - Advanced dashboard components
-  - **Marketing Blocks** - Landing page sections
-  - **E-commerce Blocks** - Online store components
-  - **Free Blocks** - No-cost starter components
+### **For Researchers**
 
-### **🔜 Coming Soon**
+- Backtest Gann methodologies on historical data
+- Analyze correlation between planetary aspects and market moves
+- Export CSV data for custom analysis in Python/R
+- Compare traditional technicals vs. astrological signals
 
-- **Premium Templates** - Complete application templates
-- **Landing Page Collection** - Business-ready landing pages
-- **Premium Dashboards** - Advanced dashboard solutions
+### **For Developers**
 
-### **💡 Perfect For**
-
-- **SaaS Applications** - Complete dashboard solutions
-- **Marketing Sites** - Beautiful landing pages
-- **E-commerce** - Online store interfaces
-- **Internal Tools** - Admin panels and dashboards
-
-> **🎯 [Explore ShadcnStore](https://shadcnstore.com)** - Premium blocks, dashboards and templates for modern web applications.
+- Learn Next.js 16 App Router architecture
+- Study shadcn/ui component patterns
+- Implement glassmorphism design systems
+- Build data pipelines with TypeScript + Python
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+Contributions welcome! Here's how:
 
-### **Ways to Contribute**
+### Ways to Contribute
 
-- 🐛 **Report bugs** - Found an issue? Let us know!
-- 💡 **Suggest features** - Have ideas for improvements?
-- 🔧 **Submit PRs** - Fix bugs or add new features
-- 📖 **Improve docs** - Help make documentation better
-- ⭐ **Star the repo** - Show your support!
+- 🐛 **Bug Reports** - Found an issue? Open an issue
+- 💡 **Feature Requests** - Suggest new Gann indicators or data sources
+- 🔧 **Pull Requests** - Fix bugs or add features
+- 📖 **Documentation** - Improve setup guides or methodology explanations
+- ⭐ **Star the Repo** - Show support for the project
 
-### **Getting Started**
+### Getting Started
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b my-feature`
-3. Make your changes and test thoroughly
-4. Commit: `git commit -m "Add new feature"`
-5. Push: `git push origin my-feature`
-6. Open a Pull Request
+2. Create feature branch: `git checkout -b feature/gann-enhancement`
+3. Make changes and test thoroughly
+4. Commit: `git commit -m "Add [feature description]"`
+5. Push: `git push origin feature/gann-enhancement`
+6. Open Pull Request with detailed description
 
-### **Code Style**
+### Code Standards
 
 - Use **TypeScript** for all new code
-- Follow **ESLint** and **Prettier** configurations
-- Add **type definitions** for props and data
-- Write **clear commit messages**
-- Test your changes in both **Vite** and **Next.js** versions
+- Follow **ESLint** and **Prettier** configs
+- Add **JSDoc comments** for complex Gann calculations
+- Write **unit tests** for scoring algorithms (future)
+- Update **session-notes/** with implementation details
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE.md](License.md) for details.
 
 **You are free to:**
 
-- ✅ Use commercially
-- ✅ Modify and distribute
-- ✅ Include in private projects
-- ✅ Sell products built with this template
+- ✅ Use commercially for trading strategies
+- ✅ Modify Gann calculations and scoring
+- ✅ Deploy to your own infrastructure
+- ✅ Sell services/products built on this platform
 
-**Attribution to [ShadcnStore](https://shadcnstore.com) is appreciated but not required.**
+**Attribution to original ShadCN template appreciated but not required.**
 
 ---
 
 ## 🙏 Credits & Acknowledgments
 
-This template is built on the shoulders of amazing open-source projects:
+### Core Technologies
 
-- **[shadcn/ui](https://ui.shadcn.com)** - Beautiful and accessible components
-- **[Radix UI](https://www.radix-ui.com)** - Low-level accessible primitives
-- **[Tailwind CSS](https://tailwindcss.com)** - Utility-first CSS framework
-- **[Lucide Icons](https://lucide.dev)** - Beautiful & consistent icons
-- **[tweakcn](https://tweakcn.com)** - Advanced theme customization
-- **[Recharts](https://recharts.org)** - Composable charting library
-- **[TanStack Table](https://tanstack.com/table)** - Powerful data tables
+- **[shadcn/ui](https://ui.shadcn.com)** - Component foundation
+- **[ShadCN Dashboard Template](https://github.com/silicondeck/shadcn-dashboard-landing-template)** - Base template
+- **[astronomy-engine](https://github.com/cosinekitty/astronomy)** - Planetary calculations
+- **[Tailwind CSS](https://tailwindcss.com)** - Styling framework
+- **[Radix UI](https://www.radix-ui.com)** - Accessible primitives
+- **[Recharts](https://recharts.org)** - Charting library
+
+### Data Sources
+
+- **Yahoo Finance** - Primary price data
+- **Polygon.io** - Real-time market data
+- **CoinGecko** - Cryptocurrency prices
+- **Alpha Vantage** - Technical indicators
+- **FRED** - Macro economic data
+
+### Methodology
+
+- **William Delbert Gann** - Astrological market timing pioneer
+- **Fibonacci** - Mathematical ratios in nature and markets
+- **Bradley Cowan** - Modern Gann research
 
 ---
 
-## 📞 Support & Community
+## 📞 Support
 
-### **Get Help**
+### Get Help
 
-- 📖 **Documentation** - This README covers everything
-- 🐛 **Issues** - [Report bugs](https://github.com/silicondeck/shadcn-dashboard-landing-template/issues)
-- 💬 **Discussions** - [Join conversations](https://github.com/silicondeck/shadcn-dashboard-landing-template/discussions)
+- 📖 **Documentation** - This README and session-notes/
+- 🐛 **Issues** - Report bugs via GitHub Issues
+- 💬 **Discussions** - Ask questions in GitHub Discussions
 
-### **Stay Connected**
+### Resources
 
-- 🌐 **Website** - [ShadcnStore.com](https://shadcnstore.com)
-- 🐦 **Twitter** - [@shadcnstore](https://twitter.com/shadcnstore)
-- 💬 **Discord** - [Join our server](https://discord.com/invite/XEQhPc9a6p)
-- 📧 **Email** - [hello@shadcnstore.com](mailto:hello@shadcnstore.com)
+- 📚 **Gann Study** - [Sacred Science Institute](https://sacredscience.com)
+- 🎓 **Astronomy Basics** - [astronomy-engine docs](https://github.com/cosinekitty/astronomy)
+- 🎨 **shadcn/ui** - [Official documentation](https://ui.shadcn.com)
+- ⚡ **Next.js 16** - [App Router guide](https://nextjs.org/docs)
 
 ---
 
 <div align="center">
 
-**⭐ Star this repo if it helped you!**
+**⭐ Star this repo if you find Gann analysis valuable!**
 
-[![ShadcnStore](https://img.shields.io/badge/Built%20by-ShadcnStore-blue?style=for-the-badge)](https://shadcnstore.com)
+[![Built with ShadCN](https://img.shields.io/badge/Built%20with-ShadCN-blue?style=for-the-badge)](https://ui.shadcn.com)
+[![Gann Methodology](https://img.shields.io/badge/Methodology-W.D.%20Gann-purple?style=for-the-badge)](https://en.wikipedia.org/wiki/William_Delbert_Gann)
 
-_A free & open-source template by **[ShadcnStore](https://shadcnstore.com)** - Premium UI components, dashboards and templates for modern web development._
+_Professional trading dashboard combining astrological cycles with modern technical analysis._
+
+**Disclaimer:** This platform is for educational and research purposes. Astrological market analysis does not guarantee trading profits. Always conduct independent research and use proper risk management.
 
 </div>

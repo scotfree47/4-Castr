@@ -1,5 +1,5 @@
 // app/api/ticker-ratings/route.ts
-// OPTIMIZED: Prioritize cache, fall back to live calculation only when needed
+// HYBRID: Cache-first with auto-population on miss
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
@@ -96,13 +96,129 @@ async function getRatingsFromCache(
   }
 }
 
+async function populateCache(
+  ratings: TickerRating[],
+  category: string,
+  clearFirst: boolean = false
+): Promise<void> {
+  try {
+    const ingress = await getCurrentIngressPeriod()
+    const period = `${new Date(ingress.start).getFullYear()}-${String(new Date(ingress.start).getMonth() + 1).padStart(2, "0")}-${ingress.sign.toLowerCase()}`
+
+    console.log(`   💾 Writing ${ratings.length} ratings to cache (${period})...`)
+
+    // Clear existing cache for this category/period if requested
+    if (clearFirst) {
+      await getSupabaseAdmin()
+        .from("ticker_ratings_cache")
+        .delete()
+        .eq("category", category)
+        .eq("ingress_period", period)
+    }
+
+    // Transform ratings to cache format
+    const cacheRows = ratings.map((r, idx) => ({
+      symbol: r.symbol,
+      category: r.category,
+      ingress_period: period,
+      calculated_at: new Date().toISOString(),
+      rating_data: {
+        current_price: r.currentPrice,
+        price_date: r.priceDate,
+        next_key_level: {
+          price: r.nextKeyLevel.price,
+          type: r.nextKeyLevel.type,
+          distance_percent: r.nextKeyLevel.distancePercent,
+          distance_points: r.nextKeyLevel.distancePoints,
+        },
+        scores: {
+          confluence: r.scores.confluence,
+          proximity: r.scores.proximity,
+          momentum: r.scores.momentum,
+          seasonal: r.scores.seasonal,
+          aspect_alignment: r.scores.aspectAlignment,
+          volatility: r.scores.volatility,
+          trend: r.scores.trend,
+          volume: r.scores.volume,
+          technical: r.scores.technical,
+          fundamental: r.scores.fundamental,
+          total: r.scores.total,
+        },
+        rating: r.rating,
+        confidence: r.confidence,
+        recommendation: r.recommendation,
+        convergence: {
+          has_convergence: false,
+          confidence: r.scores.total / 100,
+        },
+        validations: {
+          fib: { quality: "none", ratio: null, score: 0 },
+          gann: {
+            quality: "none",
+            time_symmetry: false,
+            price_square: false,
+            angle_holding: false,
+            score: 0,
+          },
+          lunar: {
+            phase: null,
+            recommendation: null,
+            entry_favorability: null,
+            exit_favorability: null,
+            days_to_phase: null,
+          },
+          atr: {
+            state: null,
+            current: r.atr14,
+            current_percent: null,
+            average_percent: null,
+            multiple: r.atrMultiple,
+            strength: null,
+          },
+        },
+        sector: r.sector,
+        reasons: r.reasons,
+        warnings: r.warnings,
+        projections: {
+          days_until_target: r.nextKeyLevel.daysUntilEstimate,
+          reach_probability: r.projections?.probability || 0,
+          earliest_date: r.projections?.confidenceInterval?.earliest || null,
+          most_likely_date: r.projections?.reachDate || "",
+          latest_date: r.projections?.confidenceInterval?.latest || null,
+        },
+        ingress_alignment: {
+          sign: r.ingressAlignment?.sign || "",
+          start_date: ingress.start,
+          end_date: ingress.end,
+          days_in_period: r.ingressAlignment?.daysRemaining || 0,
+          favorability: r.ingressAlignment?.favorability || null,
+        },
+        featured_rank: idx + 1,
+        dynamic_score: r.scores.total,
+        last_rank_update: new Date().toISOString(),
+      },
+    }))
+
+    // Batch insert (upsert)
+    const { error } = await getSupabaseAdmin().from("ticker_ratings_cache").upsert(cacheRows, {
+      onConflict: "symbol,category,ingress_period",
+    })
+
+    if (error) throw error
+    console.log(`   ✅ Cache populated: ${cacheRows.length} rows`)
+  } catch (error) {
+    console.error("   ❌ Cache population failed:", error)
+    // Don't throw - cache failure shouldn't break the response
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
 
     const mode = searchParams.get("mode") || "batch"
     const categoryFilter = searchParams.get("category")
-    const minScore = parseInt(searchParams.get("minScore") || "75")
+    const minScore = parseInt(searchParams.get("minScore") || "50") // ← Lowered from 75
     const maxResults = parseInt(searchParams.get("maxResults") || "1000")
     const symbols = searchParams.get("symbols")?.split(",").filter(Boolean)
     const forceRefresh = searchParams.get("refresh") === "true"
@@ -137,14 +253,26 @@ export async function GET(request: NextRequest) {
         metadata.source = "cache"
         metadata.cacheHit = true
       } else {
-        console.log("   ⚠️  Cache miss, falling back to live calculation...")
+        console.log("   ⚠️  Cache miss, auto-populating...")
         ratings = await performLiveCalculation(mode, categoryFilter, symbols, minScore, maxResults)
-        metadata.source = "live_calculation"
+
+        // AUTO-POPULATE CACHE
+        if (categoryFilter && ratings.length > 0) {
+          await populateCache(ratings, categoryFilter)
+        }
+
+        metadata.source = "live_calculation_auto_cached"
         metadata.cacheHit = false
       }
     } else {
       console.log("   🔄 Force refresh: live calculation...")
       ratings = await performLiveCalculation(mode, categoryFilter, symbols, minScore, maxResults)
+
+      // REFRESH CACHE
+      if (categoryFilter && ratings.length > 0) {
+        await populateCache(ratings, categoryFilter, true)
+      }
+
       metadata.source = "live_calculation_forced"
       metadata.cacheHit = false
     }
@@ -195,12 +323,12 @@ async function performLiveCalculation(
   maxResults: number
 ): Promise<TickerRating[]> {
   const options: any = {
-    minScore,
+    minScore, // ← Use the ACTUAL minScore passed from request
     maxResults,
     lookbackDays: 1095,
-    includeProjections: false, // CRITICAL: Disable expensive features
-    includeSeasonalData: false, // CRITICAL: Disable expensive features
-    parallelism: 3, // CRITICAL: Reduce parallelism
+    includeProjections: false,
+    includeSeasonalData: false,
+    parallelism: 3,
   }
 
   if (categoryFilter) {

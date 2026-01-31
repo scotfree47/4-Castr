@@ -1,7 +1,12 @@
 // src/lib/services/symbolResolver.ts
 // CENTRALIZED SYMBOL NORMALIZATION & API FALLBACK SYSTEM
 
-import { getSupabaseAdmin } from "@/lib/supabase"
+import { createClient } from "@supabase/supabase-js"
+
+// Initialize Supabase client for server-side use
+const getSupabaseAdmin = () => {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+}
 
 // ============================================================================
 // SYMBOL VARIATION MAPPINGS
@@ -9,17 +14,26 @@ import { getSupabaseAdmin } from "@/lib/supabase"
 
 /**
  * Maps ticker symbol variations to canonical format
- * Use UPPERCASE as canonical (matches most API providers)
+ * For crypto: Use CoinGecko ID as canonical (lowercase)
+ * For forex: Use slash format as canonical
+ * For commodities: Use futures notation as canonical
  */
 const SYMBOL_VARIATIONS: Record<string, string[]> = {
-  // Crypto - multiple variations
-  BTC: ["Bitcoin", "bitcoin", "BTC", "btc", "BTC-USD", "BTCUSD"],
-  ETH: ["Ethereum", "ethereum", "ETH", "eth", "ETH-USD", "ETHUSD"],
-  SOL: ["Solana", "solana", "SOL", "sol", "SOL-USD", "SOLUSD"],
-  BNB: ["binancecoin", "BNB", "bnb", "BNB-USD"],
-  XRP: ["ripple", "XRP", "xrp", "XRP-USD"],
+  // Crypto - CoinGecko IDs are canonical
+  bitcoin: ["Bitcoin", "bitcoin", "BTC", "btc", "BTC-USD", "BTCUSD"],
+  ethereum: ["Ethereum", "ethereum", "ETH", "eth", "ETH-USD", "ETHUSD"],
+  solana: ["Solana", "solana", "SOL", "sol", "SOL-USD", "SOLUSD"],
+  binancecoin: ["binancecoin", "BNB", "bnb", "BNB-USD"],
+  ripple: ["ripple", "XRP", "xrp", "XRP-USD"],
+  cardano: ["Cardano", "cardano", "ADA", "ada", "ADA-USD"],
+  polkadot: ["Polkadot", "polkadot", "DOT", "dot", "DOT-USD"],
+  dogecoin: ["Dogecoin", "dogecoin", "DOGE", "doge", "DOGE-USD"],
+  "avalanche-2": ["Avalanche", "avalanche-2", "AVAX", "avax", "AVAX-USD"],
+  "matic-network": ["Polygon", "matic-network", "MATIC", "matic", "MATIC-USD"],
+  chainlink: ["Chainlink", "chainlink", "LINK", "link", "LINK-USD"],
+  uniswap: ["Uniswap", "uniswap", "UNI", "uni", "UNI-USD"],
 
-  // Forex - slash vs no-slash variations
+  // Forex - slash format is canonical
   "EUR/USD": ["EURUSD", "EUR/USD", "EUR-USD", "eurusd"],
   "USD/JPY": ["USDJPY", "USD/JPY", "USD-JPY", "usdjpy"],
   "GBP/USD": ["GBPUSD", "GBP/USD", "GBP-USD", "gbpusd"],
@@ -29,12 +43,12 @@ const SYMBOL_VARIATIONS: Record<string, string[]> = {
   "NZD/USD": ["NZDUSD", "NZD/USD", "NZD-USD", "nzdusd"],
   "EUR/GBP": ["EURGBP", "EUR/GBP", "EUR-GBP", "eurgbp"],
 
-  // Commodities - futures notation
+  // Commodities - futures notation is canonical
   "GC1!": ["GC", "GC=F", "GC1!", "GOLD"],
   "CL1!": ["CL", "CL=F", "CL1!", "CRUDEOIL"],
   "HG1!": ["HG", "HG=F", "HG1!", "COPPER"],
-
-  // Add more as needed...
+  "SI1!": ["SI", "SI=F", "SI1!", "SILVER"],
+  "NG1!": ["NG", "NG=F", "NG1!", "NATGAS"],
 }
 
 /**
@@ -56,12 +70,10 @@ Object.entries(SYMBOL_VARIATIONS).forEach(([canonical, variations]) => {
 
 /**
  * Resolves symbol variation to canonical format
- * @param symbol - Any symbol variation
- * @returns Canonical symbol (uppercase)
  */
 export function resolveSymbol(symbol: string): string {
   const canonical = VARIATION_TO_CANONICAL.get(symbol.toLowerCase())
-  return canonical || symbol.toUpperCase() // Default to uppercase if not in map
+  return canonical || symbol
 }
 
 /**
@@ -84,19 +96,18 @@ export function resolveSymbols(symbols: string[]): string[] {
 
 /**
  * Queries financial_data with automatic variation fallback
- * Tries canonical symbol first, then all variations
  */
 export async function queryPriceData(
   symbol: string,
   startDate: string,
   endDate: string
 ): Promise<any[]> {
+  const supabase = getSupabaseAdmin()
   const canonical = resolveSymbol(symbol)
   const variations = getSymbolVariations(canonical)
 
-  // Try each variation until we get data
   for (const variant of variations) {
-    const { data, error } = await getSupabaseAdmin()
+    const { data, error } = await supabase
       .from("financial_data")
       .select("*")
       .eq("symbol", variant)
@@ -105,12 +116,10 @@ export async function queryPriceData(
       .order("date", { ascending: true })
 
     if (!error && data && data.length > 0) {
-      console.log(`   ✅ Found ${data.length} bars for ${symbol} (matched as: ${variant})`)
       return data
     }
   }
 
-  console.log(`   ⚠️  No data found for ${symbol} (tried: ${variations.join(", ")})`)
   return []
 }
 
@@ -123,73 +132,11 @@ export async function batchQueryPriceData(
   endDate: string
 ): Promise<Map<string, any[]>> {
   const results = new Map<string, any[]>()
-
   for (const symbol of symbols) {
     const data = await queryPriceData(symbol, startDate, endDate)
     results.set(symbol, data)
   }
-
   return results
-}
-
-// ============================================================================
-// API PROVIDER WATERFALL
-// ============================================================================
-
-interface APIProvider {
-  name: string
-  categories: string[]
-  priority: number
-  fetch: (symbol: string, category: string) => Promise<number | null>
-}
-
-/**
- * Attempts to fetch current price with multi-provider fallback
- * @returns { price, provider } or null
- */
-export async function fetchPriceWithFallback(
-  symbol: string,
-  category: string,
-  providers: APIProvider[]
-): Promise<{ price: number; provider: string } | null> {
-  const canonical = resolveSymbol(symbol)
-  const variations = getSymbolVariations(canonical)
-
-  // Filter providers by category and sort by priority
-  const availableProviders = providers
-    .filter((p) => p.categories.includes(category))
-    .sort((a, b) => a.priority - b.priority)
-
-  // Try each provider with each variation
-  for (const provider of availableProviders) {
-    for (const variant of variations) {
-      try {
-        const price = await provider.fetch(variant, category)
-        if (price && price > 0) {
-          console.log(`   ✅ ${symbol}: $${price.toFixed(2)} (${provider.name} as ${variant})`)
-          return { price, provider: provider.name }
-        }
-      } catch (error) {
-        // Silent fail, try next provider
-        continue
-      }
-    }
-  }
-
-  // Final fallback: check database
-  console.log(`   🔍 API fallback failed, checking database for ${symbol}...`)
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
-  const today = new Date().toISOString().split("T")[0]
-
-  const dbData = await queryPriceData(symbol, yesterday, today)
-  if (dbData.length > 0) {
-    const latestPrice = dbData[dbData.length - 1].close
-    console.log(`   ✅ ${symbol}: $${latestPrice.toFixed(2)} (database)`)
-    return { price: latestPrice, provider: "database" }
-  }
-
-  console.log(`   ❌ ${symbol}: No data available from any source`)
-  return null
 }
 
 // ============================================================================
@@ -198,28 +145,21 @@ export async function fetchPriceWithFallback(
 
 /**
  * Syncs ticker_universe to match financial_data symbols
- * Ensures 1:1 mapping between tables
  */
 export async function syncTickerUniverse(): Promise<void> {
   console.log("🔄 Syncing ticker_universe from financial_data...\n")
+  const supabase = getSupabaseAdmin()
 
-  // Get all unique symbols from financial_data
-  const { data: priceSymbols, error } = await getSupabaseAdmin()
+  const { data: priceSymbols, error } = await supabase
     .from("financial_data")
     .select("symbol, category")
-    .limit(200000) // Increase limit to get all
+    .limit(200000)
 
-  if (error) {
-    console.error("❌ Error querying financial_data:", error)
-    return
-  }
-
-  if (!priceSymbols || priceSymbols.length === 0) {
+  if (error || !priceSymbols || priceSymbols.length === 0) {
     console.log("⚠️  No symbols found in financial_data")
     return
   }
 
-  // Deduplicate and group by symbol
   const uniqueSymbols = new Map<string, string>()
   priceSymbols.forEach((row: any) => {
     const canonical = resolveSymbol(row.symbol)
@@ -230,90 +170,69 @@ export async function syncTickerUniverse(): Promise<void> {
 
   console.log(`📊 Found ${uniqueSymbols.size} unique symbols in financial_data`)
 
-  // Clear ticker_universe (backup first!)
-  console.log("🗑️  Clearing ticker_universe...")
-  await getSupabaseAdmin().from("ticker_universe").delete().neq("symbol", "")
+  const { data: existingTickers } = await supabase.from("ticker_universe").select("symbol")
 
-  // Build new records
-  const records = Array.from(uniqueSymbols.entries()).map(([symbol, category]) => ({
-    symbol,
-    category,
-    name: symbol,
-    exchange: category === "equity" ? "US" : category.toUpperCase(),
-    asset_type: category,
-    active: true,
-    data_source: "financial_data",
-    metadata: {
-      variations: getSymbolVariations(symbol),
-    },
-  }))
+  const existingSymbolSet = new Set(existingTickers?.map((t: any) => t.symbol) || [])
 
-  // Batch insert
-  console.log(`💾 Inserting ${records.length} symbols into ticker_universe...`)
-  for (let i = 0; i < records.length; i += 500) {
-    const batch = records.slice(i, i + 500)
-    const { error: insertError } = await getSupabaseAdmin()
-      .from("ticker_universe")
-      .insert(batch)
+  const symbolsToAdd = Array.from(uniqueSymbols.entries())
+    .filter(([symbol]) => !existingSymbolSet.has(symbol))
+    .map(([symbol, category]) => ({
+      symbol,
+      category,
+      name: symbol,
+      exchange: category === "equity" ? "US" : category.toUpperCase(),
+      asset_type: category,
+      active: true,
+      data_source: "financial_data",
+      metadata: { variations: getSymbolVariations(symbol) },
+    }))
 
-    if (insertError) {
-      console.error(`❌ Error inserting batch ${i / 500 + 1}:`, insertError.message)
-    } else {
-      console.log(`   ✅ Batch ${Math.floor(i / 500) + 1}: ${batch.length} symbols`)
-    }
+  if (symbolsToAdd.length === 0) {
+    console.log("✅ Ticker universe already in sync\n")
+    return
   }
 
-  console.log(`\n✅ Ticker universe synced: ${records.length} symbols\n`)
+  console.log(`💾 Adding ${symbolsToAdd.length} new symbols to ticker_universe...`)
+  for (let i = 0; i < symbolsToAdd.length; i += 500) {
+    const batch = symbolsToAdd.slice(i, i + 500)
+    await supabase.from("ticker_universe").upsert(batch, { onConflict: "symbol" })
+    console.log(`   ✅ Batch ${Math.floor(i / 500) + 1}: ${batch.length} symbols`)
+  }
+
+  console.log(`\n✅ Ticker universe synced: ${symbolsToAdd.length} symbols added\n`)
 }
 
 // ============================================================================
 // CATEGORY DETECTION
 // ============================================================================
 
-/**
- * Auto-detects category from symbol format
- */
 export function detectCategory(symbol: string): string {
-  const normalized = symbol.toUpperCase()
+  const normalized = symbol.toLowerCase()
 
-  // Crypto patterns
-  if (
-    ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "DOT", "AVAX", "MATIC"].includes(normalized) ||
-    symbol.toLowerCase().includes("coin") ||
-    VARIATION_TO_CANONICAL.get(symbol.toLowerCase())?.match(/^(BTC|ETH|SOL|BNB|XRP)$/)
-  ) {
-    return "crypto"
+  if (VARIATION_TO_CANONICAL.has(normalized)) {
+    const canonical = VARIATION_TO_CANONICAL.get(normalized)!
+    if (["bitcoin", "ethereum", "solana", "binancecoin"].includes(canonical)) {
+      return "crypto"
+    }
   }
 
-  // Forex patterns (contains /)
-  if (symbol.includes("/") || symbol.length === 6) {
+  if (symbol.includes("/") || (symbol.length === 6 && /^[A-Z]{6}$/.test(symbol))) {
     return "forex"
   }
 
-  // Futures patterns (contains = or !)
   if (symbol.includes("=F") || symbol.includes("1!")) {
     return "commodity"
   }
 
-  // Stress indicators
-  if (["VIX", "MOVE", "TRIN", "SKEW"].includes(normalized)) {
+  if (["VIX", "MOVE", "TRIN", "SKEW"].includes(symbol.toUpperCase())) {
     return "stress"
   }
 
-  // Macro indicators
-  if (["TLT", "DXY", "TNX", "FEDFUNDS", "CPI", "PPI"].includes(normalized)) {
+  if (["TLT", "TNX", "FEDFUNDS", "CPI"].includes(symbol.toUpperCase())) {
     return "rates-macro"
   }
 
-  // Default to equity
   return "equity"
 }
 
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export {
-  SYMBOL_VARIATIONS,
-  VARIATION_TO_CANONICAL,
-}
+export { SYMBOL_VARIATIONS, VARIATION_TO_CANONICAL }

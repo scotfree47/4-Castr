@@ -519,11 +519,25 @@ export async function calculateTickerRating(
       close: d.close,
       volume: d.volume || 0,
     }))
-    const currentPrice = bars[bars.length - 1].close
-    const priceDate = priceRecords[priceRecords.length - 1].date
 
-    const atrAnalysis = analyzeATRVolatility(bars, currentPrice)
-    const analysis = calculateEnhancedLevels(bars, currentPrice, {
+    // Validate bars have valid timestamps
+    const validBars = bars.filter((bar) => !isNaN(bar.time) && bar.time > 0)
+    if (validBars.length < 30) {
+      console.warn(`Insufficient valid data for ${symbol}: ${validBars.length} bars`)
+      return null
+    }
+
+    const currentPrice = validBars[validBars.length - 1].close
+    const lastValidDate = priceRecords[priceRecords.length - 1].date
+
+    // Validate date before converting to ISO string
+    const priceDate =
+      lastValidDate && !isNaN(new Date(lastValidDate).getTime())
+        ? lastValidDate
+        : new Date().toISOString().split("T")[0]
+
+    const atrAnalysis = analyzeATRVolatility(validBars, currentPrice)
+    const analysis = calculateEnhancedLevels(validBars, currentPrice, {
       swingLength: 20,
       pivotBars: 5,
       currentTime: Date.now(),
@@ -564,10 +578,10 @@ export async function calculateTickerRating(
     )
     const confluenceScore = Math.min(100, nearbyLevels.length * 15)
     const proximityScore = Math.max(0, 100 - distancePercent * 10)
-    const momentumScore = calculateMomentumScore(bars, nextLevel.price, levelType)
-    const volatilityScore = calculateVolatilityScore(bars)
-    const trendScore = calculateTrendScore(bars)
-    const volumeScore = calculateVolumeScore(bars, levelType)
+    const momentumScore = calculateMomentumScore(validBars, nextLevel.price, levelType)
+    const volatilityScore = calculateVolatilityScore(validBars)
+    const trendScore = calculateTrendScore(validBars)
+    const volumeScore = calculateVolumeScore(validBars, levelType)
 
     let seasonalScore = 50,
       aspectScore = 50
@@ -641,7 +655,7 @@ export async function calculateTickerRating(
     if (trendScore < 40) warnings.push("Moving against trend")
 
     const avgDailyMove =
-      bars
+      validBars
         .slice(-20)
         .reduce(
           (sum, bar, idx, arr) => (idx === 0 ? 0 : sum + Math.abs(bar.close - arr[idx - 1].close)),
@@ -678,9 +692,9 @@ export async function calculateTickerRating(
       favorability,
     }
 
-    const highs = bars.map((b) => b.high),
-      lows = bars.map((b) => b.low),
-      closes = bars.map((b) => b.close)
+    const highs = validBars.map((b) => b.high),
+      lows = validBars.map((b) => b.low),
+      closes = validBars.map((b) => b.close)
     const atrValues = ATR.calculate({ high: highs, low: lows, close: closes, period: 14 })
     const atr14 = atrValues.length > 0 ? atrValues[atrValues.length - 1] : 0
     const atrMultiple = atr14 > 0 ? distancePoints / atr14 : 0
@@ -691,7 +705,7 @@ export async function calculateTickerRating(
       sector: determineSector(symbol, category),
       currentPrice,
       priceDate,
-      dataPoints: bars.length,
+      dataPoints: validBars.length,
       nextKeyLevel: {
         price: nextLevel.price,
         type: levelType,
@@ -1790,7 +1804,7 @@ export async function detectConvergenceForecastedSwings(
       else if (gannValidation.quality === "good")
         baseConfidence = Math.min(1, baseConfidence + 0.04)
 
-      // Lunar timing adjustment (±5%)
+      // Lunar timing adjustment (Â±5%)
       let lunarBoost = 0
       if (lunarTiming.recommendation === "favorable_entry") lunarBoost = 0.05
       else if (lunarTiming.recommendation === "caution") lunarBoost = -0.05
@@ -1941,26 +1955,26 @@ export async function detectTradingWindows(
             reasons: string[] = []
           if (avgCombined >= 85) {
             type = "high_probability"
-            emoji = "🌞"
+            emoji = "ðŸŒž"
             reasons.push("Exceptional alignment of technical + astrological factors")
             if (avgTechnical >= 90) reasons.push("Price near critical confluence zone")
             if (avgAstrological >= 85) reasons.push("Highly harmonious planetary aspects")
           } else if (avgCombined >= 75) {
             type = "moderate"
-            emoji = "⛅"
+            emoji = "â›…"
             reasons.push("Good alignment, favorable conditions")
             if (avgTechnical >= 80) reasons.push("Approaching key technical level")
           } else if (avgTechnical < 50 && avgAstrological < 50) {
             type = "avoid"
-            emoji = "🌧️"
+            emoji = "ðŸŒ§ï¸"
             reasons.push("Low technical + low astrological alignment")
           } else if (avgAstrological < 40) {
             type = "extreme_volatility"
-            emoji = "⚡"
+            emoji = "âš¡"
             reasons.push("Challenging planetary aspects indicate volatility")
           } else {
             type = "moderate"
-            emoji = "⛅"
+            emoji = "â›…"
             reasons.push("Mixed signals, proceed with caution")
           }
 
@@ -1999,7 +2013,7 @@ export async function detectTradingWindows(
         daysInWindow: windowDays.length,
         keyLevels,
         reasons: ["Trading window detected"],
-        emoji: avgCombined >= 85 ? "🌞" : "⛅",
+        emoji: avgCombined >= 85 ? "ðŸŒž" : "â›…",
         atrState: windowStart.atrState,
         lunarPhase: windowStart.lunarPhase,
       })

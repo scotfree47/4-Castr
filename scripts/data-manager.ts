@@ -10,7 +10,7 @@ import * as fs from "fs"
 import Papa from "papaparse"
 import path from "path"
 import { fileURLToPath } from "url"
-import { syncTickerUniverse } from "../src/lib/services/symbolResolver.js"
+import { syncTickerUniverse } from "../src/lib/services/symbolResolver"
 import { getCurrentIngressPeriod as getIngressPeriod } from "../src/lib/utils.js"
 
 // ============================================================================
@@ -1293,10 +1293,10 @@ async function expandUniverseComprehensive(): Promise<void> {
       const baseUrl = `https://api.polygon.io/v3/reference/tickers?market=stocks&active=true&limit=1000&apiKey=${process.env.POLYGON_API_KEY}`
 
       while (true) {
-        const url: string = nextUrl || baseUrl // ✅ FIXED: Explicit type
+        const url: string = nextUrl || baseUrl // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIXED: Explicit type
         console.log(`\n Page ${page}: Fetching...`)
 
-        const response: any = await axios.get(url, { timeout: 30000 }) // ✅ FIXED: Explicit type
+        const response: any = await axios.get(url, { timeout: 30000 }) // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIXED: Explicit type
 
         if (!response.data?.results || response.data.results.length === 0) {
           console.log(`    No more results - stopping`)
@@ -1368,42 +1368,70 @@ async function expandUniverseComprehensive(): Promise<void> {
   console.log(" PHASE 2: CRYPTOCURRENCY (CoinGecko API)")
   console.log("=".repeat(80))
 
-  if (!process.env.COINGECKO_API_KEY) {
-    console.error(" COINGECKO_API_KEY not found - skipping crypto")
+  const coingeckoKeys = [process.env.COINGECKO_API_KEY, process.env.COINGECKO_API_KEY_2].filter(
+    Boolean
+  )
+
+  if (coingeckoKeys.length === 0) {
+    console.error(" No COINGECKO_API_KEY found - skipping crypto")
   } else {
+    console.log(` Using ${coingeckoKeys.length} CoinGecko key(s)`)
+
     try {
       console.log(" Loading ALL available cryptocurrencies...")
 
       let allCoins: any[] = []
       let page = 1
+      let currentKeyIndex = 0
 
       while (true) {
         console.log(`\n Page ${page}: Fetching...`)
 
-        const url: string = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${page}&sparkline=false&x_cg_demo_api_key=${process.env.COINGECKO_API_KEY}`
+        const currentKey = coingeckoKeys[currentKeyIndex]
+        const url: string = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${page}&sparkline=false&x_cg_demo_api_key=${currentKey}`
 
-        const response: any = await axios.get(url, { timeout: 30000 })
+        try {
+          const response: any = await axios.get(url, { timeout: 30000 })
 
-        if (!response.data || response.data.length === 0) {
-          console.log(`    No more results - stopping`)
-          break
-        }
+          if (!response.data || response.data.length === 0) {
+            console.log(`    No more results - stopping`)
+            break
+          }
 
-        allCoins.push(...response.data)
-        console.log(
-          `    Got ${response.data.length} coins (total: ${allCoins.length.toLocaleString()})`
-        )
+          allCoins.push(...response.data)
+          console.log(
+            `    Got ${response.data.length} coins (total: ${allCoins.length.toLocaleString()}) [key ${currentKeyIndex + 1}]`
+          )
 
-        // CoinGecko free tier: 50 calls/minute
-        // But we'll be conservative: 30 calls/minute = 2 seconds between calls
-        console.log(`    Rate limit: waiting 2s...`)
-        await new Promise((resolve) => setTimeout(resolve, 2000))
+          // CoinGecko free tier: conservative 2s between calls
+          console.log(`    Rate limit: waiting 2s...`)
+          await new Promise((resolve) => setTimeout(resolve, 2000))
 
-        page++
+          page++
 
-        // Stop if we got less than 250 (last page)
-        if (response.data.length < 250) {
-          console.log(`    Reached end of available data`)
+          // Stop if we got less than 250 (last page)
+          if (response.data.length < 250) {
+            console.log(`    Reached end of available data`)
+            break
+          }
+        } catch (error: any) {
+          if (error.response?.status === 429) {
+            // Rate limited - try next key
+            currentKeyIndex++
+
+            if (currentKeyIndex >= coingeckoKeys.length) {
+              console.log(`    All keys rate limited - got ${allCoins.length} coins`)
+              break
+            }
+
+            console.log(
+              `    Rate limited - switching to key ${currentKeyIndex + 1}/${coingeckoKeys.length}`
+            )
+            await new Promise((resolve) => setTimeout(resolve, 2000))
+            continue // Retry same page with new key
+          }
+
+          console.error(`    Error: ${error.message}`)
           break
         }
       }
@@ -1561,7 +1589,9 @@ async function expandUniverseComprehensive(): Promise<void> {
       .from("ticker_universe")
       .upsert(tickers, { onConflict: "symbol" })
 
-    if (!error) {
+    if (error) {
+      console.error(` Error: ${error.message}`)
+    } else {
       results.forex = tickers.length
       console.log(` Forex loaded: ${results.forex}`)
     }
@@ -1713,7 +1743,9 @@ async function expandUniverseComprehensive(): Promise<void> {
       .from("ticker_universe")
       .upsert(tickers, { onConflict: "symbol" })
 
-    if (!error) {
+    if (error) {
+      console.error(` Error: ${error.message}`)
+    } else {
       results.indices = tickers.length
       console.log(` Indices loaded: ${results.indices}`)
     }
@@ -1820,6 +1852,252 @@ async function expandUniverseComprehensive(): Promise<void> {
   console.log(` TOTAL:                   ${results.total.toLocaleString()}`)
   console.log()
   console.log("=".repeat(80))
+}
+
+// ============================================================================
+// MULTI-SOURCE EQUITY UNIVERSE LOADER
+// ============================================================================
+
+interface EquitySource {
+  name: string
+  enabled: () => boolean
+  fetch: () => Promise<Array<{ symbol: string; name: string; exchange?: string }>>
+  rateLimit: number // milliseconds between calls
+}
+
+const EQUITY_SOURCES: EquitySource[] = [
+  {
+    name: "polygon",
+    enabled: () => !!process.env.POLYGON_API_KEY,
+    fetch: async () => {
+      const symbols: any[] = []
+      let page = 1
+      const baseUrl = `https://api.polygon.io/v3/reference/tickers?market=stocks&active=true&limit=1000&apiKey=${process.env.POLYGON_API_KEY}`
+
+      try {
+        console.log(`   Fetching from Polygon...`)
+        const response = await axios.get(baseUrl, { timeout: 30000 })
+
+        if (response.data?.results) {
+          symbols.push(
+            ...response.data.results.map((t: any) => ({
+              symbol: t.ticker,
+              name: t.name,
+              exchange: t.primary_exchange,
+            }))
+          )
+          console.log(`   Got ${symbols.length.toLocaleString()} from Polygon`)
+        }
+      } catch (error: any) {
+        console.log(`   Polygon failed: ${error.message}`)
+      }
+
+      return symbols
+    },
+    rateLimit: 12000,
+  },
+
+  {
+    name: "fmp",
+    enabled: () => !!process.env.FMP_API_KEY, // Re-enabled - test with your key
+    fetch: async () => {
+      const symbols: any[] = []
+
+      try {
+        console.log(`   Fetching from FMP...`)
+        // FMP has endpoint for ALL stocks
+        const urls = [
+          `https://financialmodelingprep.com/api/v3/stock/list?apikey=${process.env.FMP_API_KEY}`,
+          `https://financialmodelingprep.com/api/v3/available-traded/list?apikey=${process.env.FMP_API_KEY}`,
+        ]
+
+        for (const url of urls) {
+          const response = await axios.get(url, { timeout: 30000 })
+          if (response.data && Array.isArray(response.data)) {
+            symbols.push(
+              ...response.data.map((t: any) => ({
+                symbol: t.symbol,
+                name: t.name,
+                exchange: t.exchangeShortName || t.exchange,
+              }))
+            )
+            await new Promise((r) => setTimeout(r, 300)) // Rate limit
+          }
+        }
+
+        console.log(`   Got ${symbols.length.toLocaleString()} from FMP`)
+      } catch (error: any) {
+        console.log(`   FMP failed: ${error.message}`)
+      }
+
+      return symbols
+    },
+    rateLimit: 300,
+  },
+
+  {
+    name: "twelve_data",
+    enabled: () => !!process.env.TWELVE_DATA_API_KEY,
+    fetch: async () => {
+      const symbols: any[] = []
+
+      try {
+        console.log(`   Fetching from TwelveData...`)
+        const url = `https://api.twelvedata.com/stocks?apikey=${process.env.TWELVE_DATA_API_KEY}`
+        const response = await axios.get(url, {
+          timeout: 30000,
+          maxContentLength: 50 * 1024 * 1024, // 50MB limit
+          maxBodyLength: 50 * 1024 * 1024,
+        })
+
+        if (response.data?.data && Array.isArray(response.data.data)) {
+          // Filter to only US exchanges to avoid stack overflow
+          const usSymbols = response.data.data.filter(
+            (t: any) =>
+              t.country === "United States" || ["NYSE", "NASDAQ", "AMEX", "US"].includes(t.exchange)
+          )
+
+          symbols.push(
+            ...usSymbols.map((t: any) => ({
+              symbol: t.symbol,
+              name: t.name,
+              exchange: t.exchange,
+            }))
+          )
+          console.log(`   Got ${symbols.length.toLocaleString()} from TwelveData`)
+        }
+      } catch (error: any) {
+        console.log(`   TwelveData failed: ${error.message}`)
+      }
+
+      return symbols
+    },
+    rateLimit: 8000,
+  },
+
+  {
+    name: "eodhd",
+    enabled: () => !!process.env.EODHD_API_KEY,
+    fetch: async () => {
+      const symbols: any[] = []
+
+      try {
+        console.log(`   Fetching from EODHD...`)
+        // EODHD supports multiple exchanges
+        const exchanges = ["US", "NASDAQ", "NYSE", "AMEX"]
+
+        for (const exchange of exchanges) {
+          const url = `https://eodhd.com/api/exchange-symbol-list/${exchange}?api_token=${process.env.EODHD_API_KEY}&fmt=json`
+          const response = await axios.get(url, { timeout: 30000 })
+
+          if (response.data && Array.isArray(response.data)) {
+            symbols.push(
+              ...response.data.map((t: any) => ({
+                symbol: t.Code,
+                name: t.Name,
+                exchange: exchange,
+              }))
+            )
+          }
+
+          await new Promise((r) => setTimeout(r, 1000))
+        }
+
+        console.log(`   Got ${symbols.length.toLocaleString()} from EODHD`)
+      } catch (error: any) {
+        console.log(`   EODHD failed: ${error.message}`)
+      }
+
+      return symbols
+    },
+    rateLimit: 1000,
+  },
+
+  {
+    name: "finnhub",
+    enabled: () => !!process.env.FINNHUB_API_KEY,
+    fetch: async () => {
+      const symbols: any[] = []
+
+      try {
+        console.log(`   Fetching from Finnhub...`)
+        const url = `https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${process.env.FINNHUB_API_KEY}`
+        const response = await axios.get(url, { timeout: 30000 })
+
+        if (response.data && Array.isArray(response.data)) {
+          symbols.push(
+            ...response.data.map((t: any) => ({
+              symbol: t.symbol,
+              name: t.description,
+              exchange: t.type,
+            }))
+          )
+          console.log(`   Got ${symbols.length.toLocaleString()} from Finnhub`)
+        }
+      } catch (error: any) {
+        console.log(`   Finnhub failed: ${error.message}`)
+      }
+
+      return symbols
+    },
+    rateLimit: 1000,
+  },
+]
+
+async function loadEquitiesFromAllSources(): Promise<void> {
+  console.log("\n" + "=".repeat(80))
+  console.log(" MULTI-SOURCE EQUITY LOADING")
+  console.log("=".repeat(80))
+
+  const allSymbols = new Map<string, any>() // Dedupe by symbol
+
+  for (const source of EQUITY_SOURCES) {
+    if (!source.enabled()) {
+      console.log(`\n ${source.name}: Disabled (no API key)`)
+      continue
+    }
+
+    console.log(`\n ${source.name.toUpperCase()}:`)
+    const symbols = await source.fetch()
+
+    // Merge into main map (first source wins for duplicates)
+    for (const s of symbols) {
+      if (!allSymbols.has(s.symbol)) {
+        allSymbols.set(s.symbol, {
+          symbol: s.symbol,
+          name: s.name,
+          exchange: s.exchange,
+          asset_type: "stock",
+          category: "equity",
+          active: true,
+          data_source: source.name,
+        })
+      }
+    }
+
+    console.log(`   Total unique so far: ${allSymbols.size.toLocaleString()}`)
+
+    // Rate limit between sources
+    await new Promise((r) => setTimeout(r, source.rateLimit))
+  }
+
+  console.log(`\n TOTAL UNIQUE EQUITIES: ${allSymbols.size.toLocaleString()}`)
+
+  // Batch insert
+  const tickers = Array.from(allSymbols.values())
+  const batchSize = 500
+
+  console.log(`\n Inserting into database...`)
+  for (let i = 0; i < tickers.length; i += batchSize) {
+    const batch = tickers.slice(i, i + batchSize)
+    const { error } = await supabase.from("ticker_universe").upsert(batch, { onConflict: "symbol" })
+
+    if (!error) {
+      console.log(`   Batch ${Math.floor(i / batchSize) + 1}: ${batch.length} tickers`)
+    }
+  }
+
+  console.log(`\n Equity loading complete: ${tickers.length.toLocaleString()} symbols`)
 }
 
 // ============================================================================
@@ -1984,7 +2262,7 @@ function mapCryptoSymbol(symbol: string): string {
 const API_PROVIDERS: APIProvider[] = [
   {
     name: "polygon",
-    categories: ["equity", "stress"],
+    categories: ["equity", "stress", "commodity"], // Added commodity for futures
     priority: 1,
     rateLimit: { calls: 5, period: 60000 },
     enabled: () => !!process.env.POLYGON_API_KEY,
@@ -1996,7 +2274,7 @@ const API_PROVIDERS: APIProvider[] = [
   },
   {
     name: "alpha_vantage",
-    categories: ["equity", "forex", "commodity"],
+    categories: ["equity"], // Removed forex and commodity - only 25 calls/day!
     priority: 2,
     rateLimit: { calls: 5, period: 60000 },
     enabled: () => !!process.env.ALPHA_VANTAGE_API_KEY,
@@ -2019,12 +2297,26 @@ const API_PROVIDERS: APIProvider[] = [
     categories: ["crypto"],
     priority: 1,
     rateLimit: { calls: 10, period: 60000 },
-    enabled: () => !!process.env.COINGECKO_API_KEY,
+    enabled: () => !!process.env.COINGECKO_API_KEY || !!process.env.COINGECKO_API_KEY_2,
     fetch: async (symbol: string) => {
-      const coinId = mapCryptoSymbol(symbol)
-      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&x_cg_demo_api_key=${process.env.COINGECKO_API_KEY}`
-      const res = await axios.get(url, { timeout: 10000 })
-      return res.data?.[coinId]?.usd || null
+      // Key rotation: try primary, then secondary
+      const keys = [process.env.COINGECKO_API_KEY, process.env.COINGECKO_API_KEY_2].filter(Boolean)
+
+      for (const key of keys) {
+        try {
+          const coinId = mapCryptoSymbol(symbol)
+          const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&x_cg_demo_api_key=${key}`
+          const res = await axios.get(url, { timeout: 10000 })
+          return res.data?.[coinId]?.usd || null
+        } catch (error: any) {
+          if (error.response?.status === 429 && key !== keys[keys.length - 1]) {
+            // Rate limited, try next key
+            continue
+          }
+          throw error
+        }
+      }
+      return null
     },
   },
   {
@@ -2325,17 +2617,82 @@ async function addForexToUniverse(): Promise<void> {
   console.log(" Adding forex pairs to universe...\n")
 
   const forexPairs = [
+    // Major Pairs (8)
     "EUR/USD",
     "USD/JPY",
     "GBP/USD",
-    "GBP/JPY",
-    "AUD/USD",
+    "USD/CHF",
     "USD/CAD",
+    "AUD/USD",
     "NZD/USD",
     "EUR/GBP",
+
+    // Cross Pairs (20)
     "EUR/JPY",
+    "GBP/JPY",
+    "CHF/JPY",
+    "EUR/CHF",
+    "GBP/CHF",
     "AUD/JPY",
+    "NZD/JPY",
+    "CAD/JPY",
+    "EUR/CAD",
+    "GBP/CAD",
+    "EUR/AUD",
+    "GBP/AUD",
+    "EUR/NZD",
+    "GBP/NZD",
+    "AUD/CAD",
+    "AUD/NZD",
+    "AUD/CHF",
+    "NZD/CAD",
+    "NZD/CHF",
+    "CAD/CHF",
+
+    // Exotic Pairs (40)
+    "USD/SGD",
+    "USD/HKD",
+    "USD/ZAR",
+    "USD/THB",
+    "USD/MXN",
+    "USD/NOK",
+    "USD/SEK",
+    "USD/DKK",
+    "USD/PLN",
+    "USD/TRY",
+    "USD/BRL",
+    "USD/CNY",
+    "USD/INR",
+    "USD/KRW",
+    "USD/RUB",
+    "USD/IDR",
+    "EUR/TRY",
+    "EUR/NOK",
+    "EUR/SEK",
+    "EUR/PLN",
+    "GBP/ZAR",
+    "AUD/SGD",
+    "USD/CZK",
+    "USD/HUF",
+    "USD/ILS",
+    "USD/ARS",
+    "USD/CLP",
+    "USD/COP",
+    "USD/PEN",
+    "USD/PHP",
+    "USD/TWD",
+    "USD/VND",
+    "EUR/CZK",
+    "EUR/HUF",
+    "EUR/RON",
+    "EUR/RUB",
+    "GBP/PLN",
+    "GBP/SGD",
+    "GBP/TRY",
+    "CHF/NOK",
   ]
+
+  console.log(` Loading ${forexPairs.length} forex pairs...`)
 
   const records = forexPairs.map((pair) => ({
     symbol: pair,
@@ -2352,7 +2709,7 @@ async function addForexToUniverse(): Promise<void> {
   if (error) {
     console.error(" Error:", error.message)
   } else {
-    console.log(` Added ${records.length} forex pairs\n`)
+    console.log(` Successfully added ${records.length} forex pairs\n`)
   }
 }
 
@@ -2450,7 +2807,11 @@ async function universeStats(): Promise<void> {
 // ENHANCED PRICE FETCHING WITH UNIVERSE AWARENESS
 // ============================================================================
 
-async function fetchPolygonHistorical(symbol: string, days: number): Promise<any[]> {
+async function fetchPolygonHistorical(
+  symbol: string,
+  days: number,
+  category: string = "equity"
+): Promise<any[]> {
   const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
   const to = new Date().toISOString().split("T")[0]
 
@@ -2466,8 +2827,8 @@ async function fetchPolygonHistorical(symbol: string, days: number): Promise<any
       low: bar.l,
       close: bar.c,
       volume: bar.v,
-      category: "equity",
-      asset_type: "stock",
+      category: category,
+      asset_type: category === "commodity" ? "commodity" : "stock",
       data_source: "polygon",
     })) || []
   )
@@ -2495,26 +2856,42 @@ async function fetchTwelveDataHistorical(symbol: string, days: number): Promise<
 
 async function fetchCoinGeckoHistorical(symbol: string, days: number): Promise<any[]> {
   const coinId = mapCryptoSymbol(symbol)
-  const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily&x_cg_demo_api_key=${process.env.COINGECKO_API_KEY}`
-  const res = await axios.get(url, { timeout: 15000 })
 
-  if (!res.data?.prices) return []
+  // Key rotation: try both keys
+  const keys = [process.env.COINGECKO_API_KEY, process.env.COINGECKO_API_KEY_2].filter(Boolean)
 
-  return res.data.prices.map(([timestamp, price]: [number, number]) => {
-    const date = new Date(timestamp).toISOString().split("T")[0]
-    return {
-      symbol,
-      date,
-      open: price,
-      high: price,
-      low: price,
-      close: price,
-      volume: 0,
-      category: "crypto",
-      asset_type: "crypto",
-      data_source: "coingecko",
+  for (const key of keys) {
+    try {
+      const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily&x_cg_demo_api_key=${key}`
+      const res = await axios.get(url, { timeout: 15000 })
+
+      if (!res.data?.prices) continue
+
+      return res.data.prices.map(([timestamp, price]: [number, number]) => {
+        const date = new Date(timestamp).toISOString().split("T")[0]
+        return {
+          symbol,
+          date,
+          open: price,
+          high: price,
+          low: price,
+          close: price,
+          volume: 0,
+          category: "crypto",
+          asset_type: "crypto",
+          data_source: "coingecko",
+        }
+      })
+    } catch (error: any) {
+      // If rate limited and not last key, try next
+      if (error.response?.status === 429 && key !== keys[keys.length - 1]) {
+        continue
+      }
+      throw error // Re-throw other errors
     }
-  })
+  }
+
+  return []
 }
 
 async function fetchFREDHistorical(symbol: string, days: number): Promise<any[]> {
@@ -2532,6 +2909,7 @@ async function fetchFREDHistorical(symbol: string, days: number): Promise<any[]>
     PERMIT: "PERMIT",
     M1: "M1SL",
     M2: "M2SL",
+    WALCL: "WALCL", // Fed Balance Sheet
     TNX: "DGS10",
     IRX: "DTB3",
     FVX: "DGS5",
@@ -2661,7 +3039,7 @@ async function fetchHistoricalData(
       } else if (category === "rates-macro" && provider.name === "fred") {
         bars = await fetchFREDHistorical(symbol, days)
       } else if (provider.name === "polygon") {
-        bars = await fetchPolygonHistorical(symbol, days)
+        bars = await fetchPolygonHistorical(symbol, days, category)
       } else if (provider.name === "twelve_data") {
         bars = await fetchTwelveDataHistorical(symbol, days)
       } else if (provider.name === "alpha_vantage") {
@@ -2708,6 +3086,23 @@ async function fetchHistoricalData(
   return []
 }
 
+/**
+ * Backfill historical price data from API providers into financial_data table
+ *
+ * @param options.categories - Specific categories to backfill (e.g., ['equity', 'crypto'])
+ * @param options.symbols - Specific symbols to backfill (overrides categories)
+ * @param options.days - Number of days to backfill (default: 365)
+ * @param options.source - Data source: 'universe' (ticker_universe table) or 'category_map' (hardcoded list)
+ *
+ * IMPORTANT: When using source='universe', only tickers with active=true are processed.
+ * For equities, run 'filter-equity-universe' BEFORE this command to avoid wasting API calls.
+ *
+ * Workflow:
+ * 1. Query tickers from source (filtered by active=true if universe)
+ * 2. Fetch historical OHLCV data via fetchHistoricalData (uses API providers with CSV fallback)
+ * 3. Upsert into financial_data table in 500-record batches
+ * 4. Rate limiting: 2s delay per 5 symbols, 3s between categories
+ */
 async function backfillData(options: {
   categories?: string[]
   symbols?: string[]
@@ -2717,6 +3112,22 @@ async function backfillData(options: {
   const { categories, symbols, days = 365, source = "category_map" } = options
 
   console.log(` Backfilling ${days} days from ${source}...\n`)
+
+  // PREFLIGHT: Warn if filtering hasn't been applied (equity only)
+  if (source === "universe" && (!categories || categories.includes("equity"))) {
+    const { count: totalEquity } = await supabase
+      .from("ticker_universe")
+      .select("*", { count: "exact", head: true })
+      .eq("category", "equity")
+      .eq("active", true)
+
+    if ((totalEquity || 0) > 10000) {
+      console.log("⚠️  WARNING: You have " + totalEquity + " active equity tickers")
+      console.log("   Consider running 'filter-equity-universe' first to reduce API costs")
+      console.log("   Press Ctrl+C to cancel, or wait 10s to continue...\n")
+      await new Promise((resolve) => setTimeout(resolve, 10000))
+    }
+  }
 
   // STEP 1: Determine which tickers to process
   let tickersToProcess: Array<{ symbol: string; category: string }> = []
@@ -2732,14 +3143,28 @@ async function backfillData(options: {
       query = query.in("symbol", symbols)
     }
 
-    const { data: tickers } = await query.limit(1000)
+    // Get ALL tickers (no limit) - use pagination for large datasets
+    const allTickers: any[] = []
+    let page = 0
+    const pageSize = 1000
 
-    if (!tickers || tickers.length === 0) {
+    while (true) {
+      const { data: batch } = await query.range(page * pageSize, (page + 1) * pageSize - 1)
+
+      if (!batch || batch.length === 0) break
+
+      allTickers.push(...batch)
+
+      if (batch.length < pageSize) break // Last page
+      page++
+    }
+
+    if (allTickers.length === 0) {
       console.log(" No tickers found in universe\n")
       return
     }
 
-    tickersToProcess = tickers.map((t: any) => ({
+    tickersToProcess = allTickers.map((t: any) => ({
       symbol: t.symbol,
       category: t.category,
     }))
@@ -2765,6 +3190,22 @@ async function backfillData(options: {
   }
 
   console.log(` Processing ${tickersToProcess.length} tickers...\n`)
+
+  // Show category breakdown
+  const categoryBreakdown = tickersToProcess.reduce(
+    (acc, t) => {
+      acc[t.category] = (acc[t.category] || 0) + 1
+      return acc
+    },
+    {} as Record<string, number>
+  )
+  console.log("📊 Category Breakdown:")
+  Object.entries(categoryBreakdown)
+    .sort(([, a], [, b]) => b - a)
+    .forEach(([cat, count]) => {
+      console.log(`   ${cat.padEnd(15)} ${count.toLocaleString()} tickers`)
+    })
+  console.log()
 
   // STEP 2: Fetch and insert data
   let totalProcessed = 0
@@ -3211,19 +3652,27 @@ async function runMonthlyIngressScan(): Promise<void> {
   console.log(" MONTHLY INGRESS SCAN - Full Analysis\n")
 
   const ingress = await getIngressPeriod()
-  console.log(` Ingress Period: ${ingress.period}`)
+
+  // FIX: Period string should use the END month, not start month
+  // Aquarius: Jan 20 - Feb 18 â†’ period = 2026-02-aquarius (not 2026-01)
+  const endDate = new Date(ingress.end)
+  const period = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-${ingress.sign.toLowerCase()}`
+
+  console.log(` Ingress Period: ${period} (CORRECTED)`)
   console.log(` Sign: ${ingress.sign}`)
-  console.log(` ${ingress.start}  ${ingress.end}`)
-  console.log(`  Day ${ingress.daysRemaining} of period (${ingress.daysRemaining} remaining)\n`)
+  console.log(` ${ingress.start} â†’ ${ingress.end}`)
+  console.log(
+    `  Day ${ingress.daysInPeriod + 1} of period (${ingress.daysRemaining} days remaining)\n`
+  )
 
   // Check if we've already scanned this period
   const { count: existingCount } = await supabase
     .from("ticker_ratings_cache")
     .select("*", { count: "exact", head: true })
-    .eq("ingress_period", ingress.period)
+    .eq("ingress_period", period)
 
   if (existingCount && existingCount > 0) {
-    console.log(`  Period ${ingress.period} already scanned (${existingCount} records)`)
+    console.log(`  Period ${period} already scanned (${existingCount} records)`)
     console.log("Run 'refresh-monthly-scan' to force rescan\n")
     return
   }
@@ -3318,7 +3767,7 @@ async function runMonthlyIngressScan(): Promise<void> {
       cacheRecords.push({
         symbol: conv.symbol,
         category,
-        ingress_period: ingress.period,
+        ingress_period: period,
         calculated_at: new Date().toISOString(),
         rating_data: {
           current_price: conv.currentPrice,
@@ -3426,7 +3875,516 @@ async function runMonthlyIngressScan(): Promise<void> {
       cacheRecords.push({
         symbol: rating.symbol,
         category,
-        ingress_period: ingress.period,
+        ingress_period: period,
+        calculated_at: new Date().toISOString(),
+        rating_data: {
+          current_price: rating.currentPrice,
+          price_date: rating.priceDate,
+          next_key_level: {
+            price: rating.nextKeyLevel.price,
+            type: rating.nextKeyLevel.type,
+            distance_percent: rating.nextKeyLevel.distancePercent,
+            distance_points: rating.nextKeyLevel.distancePoints,
+          },
+          scores: {
+            confluence: rating.scores.confluence,
+            proximity: rating.scores.proximity,
+            momentum: rating.scores.momentum,
+            seasonal: rating.scores.seasonal,
+            aspect_alignment: rating.scores.aspectAlignment,
+            volatility: rating.scores.volatility,
+            trend: rating.scores.trend,
+            volume: rating.scores.volume,
+            technical: rating.scores.technical,
+            fundamental: rating.scores.fundamental,
+            total: rating.scores.total,
+          },
+          rating: rating.rating,
+          confidence: rating.confidence,
+          recommendation: rating.recommendation,
+          convergence: {
+            has_convergence: false,
+          },
+          validations: {
+            atr: {
+              current: rating.atr14,
+              multiple: rating.atrMultiple,
+            },
+          },
+          sector: rating.sector,
+          reasons: rating.reasons,
+          warnings: rating.warnings,
+          projections: {
+            days_until_target: rating.nextKeyLevel.daysUntilEstimate,
+            reach_probability: rating.projections?.probability || null,
+            earliest_date: rating.projections?.confidenceInterval?.earliest || null,
+            most_likely_date: rating.projections?.reachDate || null,
+            latest_date: rating.projections?.confidenceInterval?.latest || null,
+          },
+          ingress_alignment: {
+            sign: ingress.sign,
+            start_date: ingress.start,
+            end_date: ingress.end,
+            days_in_period: ingress.daysRemaining,
+            favorability: rating.ingressAlignment?.favorability || null,
+          },
+          featured_rank: null,
+          dynamic_score: null,
+          last_rank_update: null,
+        },
+      })
+    }
+
+    // Batch insert
+    if (cacheRecords.length > 0) {
+      for (let i = 0; i < cacheRecords.length; i += 100) {
+        const batch = cacheRecords.slice(i, i + 100)
+        const { error } = await supabase.from("ticker_ratings_cache").upsert(batch, {
+          onConflict: "symbol,category,ingress_period",
+        })
+
+        if (error) {
+          console.error(`    Error inserting batch: ${error.message}`)
+        }
+      }
+
+      totalAnalyzed += cacheRecords.length
+      console.log(`    Cached ${cacheRecords.length} analysis records`)
+    }
+
+    // Rate limiting between categories
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+  }
+
+  console.log(`\n COMPLETE: ${totalAnalyzed} symbols analyzed and cached\n`)
+}
+
+async function runMonthlyIngressScanSmart(): Promise<void> {
+  console.log(" SMART MONTHLY SCAN - Only Symbols With Data\n")
+
+  const ingress = await getIngressPeriod()
+  const endDate = new Date(ingress.end)
+  const period = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-${ingress.sign.toLowerCase()}`
+
+  console.log(` Ingress Period: ${period}`)
+  console.log(` Sign: ${ingress.sign}`)
+  console.log(` ${ingress.start} â†’ ${ingress.end}\n`)
+
+  const { batchCalculateRatings, calculateAstroConfirmation } =
+    await import("../src/lib/services/confluenceEngine.js")
+
+  const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
+  let totalAnalyzed = 0
+
+  for (const category of categories) {
+    console.log(`\n ${category.toUpperCase()}`)
+
+    // Get symbols that have â‰¥30 bars of data
+    const { data: symbolsWithData } = await supabase.rpc("get_symbols_with_sufficient_data", {
+      category_filter: category,
+      min_bars: 30,
+    })
+
+    if (!symbolsWithData?.length) {
+      // Fallback: query manually
+      const { data: allData } = await supabase
+        .from("financial_data")
+        .select("symbol")
+        .eq("category", category)
+
+      if (!allData?.length) {
+        console.log(`    No data found`)
+        continue
+      }
+
+      // Count bars per symbol
+      const symbolCounts = allData.reduce((acc: any, row: any) => {
+        acc[row.symbol] = (acc[row.symbol] || 0) + 1
+        return acc
+      }, {})
+
+      const validSymbols = Object.entries(symbolCounts)
+        .filter(([_, count]) => (count as number) >= 30)
+        .map(([symbol, _]) => symbol)
+
+      if (validSymbols.length === 0) {
+        console.log(`    No symbols with â‰¥30 bars`)
+        continue
+      }
+
+      console.log(`    Found ${validSymbols.length} symbols with data`)
+
+      // Run analysis
+      const ratings = await batchCalculateRatings({
+        symbols: validSymbols.slice(0, 200), // Limit to 200 per category
+        minScore: 50,
+        maxResults: 200,
+        lookbackDays: 365,
+        includeProjections: false,
+        includeSeasonalData: false,
+        parallelism: 5,
+      })
+
+      console.log(`    Got ${ratings.length} ratings`)
+
+      // Store in cache
+      const cacheRecords = ratings.map((rating) => ({
+        symbol: rating.symbol,
+        category,
+        ingress_period: period,
+        calculated_at: new Date().toISOString(),
+        rating_data: {
+          current_price: rating.currentPrice,
+          price_date: rating.priceDate,
+          next_key_level: {
+            price: rating.nextKeyLevel.price,
+            type: rating.nextKeyLevel.type,
+            distance_percent: rating.nextKeyLevel.distancePercent,
+            distance_points: rating.nextKeyLevel.distancePoints,
+          },
+          scores: {
+            confluence: rating.scores.confluence,
+            proximity: rating.scores.proximity,
+            momentum: rating.scores.momentum,
+            seasonal: rating.scores.seasonal,
+            aspect_alignment: rating.scores.aspectAlignment,
+            volatility: rating.scores.volatility,
+            trend: rating.scores.trend,
+            volume: rating.scores.volume,
+            technical: rating.scores.technical,
+            fundamental: rating.scores.fundamental,
+            total: rating.scores.total,
+          },
+          rating: rating.rating,
+          confidence: rating.confidence,
+          recommendation: rating.recommendation,
+          convergence: { has_convergence: false },
+          validations: {
+            atr: {
+              current: rating.atr14,
+              multiple: rating.atrMultiple,
+            },
+          },
+          sector: rating.sector,
+          reasons: rating.reasons,
+          warnings: rating.warnings,
+          projections: {
+            days_until_target: rating.nextKeyLevel.daysUntilEstimate,
+            reach_probability: rating.projections?.probability || null,
+            most_likely_date: rating.projections?.reachDate || null,
+          },
+          ingress_alignment: {
+            sign: ingress.sign,
+            start_date: ingress.start,
+            end_date: ingress.end,
+            days_in_period: ingress.daysRemaining,
+            favorability: rating.ingressAlignment?.favorability || null,
+          },
+          featured_rank: null,
+          dynamic_score: null,
+        },
+      }))
+
+      if (cacheRecords.length > 0) {
+        for (let i = 0; i < cacheRecords.length; i += 100) {
+          const batch = cacheRecords.slice(i, i + 100)
+          await supabase.from("ticker_ratings_cache").upsert(batch, {
+            onConflict: "symbol,category,ingress_period",
+          })
+        }
+
+        totalAnalyzed += cacheRecords.length
+        console.log(`    Cached ${cacheRecords.length} records`)
+      }
+    }
+  }
+
+  console.log(`\n COMPLETE: ${totalAnalyzed} symbols cached\n`)
+}
+
+async function scanSentinelsOnly(): Promise<void> {
+  console.log(" SENTINEL-ONLY SCAN\n")
+
+  const SENTINELS_BY_CATEGORY: Record<string, string[]> = {
+    equity: ["SPY", "QQQ", "XLY"],
+    commodity: ["GLD", "USO", "HG1!"],
+    forex: ["EUR/USD", "USD/JPY", "GBP/USD"],
+    crypto: ["bitcoin", "ethereum", "solana"], // lowercase for DB
+    "rates-macro": ["TLT", "TNX", "DXY"],
+    stress: ["VIX", "MOVE", "TRIN"],
+  }
+
+  const ingress = await getIngressPeriod()
+  const endDate = new Date(ingress.end)
+  const period = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-${ingress.sign.toLowerCase()}`
+
+  const { batchCalculateRatings } = await import("../src/lib/services/confluenceEngine.js")
+
+  let totalAnalyzed = 0
+
+  for (const [category, symbols] of Object.entries(SENTINELS_BY_CATEGORY)) {
+    console.log(`\n ${category.toUpperCase()}: ${symbols.join(", ")}`)
+
+    const ratings = await batchCalculateRatings({
+      symbols,
+      minScore: 0,
+      maxResults: 10,
+      lookbackDays: 365,
+      includeProjections: true,
+      includeSeasonalData: true,
+      parallelism: 3,
+    })
+
+    console.log(`    Got ${ratings.length} ratings`)
+
+    const cacheRecords = ratings.map((r) => ({
+      symbol: r.symbol,
+      category,
+      ingress_period: period,
+      calculated_at: new Date().toISOString(),
+      rating_data: {
+        current_price: r.currentPrice,
+        price_date: r.priceDate,
+        next_key_level: {
+          price: r.nextKeyLevel.price,
+          type: r.nextKeyLevel.type,
+          distance_percent: r.nextKeyLevel.distancePercent,
+        },
+        scores: r.scores,
+        rating: r.rating,
+        confidence: r.confidence,
+        recommendation: r.recommendation,
+        convergence: { has_convergence: false },
+        sector: r.sector,
+        reasons: r.reasons,
+        warnings: r.warnings,
+        projections: {
+          days_until_target: r.nextKeyLevel.daysUntilEstimate,
+          most_likely_date: r.projections?.reachDate,
+        },
+        ingress_alignment: r.ingressAlignment,
+      },
+    }))
+
+    if (cacheRecords.length > 0) {
+      await supabase.from("ticker_ratings_cache").upsert(cacheRecords, {
+        onConflict: "symbol,category,ingress_period",
+      })
+
+      totalAnalyzed += cacheRecords.length
+      console.log(`    Cached ${cacheRecords.length} sentinels`)
+    }
+  }
+
+  console.log(`\n COMPLETE: ${totalAnalyzed} sentinels cached\n`)
+}
+
+async function runFullIngressScanWithConvergence(): Promise<void> {
+  console.log("\nðŸ“Š FULL INGRESS SCAN WITH CONVERGENCE\n")
+
+  const ingress = await getIngressPeriod()
+  const endDate = new Date(ingress.end)
+  const period = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-${ingress.sign.toLowerCase()}`
+
+  // Import analysis functions
+  const { batchCalculateRatings, detectConvergenceForecastedSwings, calculateAstroConfirmation } =
+    await import("../src/lib/services/confluenceEngine.js")
+
+  const SENTINELS = new Set([
+    "SPY",
+    "QQQ",
+    "XLY",
+    "GLD",
+    "USO",
+    "HG1!",
+    "EUR/USD",
+    "USD/JPY",
+    "GBP/USD",
+    "Bitcoin",
+    "Ethereum",
+    "Solana",
+    "TLT",
+    "FEDFUNDS",
+    "CPI",
+    "VIX",
+    "MOVE",
+    "TRIN",
+  ])
+
+  const categories = ["equity", "commodity", "forex", "crypto", "rates-macro", "stress"]
+  let totalAnalyzed = 0
+
+  for (const category of categories) {
+    console.log(`\n ${category.toUpperCase()}`)
+
+    // Get all active tickers
+    const { data: tickers } = await supabase
+      .from("ticker_universe")
+      .select("symbol")
+      .eq("category", category)
+      .eq("active", true)
+
+    if (!tickers?.length) {
+      console.log(`     No tickers found`)
+      continue
+    }
+
+    const symbols = tickers.map((t) => t.symbol).filter((s) => !SENTINELS.has(s))
+
+    console.log(`    Analyzing ${symbols.length} symbols...`)
+
+    // PHASE 1: Get ratings for ALL symbols
+    const ratings = await batchCalculateRatings({
+      symbols,
+      minScore: 50,
+      maxResults: symbols.length,
+      lookbackDays: 365,
+      includeProjections: false,
+      includeSeasonalData: false,
+      parallelism: 5,
+    })
+
+    console.log(`    Got ${ratings.length} ratings`)
+
+    // PHASE 2: Run convergence detection on top 30%
+    const topRatings = ratings
+      .sort((a, b) => b.scores.total - a.scores.total)
+      .slice(0, Math.ceil(ratings.length * 0.3))
+
+    console.log(`    Running convergence on top ${topRatings.length} symbols...`)
+
+    const convergenceResults = await detectConvergenceForecastedSwings(
+      topRatings.map((r) => r.symbol),
+      category
+    )
+
+    console.log(`    Found ${convergenceResults.length} convergence forecasts`)
+
+    // PHASE 3: Store in cache
+    const cacheRecords: any[] = []
+
+    // Add convergence results
+    for (const conv of convergenceResults) {
+      const rating = ratings.find((r) => r.symbol === conv.symbol)
+
+      const astroConfirmation = await calculateAstroConfirmation(
+        conv.forecastedSwing.date,
+        conv.currentPrice,
+        conv.keyLevels
+      )
+
+      cacheRecords.push({
+        symbol: conv.symbol,
+        category,
+        ingress_period: period,
+        calculated_at: new Date().toISOString(),
+        rating_data: {
+          current_price: conv.currentPrice,
+          price_date: new Date().toISOString().split("T")[0],
+          next_key_level: {
+            price: conv.forecastedSwing.price,
+            type: conv.forecastedSwing.type === "high" ? "resistance" : "support",
+            distance_percent:
+              Math.abs((conv.forecastedSwing.price - conv.currentPrice) / conv.currentPrice) * 100,
+            distance_points: Math.abs(conv.forecastedSwing.price - conv.currentPrice),
+          },
+          scores: {
+            confluence: rating?.scores.confluence || 0,
+            proximity: rating?.scores.proximity || 0,
+            momentum: rating?.scores.momentum || 0,
+            seasonal: rating?.scores.seasonal || 0,
+            aspect_alignment: rating?.scores.aspectAlignment || 0,
+            volatility: rating?.scores.volatility || 0,
+            trend: rating?.scores.trend || 0,
+            volume: rating?.scores.volume || 0,
+            technical: rating?.scores.technical || 0,
+            fundamental: rating?.scores.fundamental || 0,
+            total: rating?.scores.total || Math.round(conv.forecastedSwing.finalConfidence * 100),
+          },
+          rating: rating?.rating || null,
+          confidence: rating?.confidence || null,
+          recommendation: rating?.recommendation || null,
+          convergence: {
+            has_convergence: true,
+            methods: conv.forecastedSwing.convergingMethods,
+            confidence: conv.forecastedSwing.finalConfidence,
+            forecasted_swing: {
+              type: conv.forecastedSwing.type,
+              price: conv.forecastedSwing.price,
+              date: conv.forecastedSwing.date,
+            },
+            astro_confirmation: {
+              score: astroConfirmation.score,
+              reasons: astroConfirmation.reasons,
+            },
+          },
+          validations: {
+            fib: {
+              quality: conv.forecastedSwing.fibOverlap?.quality || "none",
+              ratio: conv.forecastedSwing.fibOverlap?.fibRatio || null,
+              score: conv.forecastedSwing.fibOverlap?.score || 0,
+            },
+            gann: {
+              quality: conv.forecastedSwing.gannValidation?.quality || "none",
+              time_symmetry: conv.forecastedSwing.gannValidation?.timeSymmetry || false,
+              price_square: conv.forecastedSwing.gannValidation?.priceSquare || false,
+              angle_holding: conv.forecastedSwing.gannValidation?.angleHolding || false,
+              score: conv.forecastedSwing.gannValidation?.score || 0,
+            },
+            lunar: {
+              phase: conv.forecastedSwing.lunarTiming?.phase || null,
+              recommendation: conv.forecastedSwing.lunarTiming?.recommendation || null,
+              entry_favorability: conv.forecastedSwing.lunarTiming?.entryFavorability || null,
+              exit_favorability: conv.forecastedSwing.lunarTiming?.exitFavorability || null,
+              days_to_phase: conv.forecastedSwing.lunarTiming?.daysToPhase || null,
+            },
+            atr: {
+              state: conv.forecastedSwing.atrAnalysis?.state || null,
+              current: conv.atr14,
+              current_percent: conv.forecastedSwing.atrAnalysis?.currentPercent || null,
+              average_percent: conv.forecastedSwing.atrAnalysis?.average || null,
+              multiple:
+                conv.atr14 > 0
+                  ? Math.abs(conv.forecastedSwing.price - conv.currentPrice) / conv.atr14
+                  : 0,
+              strength: conv.forecastedSwing.atrAnalysis?.strength || null,
+            },
+          },
+          sector: determineSector(conv.symbol, category),
+          reasons: rating?.reasons || [],
+          warnings: rating?.warnings || [],
+          projections: {
+            days_until_target: Math.floor(
+              (new Date(conv.forecastedSwing.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+            ),
+            reach_probability: conv.forecastedSwing.finalConfidence,
+            earliest_date: null,
+            most_likely_date: conv.forecastedSwing.date,
+            latest_date: null,
+          },
+          ingress_alignment: {
+            sign: ingress.sign,
+            start_date: ingress.start,
+            end_date: ingress.end,
+            days_in_period: ingress.daysRemaining,
+            favorability: rating?.ingressAlignment?.favorability || null,
+          },
+          featured_rank: null,
+          dynamic_score: null,
+          last_rank_update: null,
+        },
+      })
+    }
+
+    // Add remaining ratings (without convergence)
+    const nonConvergenceSymbols = new Set(convergenceResults.map((c) => c.symbol))
+    for (const rating of ratings) {
+      if (nonConvergenceSymbols.has(rating.symbol)) continue
+
+      cacheRecords.push({
+        symbol: rating.symbol,
+        category,
+        ingress_period: period,
         calculated_at: new Date().toISOString(),
         rating_data: {
           current_price: rating.currentPrice,
@@ -3934,6 +4892,782 @@ async function testAPIProviders(): Promise<void> {
 export { getCurrentIngressPeriod } from "../src/lib/utils.js"
 export { getFeaturedTickersFromCache }
 
+// ============================================================================
+// EQUITY METADATA BACKFILL - NEW COMMANDS
+// ============================================================================
+
+interface EquityMetadata {
+  symbol: string
+  security_type?: string // 'CS' (Common Stock), 'ETF', 'ADRC' (ADR), etc
+  avg_volume?: number
+  market_cap?: number
+  exchange?: string
+}
+
+/**
+ * Fetch ticker metadata from multiple API providers with fallback
+ * Tries: FMP → AlphaVantage → TwelveData → Finnhub
+ * Note: Polygon is skipped since it was already used in initial load
+ */
+async function fetchTickerMetadata(symbol: string): Promise<EquityMetadata | null> {
+  const metadata: EquityMetadata = { symbol }
+
+  // ============================================================================
+  // PROVIDER 1: POLYGON - SKIPPED (already backfilled)
+  // ============================================================================
+  // Polygon data was fetched during init-universe or previous backfills.
+  // Skip to save API calls and avoid rate limits.
+
+  // ============================================================================
+  // PROVIDER 2: FMP (Financial Modeling Prep)
+  // ============================================================================
+  if (
+    process.env.FMP_API_KEY &&
+    (!metadata.security_type || !metadata.avg_volume || !metadata.market_cap)
+  ) {
+    try {
+      // Try profile endpoint for company details
+      const profileUrl = `https://financialmodelingprep.com/api/v3/profile/${symbol}?apikey=${process.env.FMP_API_KEY}`
+      const profileResponse = await axios.get(profileUrl, { timeout: 10000 })
+
+      if (profileResponse.data?.[0]) {
+        const data = profileResponse.data[0]
+        if (!metadata.exchange && data.exchangeShortName) metadata.exchange = data.exchangeShortName
+        if (!metadata.market_cap && data.mktCap) metadata.market_cap = Math.round(data.mktCap)
+        if (!metadata.avg_volume && data.volAvg) metadata.avg_volume = Math.round(data.volAvg)
+
+        // Infer security type from exchange or symbol
+        if (!metadata.security_type) {
+          if (data.isEtf) metadata.security_type = "ETF"
+          else if (data.isActivelyTrading) metadata.security_type = "CS"
+        }
+      }
+
+      // If we got all data, return
+      if (metadata.security_type && metadata.avg_volume && metadata.market_cap) {
+        return metadata
+      }
+    } catch (error: any) {
+      // Continue to next provider
+    }
+  }
+
+  // ============================================================================
+  // PROVIDER 3: ALPHA VANTAGE
+  // ============================================================================
+  if (process.env.ALPHA_VANTAGE_API_KEY && (!metadata.security_type || !metadata.market_cap)) {
+    try {
+      const url = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${symbol}&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`
+      const response = await axios.get(url, { timeout: 10000 })
+
+      if (response.data && response.data.Symbol) {
+        const data = response.data
+        if (!metadata.exchange && data.Exchange) metadata.exchange = data.Exchange
+        if (!metadata.market_cap && data.MarketCapitalization) {
+          metadata.market_cap = Math.round(parseFloat(data.MarketCapitalization))
+        }
+        if (!metadata.security_type && data.AssetType) {
+          // Map AlphaVantage asset types to our types
+          if (data.AssetType === "Common Stock") metadata.security_type = "CS"
+          else if (data.AssetType === "ETF") metadata.security_type = "ETF"
+        }
+      }
+    } catch (error: any) {
+      // Continue to next provider
+    }
+  }
+
+  // ============================================================================
+  // PROVIDER 4: TWELVE DATA
+  // ============================================================================
+  if (process.env.TWELVE_DATA_API_KEY && (!metadata.avg_volume || !metadata.exchange)) {
+    try {
+      const url = `https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${process.env.TWELVE_DATA_API_KEY}`
+      const response = await axios.get(url, { timeout: 10000 })
+
+      if (response.data && response.data.symbol) {
+        const data = response.data
+        if (!metadata.exchange && data.exchange) metadata.exchange = data.exchange
+        if (!metadata.avg_volume && data.average_volume) {
+          metadata.avg_volume = Math.round(parseFloat(data.average_volume))
+        }
+
+        // Infer type from exchange
+        if (!metadata.security_type) {
+          if (data.type === "Common Stock") metadata.security_type = "CS"
+          else if (data.type === "ETF") metadata.security_type = "ETF"
+        }
+      }
+    } catch (error: any) {
+      // Continue to next provider
+    }
+  }
+
+  // ============================================================================
+  // PROVIDER 5: FINNHUB
+  // ============================================================================
+  if (process.env.FINNHUB_API_KEY && (!metadata.market_cap || !metadata.exchange)) {
+    try {
+      const url = `https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${process.env.FINNHUB_API_KEY}`
+      const response = await axios.get(url, { timeout: 10000 })
+
+      if (response.data && response.data.ticker) {
+        const data = response.data
+        if (!metadata.exchange && data.exchange) metadata.exchange = data.exchange
+        if (!metadata.market_cap && data.marketCapitalization) {
+          // Finnhub returns in millions
+          metadata.market_cap = Math.round(data.marketCapitalization * 1_000_000)
+        }
+      }
+    } catch (error: any) {
+      // Continue to final return
+    }
+  }
+
+  // Return whatever metadata we collected (may be partial)
+  return Object.keys(metadata).length > 1 ? metadata : null
+}
+
+/**
+ * Normalize exchange names to handle variations from different API providers
+ */
+function normalizeExchangeName(exchange: string): string {
+  if (!exchange) return ""
+
+  const upper = exchange.toUpperCase()
+
+  // NYSE variations
+  if (
+    upper.includes("NEW YORK STOCK EXCHANGE") ||
+    (upper.includes("NYSE") && !upper.includes("ARCA"))
+  ) {
+    return "NYSE"
+  }
+
+  // NASDAQ variations
+  if (upper.includes("NASDAQ") && !upper.includes("OMX")) {
+    return "NASDAQ"
+  }
+
+  // NYSE Arca
+  if (upper.includes("ARCA") || upper.includes("ARCHIPELAGO")) {
+    return "ARCX"
+  }
+
+  // AMEX / NYSE American
+  if (upper.includes("AMEX") || upper.includes("NYSE AMERICAN") || upper.includes("NYSE MKT")) {
+    return "AMEX"
+  }
+
+  // BATS
+  if (upper.includes("BATS")) {
+    return "BATS"
+  }
+
+  // CBOE
+  if (upper.includes("CBOE")) {
+    return "CBOE"
+  }
+
+  // OTC Markets
+  if (upper.includes("OTC")) {
+    if (upper.includes("PINK")) return "PINK"
+    if (upper.includes("QB")) return "OTCQB"
+    if (upper.includes("QX")) return "OTCQX"
+    return "OTC"
+  }
+
+  // Foreign exchanges
+  if (upper.includes("LONDON") || upper.includes("LSE")) return "LSE"
+  if (upper.includes("TORONTO") || upper.includes("TSX")) return "TSX"
+  if (upper.includes("HONG KONG") || upper.includes("HKEX")) return "HKEX"
+  if (upper.includes("CANADIAN")) return "CSE"
+
+  // Return original if no match (keeps XNAS, XNYS, etc.)
+  return exchange
+}
+
+/**
+ * Backfill security type and volume data from multiple API providers
+ * Uses: Polygon → FMP → AlphaVantage → TwelveData → Finnhub (with fallback)
+ * Usage: npx tsx scripts/data-manager.ts backfill-equity-metadata [--batch-size=100]
+ */
+async function backfillEquityMetadata(): Promise<void> {
+  console.log("📊 Backfilling Equity Metadata from Multiple Providers\n")
+  console.log("=".repeat(80))
+
+  // Check which API keys are available (skipping Polygon - already backfilled)
+  const availableProviders = []
+  if (process.env.FMP_API_KEY) availableProviders.push("FMP")
+  if (process.env.ALPHA_VANTAGE_API_KEY) availableProviders.push("AlphaVantage")
+  if (process.env.TWELVE_DATA_API_KEY) availableProviders.push("TwelveData")
+  if (process.env.FINNHUB_API_KEY) availableProviders.push("Finnhub")
+
+  if (availableProviders.length === 0) {
+    console.error("❌ No API keys found in environment")
+    console.error("   Add at least one of: FMP_API_KEY, ALPHA_VANTAGE_API_KEY,")
+    console.error("   TWELVE_DATA_API_KEY, or FINNHUB_API_KEY to your .env.local file")
+    console.error("   (Polygon is skipped - already backfilled)")
+    process.exit(1)
+  }
+
+  console.log(`✅ Active providers: ${availableProviders.join(", ")}`)
+  console.log(`   (Fallback chain: FMP → AlphaVantage → TwelveData → Finnhub)`)
+  console.log(`   ⏸️  Polygon: Skipped (already backfilled)\n`)
+
+  const args = process.argv.slice(3)
+  const batchSize = parseInt(
+    args.find((a) => a.startsWith("--batch-size="))?.split("=")[1] || "100"
+  )
+  const limit = parseInt(args.find((a) => a.startsWith("--limit="))?.split("=")[1] || "0")
+  const dryRun = !args.includes("--confirm")
+  const force = args.includes("--force") // Skip ALL pre-filtering (including junk)
+  const skipCompleteOnly = args.includes("--skip-complete-only") // Skip only tickers with complete data
+  const includeInactive = args.includes("--include-inactive") // Include tickers marked inactive by filter-equity-universe
+
+  if (dryRun) {
+    console.log("🔍 DRY RUN MODE - Add --confirm to apply changes\n")
+  }
+
+  // Get all equity tickers that need metadata
+  console.log("📥 Fetching equity tickers from database...")
+  if (includeInactive) {
+    console.log("   ⚠️  Including inactive tickers (those filtered by filter-equity-universe)")
+  }
+
+  // Fetch ALL equities (Supabase has a 1000 row limit per query)
+  let allTickers: any[] = []
+  let offset = 0
+  const fetchBatchSize = 1000 // Supabase enforces 1000 row limit
+
+  while (true) {
+    let query = supabase
+      .from("ticker_universe")
+      .select("symbol, exchange, security_type, avg_volume, market_cap, active")
+      .eq("category", "equity")
+      .order("symbol")
+      .range(offset, offset + fetchBatchSize - 1)
+
+    // Only filter by active status if not including inactive
+    if (!includeInactive) {
+      query = query.eq("active", true)
+    }
+
+    const { data: batch, error: fetchError } = await query
+
+    if (fetchError) {
+      console.error(`❌ Error fetching tickers: ${fetchError.message}`)
+      process.exit(1)
+    }
+
+    if (!batch || batch.length === 0) break
+
+    allTickers = allTickers.concat(batch)
+
+    // Show progress every 5000 tickers
+    if (allTickers.length % 5000 === 0 || batch.length < fetchBatchSize) {
+      console.log(`   Loaded ${allTickers.length.toLocaleString()} tickers...`)
+    }
+
+    // Stop if we got fewer rows than requested (last page)
+    if (batch.length < fetchBatchSize) break
+
+    // Increment by actual batch size received (not hardcoded)
+    offset += batch.length
+  }
+
+  const tickers = allTickers
+  const activeTickers = tickers.filter((t) => t.active).length
+  const inactiveTickers = tickers.filter((t) => !t.active).length
+
+  if (includeInactive) {
+    console.log(
+      `✅ Found ${tickers.length.toLocaleString()} total equity tickers (${activeTickers.toLocaleString()} active, ${inactiveTickers.toLocaleString()} inactive)\n`
+    )
+  } else {
+    console.log(`✅ Found ${tickers.length.toLocaleString()} active equity tickers\n`)
+    if (tickers.length < 10000) {
+      console.log(
+        `⚠️  Only ${tickers.length.toLocaleString()} active tickers found. If you expected more, they may have been`
+      )
+      console.log(`   marked inactive by filter-equity-universe. To backfill those too, use:`)
+      console.log(`   --include-inactive flag\n`)
+    }
+  }
+
+  if (force) {
+    console.log("⚡ FORCE MODE: Processing ALL tickers (including junk)\n")
+  } else if (skipCompleteOnly) {
+    console.log("⚡ SKIP-COMPLETE-ONLY MODE: Processing all incomplete tickers (relaxed filters)\n")
+  }
+
+  // US exchanges list (for filtering)
+  const US_EXCHANGES = new Set([
+    "XNAS",
+    "XNYS",
+    "ARCX",
+    "BATS",
+    "NASDAQ",
+    "NYSE",
+    "AMEX",
+    "XASE",
+    "OTC",
+    "OTCM",
+    "OTCQB",
+    "PINK",
+    "US",
+    "NASDAQ NMS - GLOBAL MARKET",
+    "NYSE AMERICAN",
+    "NYSE ARCA",
+    "BATS GLOBAL MARKETS",
+    "CBOE",
+  ])
+
+  // Single pre-filter — no duplicate
+  let needsUpdate = tickers.filter((t) => {
+    // Non-US exchange → out
+    if (!force && t.exchange && !US_EXCHANGES.has(t.exchange)) return false
+
+    // No exchange on record → suspect origin, apply strict symbol checks
+    if (!force && !t.exchange) {
+      if (t.symbol.includes(".")) return false
+      if (t.symbol.length > 6) return false
+    }
+
+    // Already complete → skip
+    if (!force && t.security_type && t.avg_volume && t.market_cap && t.exchange) return false
+
+    // Force mode → everything through
+    if (force) return true
+
+    // Relaxed mode
+    if (skipCompleteOnly) {
+      if (t.symbol.includes(".")) return false
+      if (t.symbol.endsWith("X") && t.symbol.length > 3) return false
+      if (t.symbol.length > 8) return false
+      return true
+    }
+
+    // Normal mode — aggressive filtering
+    if (t.symbol.endsWith("X") && t.symbol.length > 2) return false
+    if (t.symbol.includes(".")) return false
+    if (t.symbol.length > 6) return false
+
+    return true
+  })
+
+  // Apply limit if specified (for testing)
+  if (limit > 0 && needsUpdate.length > limit) {
+    console.log(`⚠️  LIMIT: Processing only first ${limit} tickers (use --limit=0 for all)\n`)
+    needsUpdate = needsUpdate.slice(0, limit)
+  }
+
+  const alreadyComplete = tickers.filter(
+    (t) => t.security_type && t.avg_volume && t.market_cap && t.exchange
+  ).length
+  const nonUSExchanges = tickers.filter((t) => t.exchange && !US_EXCHANGES.has(t.exchange)).length
+  const skippedCount = tickers.length - needsUpdate.length - alreadyComplete
+
+  console.log(`📝 Tickers needing updates: ${needsUpdate.length.toLocaleString()}`)
+  console.log(`   - Already complete: ${alreadyComplete.toLocaleString()}`)
+  console.log(
+    `   - Missing security_type: ${tickers.filter((t) => !t.security_type).length.toLocaleString()}`
+  )
+  console.log(
+    `   - Missing avg_volume: ${tickers.filter((t) => !t.avg_volume).length.toLocaleString()}`
+  )
+  console.log(
+    `   - Missing market_cap: ${tickers.filter((t) => !t.market_cap).length.toLocaleString()}`
+  )
+  console.log(
+    `   - Missing exchange: ${tickers.filter((t) => !t.exchange).length.toLocaleString()}`
+  )
+  console.log(`   - Non-US exchanges: ${nonUSExchanges.toLocaleString()}`)
+  console.log(`   - Skipped (mutual funds/dots/long symbols): ${skippedCount.toLocaleString()}\n`)
+
+  if (needsUpdate.length === 0) {
+    console.log("✅ All tickers already have metadata!")
+    return
+  }
+
+  // Process in batches
+  let updated = 0
+  let failed = 0
+  let skipped = 0
+
+  for (let i = 0; i < needsUpdate.length; i += batchSize) {
+    const batch = needsUpdate.slice(i, i + batchSize)
+    console.log(
+      `\n📦 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(needsUpdate.length / batchSize)}`
+    )
+    console.log(
+      `   Symbols ${i + 1} to ${Math.min(i + batchSize, needsUpdate.length)} of ${needsUpdate.length}`
+    )
+
+    for (const ticker of batch) {
+      try {
+        const metadata = await fetchTickerMetadata(ticker.symbol)
+
+        if (metadata && Object.keys(metadata).length > 1) {
+          // Post-fetch non-US gate — uses the same Set
+          if (!force && metadata.exchange && !US_EXCHANGES.has(metadata.exchange)) {
+            console.log(
+              `   ⏭️  ${ticker.symbol.padEnd(6)} - Skipped (non-US exchange: ${metadata.exchange})`
+            )
+            skipped++
+            await new Promise((resolve) => setTimeout(resolve, 300))
+            continue
+          }
+
+          const { symbol, ...updateData } = metadata
+
+          if (!dryRun && Object.keys(updateData).length > 0) {
+            const { error: updateError } = await supabase
+              .from("ticker_universe")
+              .update(updateData)
+              .eq("symbol", ticker.symbol)
+
+            if (updateError) {
+              console.log(`   ❌ ${ticker.symbol.padEnd(6)} - DB Error: ${updateError.message}`)
+              failed++
+            } else {
+              const parts = []
+              if (metadata.security_type) parts.push(`type:${metadata.security_type}`)
+              if (metadata.avg_volume)
+                parts.push(`vol:${(metadata.avg_volume / 1000000).toFixed(1)}M`)
+              if (metadata.exchange) parts.push(`ex:${metadata.exchange}`)
+              if (metadata.market_cap)
+                parts.push(`cap:$${(metadata.market_cap / 1_000_000_000).toFixed(1)}B`)
+
+              console.log(`   ✅ ${ticker.symbol.padEnd(6)} - ${parts.join(", ")}`)
+              updated++
+            }
+          } else if (dryRun) {
+            const parts = []
+            if (metadata.security_type) parts.push(`type:${metadata.security_type}`)
+            if (metadata.avg_volume)
+              parts.push(`vol:${(metadata.avg_volume / 1000000).toFixed(1)}M`)
+            if (metadata.exchange) parts.push(`ex:${metadata.exchange}`)
+            if (metadata.market_cap)
+              parts.push(`cap:$${(metadata.market_cap / 1_000_000_000).toFixed(1)}B`)
+
+            console.log(`   📋 ${ticker.symbol.padEnd(6)} - Would update: ${parts.join(", ")}`)
+            updated++
+          }
+        } else {
+          console.log(`   ⚠️  ${ticker.symbol.padEnd(6)} - No data from any provider`)
+          skipped++
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 300))
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          console.log(`   ⚠️  ${ticker.symbol.padEnd(6)} - Not found`)
+          skipped++
+        } else if (error.response?.status === 429) {
+          console.log(`   ⏸️  Rate limit hit - waiting 60s...`)
+          await new Promise((resolve) => setTimeout(resolve, 60000))
+          continue
+        } else {
+          console.log(`   ❌ ${ticker.symbol.padEnd(6)} - ${error.message}`)
+          failed++
+        }
+        await new Promise((resolve) => setTimeout(resolve, 300))
+      }
+    }
+
+    // Pause between batches
+    if (i + batchSize < needsUpdate.length) {
+      console.log("\n⏸️  Pausing 10s between batches...")
+      await new Promise((resolve) => setTimeout(resolve, 10000))
+    }
+  }
+
+  console.log("\n" + "=".repeat(80))
+  console.log("📊 BACKFILL COMPLETE")
+  console.log("=".repeat(80))
+  console.log(`✅ Updated:  ${updated}`)
+  console.log(`❌ Failed:   ${failed}`)
+  console.log(`⚠️  Skipped:  ${skipped}`)
+  console.log(`📝 Total:    ${needsUpdate.length}`)
+  console.log("=".repeat(80))
+
+  if (dryRun) {
+    console.log("\n💡 To apply these changes, run:")
+    console.log("   npx tsx scripts/data-manager.ts backfill-equity-metadata --confirm")
+    if (!force && !skipCompleteOnly && needsUpdate.length < 5000) {
+      console.log("\n⚠️  Only " + needsUpdate.length + " tickers passed strict filters.")
+      console.log("   Recommended: Use relaxed filtering (skips junk but processes more tickers):")
+      console.log(
+        "   npx tsx scripts/data-manager.ts backfill-equity-metadata --confirm --skip-complete-only"
+      )
+      console.log("\n   Or process EVERYTHING including junk (slower):")
+      console.log("   npx tsx scripts/data-manager.ts backfill-equity-metadata --confirm --force")
+    }
+  } else {
+    console.log("\n✅ Metadata backfill complete!")
+    if (!force && !skipCompleteOnly && updated < 5000) {
+      console.log("\n⚠️  Only updated " + updated + " tickers (strict filtering was applied).")
+      console.log("   Recommended: Process remaining tickers with relaxed filtering:")
+      console.log(
+        "   npx tsx scripts/data-manager.ts backfill-equity-metadata --confirm --skip-complete-only"
+      )
+      console.log("\n   Or process EVERYTHING including junk (slower, not recommended):")
+      console.log("   npx tsx scripts/data-manager.ts backfill-equity-metadata --confirm --force")
+    } else {
+      console.log("\n📋 Next step:")
+      console.log("   npx tsx scripts/data-manager.ts filter-equity-universe --confirm")
+    }
+  }
+}
+
+/**
+ * Filter equity universe based on trading criteria
+ * Usage: npx tsx scripts/data-manager.ts filter-equity-universe [--confirm]
+ */
+async function filterEquityUniverse(): Promise<void> {
+  console.log("🎯 Filtering Equity Universe\n")
+  console.log("=".repeat(80))
+  console.log("Criteria:")
+  console.log("  ✓ Security type: CS (Common Stock) or ETF")
+  console.log("  ✓ Exchange: XNAS, XNYS, ARCX, BATS")
+  console.log("  ✓ Not mutual fund (no suffix 'X')")
+  console.log("  ✓ Not OTC/Pink/Grey")
+  console.log("  ✓ Avg volume > 250k")
+  console.log("  ✓ Market cap > $2B (large/mid-cap)")
+  console.log("  ⏸️  IV Rank: 20-60 (pending options data source)")
+  console.log("=".repeat(80) + "\n")
+
+  const args = process.argv.slice(3)
+  const dryRun = !args.includes("--confirm")
+
+  if (dryRun) {
+    console.log("🔍 DRY RUN - Add --confirm to apply\n")
+  }
+
+  // Fetch all active equities
+  const { data: allEquities, error: fetchError } = await supabase
+    .from("ticker_universe")
+    .select("symbol, exchange, security_type, avg_volume, market_cap")
+    .eq("category", "equity")
+    .eq("active", true)
+
+  if (fetchError || !allEquities) {
+    console.error(`❌ Error: ${fetchError?.message}`)
+    return
+  }
+
+  console.log(`📊 Total active equities: ${allEquities.length.toLocaleString()}\n`)
+
+  // Apply filters
+  const VALID_EXCHANGES = ["XNAS", "XNYS", "ARCX", "BATS"]
+  const VALID_SECURITY_TYPES = ["CS", "ETF"]
+  const INVALID_EXCHANGES = ["OTCM", "OTCQB", "PINK", "OTCBB", "OTC", "GREY"]
+  const MIN_VOLUME = 250000
+  const MIN_MARKET_CAP = 2_000_000_000 // $2B
+
+  const toDeactivate: string[] = []
+  const reasons: Record<string, string> = {}
+
+  for (const ticker of allEquities) {
+    const fails: string[] = []
+
+    // Check security type
+    if (ticker.security_type && !VALID_SECURITY_TYPES.includes(ticker.security_type)) {
+      fails.push(`type:${ticker.security_type}`)
+    }
+
+    // Check for mutual fund suffix
+    if (ticker.symbol.endsWith("X") && ticker.symbol.length > 1) {
+      fails.push("mutual-fund")
+    }
+
+    // Check exchange
+    if (ticker.exchange) {
+      if (INVALID_EXCHANGES.includes(ticker.exchange)) {
+        fails.push(`bad-exchange:${ticker.exchange}`)
+      } else if (!VALID_EXCHANGES.includes(ticker.exchange)) {
+        fails.push(`other-exchange:${ticker.exchange}`)
+      }
+    }
+
+    // Check volume
+    if (!ticker.avg_volume || ticker.avg_volume < MIN_VOLUME) {
+      fails.push(
+        `low-vol:${ticker.avg_volume ? (ticker.avg_volume / 1000).toFixed(0) + "k" : "null"}`
+      )
+    }
+
+    // Check market cap
+    if (!ticker.market_cap || ticker.market_cap < MIN_MARKET_CAP) {
+      fails.push(
+        `small-cap:${ticker.market_cap ? "$" + (ticker.market_cap / 1_000_000_000).toFixed(1) + "B" : "null"}`
+      )
+    }
+
+    // Check for dots/dashes (units/warrants)
+    if (ticker.symbol.includes(".") || ticker.symbol.includes("-")) {
+      fails.push("special-char")
+    }
+
+    // Check symbol length
+    if (ticker.symbol.length > 5) {
+      fails.push("long-symbol")
+    }
+
+    if (fails.length > 0) {
+      toDeactivate.push(ticker.symbol)
+      reasons[ticker.symbol] = fails.join(", ")
+    }
+  }
+
+  // Group by reason for summary
+  const reasonCounts: Record<string, number> = {}
+  for (const reason of Object.values(reasons)) {
+    for (const r of reason.split(", ")) {
+      const key = r.split(":")[0]
+      reasonCounts[key] = (reasonCounts[key] || 0) + 1
+    }
+  }
+
+  console.log("📋 Exclusion Summary:")
+  Object.entries(reasonCounts)
+    .sort(([, a], [, b]) => b - a)
+    .forEach(([reason, count]) => {
+      console.log(`   ${reason.padEnd(20)} ${count.toLocaleString()}`)
+    })
+
+  console.log("\n" + "=".repeat(80))
+  console.log(`Current:   ${allEquities.length.toLocaleString()}`)
+  console.log(`Remove:    ${toDeactivate.length.toLocaleString()}`)
+  console.log(`Remaining: ${(allEquities.length - toDeactivate.length).toLocaleString()}`)
+  console.log("=".repeat(80))
+
+  if (!dryRun) {
+    console.log("\n🔨 Applying changes...")
+
+    // Deactivate in batches of 1000
+    for (let i = 0; i < toDeactivate.length; i += 1000) {
+      const batch = toDeactivate.slice(i, i + 1000)
+      const { error: updateError } = await supabase
+        .from("ticker_universe")
+        .update({ active: false })
+        .in("symbol", batch)
+
+      if (updateError) {
+        console.error(`   ❌ Batch ${Math.floor(i / 1000) + 1} failed: ${updateError.message}`)
+      } else {
+        console.log(`   ✅ Batch ${Math.floor(i / 1000) + 1} complete`)
+      }
+    }
+
+    console.log("\n✅ Filtering complete!")
+    console.log("\n💡 Next: Add IV Rank data and run final filter")
+  } else {
+    console.log("\n💡 To apply:")
+    console.log("   npx tsx scripts/data-manager.ts filter-equity-universe --confirm")
+
+    // Show sample of what would be removed
+    console.log("\n📋 Sample of symbols to be deactivated (first 20):")
+    toDeactivate.slice(0, 20).forEach((symbol) => {
+      console.log(`   ${symbol.padEnd(8)} - ${reasons[symbol]}`)
+    })
+  }
+}
+
+/**
+ * Show statistics after filtering
+ */
+async function showFilteredStats(): Promise<void> {
+  console.log("📊 Filtered Equity Statistics\n")
+  console.log("=".repeat(80))
+
+  const { data: activeEquities } = await supabase
+    .from("ticker_universe")
+    .select("symbol, exchange, security_type, avg_volume, market_cap")
+    .eq("category", "equity")
+    .eq("active", true)
+
+  const { count: totalActive } = await supabase
+    .from("ticker_universe")
+    .select("*", { count: "exact", head: true })
+    .eq("category", "equity")
+    .eq("active", true)
+
+  console.log(`Total active equities: ${(totalActive || 0).toLocaleString()}\n`)
+
+  // Exchange breakdown
+  console.log("Exchange Distribution:")
+  const exchangeCounts: Record<string, number> = {}
+  activeEquities?.forEach((t) => {
+    if (t.exchange) {
+      exchangeCounts[t.exchange] = (exchangeCounts[t.exchange] || 0) + 1
+    }
+  })
+  Object.entries(exchangeCounts)
+    .sort(([, a], [, b]) => b - a)
+    .forEach(([ex, count]) => {
+      console.log(`  ${ex.padEnd(10)} ${count.toLocaleString()}`)
+    })
+
+  // Security type breakdown
+  console.log("\nSecurity Type Distribution:")
+  const typeCounts: Record<string, number> = {}
+  activeEquities?.forEach((t) => {
+    if (t.security_type) {
+      typeCounts[t.security_type] = (typeCounts[t.security_type] || 0) + 1
+    }
+  })
+  Object.entries(typeCounts)
+    .sort(([, a], [, b]) => b - a)
+    .forEach(([type, count]) => {
+      console.log(`  ${type.padEnd(10)} ${count.toLocaleString()}`)
+    })
+
+  // Volume distribution
+  console.log("\nVolume Distribution:")
+  const volRanges = {
+    "< 100k": activeEquities?.filter((t) => (t.avg_volume || 0) < 100000).length || 0,
+    "100k-250k":
+      activeEquities?.filter((t) => (t.avg_volume || 0) >= 100000 && (t.avg_volume || 0) < 250000)
+        .length || 0,
+    "250k-500k":
+      activeEquities?.filter((t) => (t.avg_volume || 0) >= 250000 && (t.avg_volume || 0) < 500000)
+        .length || 0,
+    "500k-1M":
+      activeEquities?.filter((t) => (t.avg_volume || 0) >= 500000 && (t.avg_volume || 0) < 1000000)
+        .length || 0,
+    "> 1M": activeEquities?.filter((t) => (t.avg_volume || 0) >= 1000000).length || 0,
+  }
+  Object.entries(volRanges).forEach(([range, count]) => {
+    console.log(`  ${range.padEnd(15)} ${count.toLocaleString()}`)
+  })
+
+  // Market cap distribution
+  console.log("\nMarket Cap Distribution:")
+  const capRanges = {
+    "< $300M": activeEquities?.filter((t) => (t.market_cap || 0) < 300_000_000).length || 0,
+    "$300M-$2B":
+      activeEquities?.filter(
+        (t) => (t.market_cap || 0) >= 300_000_000 && (t.market_cap || 0) < 2_000_000_000
+      ).length || 0,
+    "$2B-$10B":
+      activeEquities?.filter(
+        (t) => (t.market_cap || 0) >= 2_000_000_000 && (t.market_cap || 0) < 10_000_000_000
+      ).length || 0,
+    "$10B-$50B":
+      activeEquities?.filter(
+        (t) => (t.market_cap || 0) >= 10_000_000_000 && (t.market_cap || 0) < 50_000_000_000
+      ).length || 0,
+    "> $50B": activeEquities?.filter((t) => (t.market_cap || 0) >= 50_000_000_000).length || 0,
+  }
+  Object.entries(capRanges).forEach(([range, count]) => {
+    console.log(`  ${range.padEnd(15)} ${count.toLocaleString()}`)
+  })
+
+  console.log("\n" + "=".repeat(80))
+}
+
 async function main() {
   const command = process.argv[2]
 
@@ -3945,6 +5679,8 @@ async function main() {
     "check-freshness": checkPriceFreshness,
     "populate-featured": populateFeaturedTickers,
     "monthly-scan": runMonthlyIngressScan,
+    "monthly-scan-smart": runMonthlyIngressScanSmart,
+    "scan-sentinels": scanSentinelsOnly,
     "daily-rank": runDailyRankUpdate,
     "refresh-monthly-scan": async () => {
       const ingress = await getIngressPeriod()
@@ -3995,9 +5731,13 @@ async function main() {
         source: "universe",
       }),
 
+    "backfill-equity-metadata": backfillEquityMetadata,
+    "filter-equity-universe": filterEquityUniverse,
+    "show-filtered-stats": showFilteredStats,
     "universe-stats": universeStats,
     "check-ingress": checkCurrentIngress,
     "expand-universe-all": expandUniverseComprehensive,
+    "load-equities-multi": loadEquitiesFromAllSources,
 
     // Diagnostic commands
     "debug-symbols": debugSymbolFormats,
@@ -4005,6 +5745,9 @@ async function main() {
     "verify-ingress": verifyIngressCalculation,
     "show-equity-mismatch": showEquityMismatch,
     "sync-universe": syncTickerUniverse,
+    "map-futures-to-etfs": mapFuturesToETFs,
+    "analyze-equity": analyzeEquityUniverse,
+    "trim-equity": trimEquityUniverse,
   }
 
   if (!command || !commands[command]) {
@@ -4022,6 +5765,8 @@ Core Commands:
 
 Ingress-Aware Caching:
   monthly-scan                   Full analysis at start of ingress period
+  monthly-scan-smart             Smart scan - only symbols with â‰¥30 bars of data
+  scan-sentinels                 Quick scan - analyze 18 sentinel tickers only
   daily-rank                     Re-rank cached tickers (fast, uses cache)
   refresh-monthly-scan           Force re-scan current ingress period
   check-cache                    View cache status for current period
@@ -4034,13 +5779,16 @@ Cron Commands:
 Ticker Universe:
   init-universe                  Initialize universe (1,000 equities + crypto + forex)
   expand-universe-all            Load ALL available tickers from ALL sources
-                               - Equities: ALL from Polygon (no limit)
-                               - Crypto: ALL from CoinGecko (no limit)
+                               - Equities: Polygon (1000) + fallback sources
+                               - Crypto: ALL from CoinGecko (with key rotation)
                                - Forex: 76 major/cross/exotic pairs
                                - Commodities: 39 futures + ETFs
                                - Indices: 24 market indices
                                - Macro: 23 FRED indicators
-                               Est. total: 10,000+ symbols
+  load-equities-multi            Load equities from ALL available APIs
+                               - Polygon, FMP, TwelveData, EODHD, Finnhub
+                               - No 1000 symbol limit
+                               - Est. 10,000-15,000 symbols
   load-polygon-tickers           Load equity tickers from Polygon
   add-crypto                     Add crypto tickers to universe
   add-forex                      Add forex pairs to universe
@@ -4061,10 +5809,35 @@ Historical Data Backfill:
   clean-old-data                 Clean price data older than 3 years
   test-providers                 Test all API provider connections
 
+Equity Filtering Workflow (run in order):
+  1. backfill-equity-metadata [options]    Fetch security type & volume from multiple providers
+                                          (FMP → AlphaVantage → TwelveData → Finnhub)
+                                          Note: Polygon is skipped (already backfilled)
+     Options:
+       --confirm                           Apply changes (dry-run without this)
+       --skip-complete-only                Process all incomplete tickers (relaxed filters)
+                                          Skips: units (dots), mutual funds, very long symbols
+       --include-inactive                  Include tickers marked inactive by filter-equity-universe
+       --force                             Process ALL tickers including junk (not recommended)
+       --limit=N                           Process only first N tickers (testing)
+       --batch-size=N                      Process N tickers per batch (default: 100)
+
+  2. filter-equity-universe [--confirm]    Apply trading criteria filters
+  3. show-filtered-stats                   Show statistics after filtering
+  4. backfill-universe equity              Backfill price data for filtered tickers
+                                          (uses same multi-provider fallback chain)
+
+  Note: IV Rank filtering (20-60 range) requires options data source (future enhancement)
+
 Examples:
+  # Full equity backfill workflow:
   npx tsx scripts/data-manager.ts init-universe
-  npx tsx scripts/data-manager.ts backfill-all
-  npx tsx scripts/data-manager.ts backfill-map equity
+  npx tsx scripts/data-manager.ts backfill-equity-metadata --confirm
+  npx tsx scripts/data-manager.ts filter-equity-universe --confirm
+  npx tsx scripts/data-manager.ts show-filtered-stats
+  npx tsx scripts/data-manager.ts backfill-universe equity
+
+  # Check data quality:
   npx tsx scripts/data-manager.ts quality-report
   npx tsx scripts/data-manager.ts universe-stats
     `)
@@ -4272,5 +6045,290 @@ async function checkCurrentIngress() {
     console.log(` Days remaining: ${ingress.daysRemaining}`)
   } catch (error: any) {
     console.log(` Error: ${error.message}`)
+  }
+}
+
+async function mapFuturesToETFs(): Promise<void> {
+  console.log("Ã°Å¸â€â€ž Mapping Futures to ETF Equivalents\n")
+
+  // Futures Ã¢â€ â€™ ETF mapping
+  const FUTURES_TO_ETF_MAP: Record<string, { etf: string; name: string }> = {
+    // Precious Metals
+    "GC1!": { etf: "GLD", name: "Gold ETF (SPDR)" },
+    "SI1!": { etf: "SLV", name: "Silver ETF (iShares)" },
+    "PL1!": { etf: "PPLT", name: "Platinum ETF" },
+    "PA1!": { etf: "PALL", name: "Palladium ETF" },
+
+    // Base Metals
+    "HG1!": { etf: "COPX", name: "Copper Miners ETF" },
+    "ALI1!": { etf: "COPX", name: "Copper Miners ETF" },
+
+    // Energy
+    "CL1!": { etf: "USO", name: "Oil ETF (US)" },
+    "BZ1!": { etf: "USO", name: "Oil ETF (US)" },
+    "NG1!": { etf: "UNG", name: "Natural Gas ETF" },
+    "RB1!": { etf: "USO", name: "Oil ETF (US)" },
+    "HO1!": { etf: "USO", name: "Oil ETF (US)" },
+
+    // Agriculture - Grains
+    "ZC1!": { etf: "CORN", name: "Corn ETF" },
+    "ZS1!": { etf: "SOYB", name: "Soybean ETF" },
+    "ZW1!": { etf: "WEAT", name: "Wheat ETF" },
+    "ZO1!": { etf: "DBA", name: "Agriculture ETF" },
+    "ZR1!": { etf: "DBA", name: "Agriculture ETF" },
+
+    // Agriculture - Softs & Livestock
+    "ZL1!": { etf: "SOYB", name: "Soybean ETF" },
+    "ZM1!": { etf: "SOYB", name: "Soybean ETF" },
+    "KC1!": { etf: "DBA", name: "Agriculture ETF" },
+    "CT1!": { etf: "DBA", name: "Agriculture ETF" },
+    "SB1!": { etf: "DBA", name: "Agriculture ETF" },
+    "CC1!": { etf: "DBA", name: "Agriculture ETF" },
+    "OJ1!": { etf: "DBA", name: "Agriculture ETF" },
+
+    // Livestock
+    "LE1!": { etf: "DBA", name: "Agriculture ETF" },
+    "GF1!": { etf: "DBA", name: "Agriculture ETF" },
+    "HE1!": { etf: "DBA", name: "Agriculture ETF" },
+  }
+
+  const futuresSymbols = Object.keys(FUTURES_TO_ETF_MAP)
+  console.log(`Ã°Å¸â€œÅ  Processing ${futuresSymbols.length} futures symbols...\n`)
+
+  let updated = 0
+  let deactivated = 0
+
+  for (const futureSymbol of futuresSymbols) {
+    const mapping = FUTURES_TO_ETF_MAP[futureSymbol]
+
+    // Check if ETF exists and is active
+    const { data: etfData } = await supabase
+      .from("ticker_universe")
+      .select("symbol, name, active")
+      .eq("symbol", mapping.etf)
+      .single()
+
+    if (etfData && etfData.active) {
+      // ETF exists - add metadata note that this futures maps to it
+      const { error: updateError } = await supabase
+        .from("ticker_universe")
+        .update({
+          metadata: {
+            maps_to_etf: mapping.etf,
+            original_symbol: futureSymbol,
+            note: `Futures data unavailable - use ${mapping.etf} as equivalent`,
+          },
+          active: false,
+        })
+        .eq("symbol", futureSymbol)
+
+      if (!updateError) {
+        console.log(
+          `Ã¢Å“â€œ ${futureSymbol.padEnd(6)} Ã¢â€ â€™ ${mapping.etf.padEnd(6)} (${mapping.name})`
+        )
+        updated++
+      } else {
+        console.log(`Ã¢Å“â€” ${futureSymbol.padEnd(6)} - Error: ${updateError.message}`)
+      }
+    } else {
+      // ETF doesn't exist - just deactivate futures
+      const { error: deactivateError } = await supabase
+        .from("ticker_universe")
+        .update({ active: false })
+        .eq("symbol", futureSymbol)
+
+      if (!deactivateError) {
+        console.log(`Ã¢Å¡Â  ${futureSymbol.padEnd(6)} - Deactivated (ETF ${mapping.etf} not found)`)
+        deactivated++
+      }
+    }
+  }
+
+  console.log("\n" + "=".repeat(60))
+  console.log("Ã°Å¸â€œË† Mapping Complete")
+  console.log("=".repeat(60))
+  console.log(`Ã¢Å“â€œ Mapped to ETFs:        ${updated}`)
+  console.log(`Ã¢Å¡Â  Deactivated (no ETF):  ${deactivated}`)
+  console.log(`Ã°Å¸â€œÅ  Total processed:       ${futuresSymbols.length}`)
+  console.log("\nÃ°Å¸â€™Â¡ Tip: Use the ETF symbols for commodity exposure")
+  console.log("   Example: GLD instead of GC1! for gold prices\n")
+}
+
+async function analyzeEquityUniverse(): Promise<void> {
+  console.log("📊 Analyzing Equity Universe\n")
+  console.log("=".repeat(80))
+
+  const { count: total } = await supabase
+    .from("ticker_universe")
+    .select("*", { count: "exact", head: true })
+    .eq("category", "equity")
+    .eq("active", true)
+
+  console.log(`Total active equities: ${(total || 0).toLocaleString()}\n`)
+
+  console.log("Exchange Distribution:")
+  const { data: exchanges } = await supabase
+    .from("ticker_universe")
+    .select("exchange")
+    .eq("category", "equity")
+    .eq("active", true)
+
+  const exchangeCounts =
+    exchanges?.reduce((acc: any, row: any) => {
+      acc[row.exchange] = (acc[row.exchange] || 0) + 1
+      return acc
+    }, {}) || {}
+
+  Object.entries(exchangeCounts)
+    .sort(([, a]: any, [, b]: any) => b - a)
+    .slice(0, 15)
+    .forEach(([exchange, count]) => {
+      console.log(`  ${(exchange || "NULL").padEnd(20)} ${(count as number).toLocaleString()}`)
+    })
+
+  console.log("\nMarket Cap Distribution:")
+  const { count: withMarketCap } = await supabase
+    .from("ticker_universe")
+    .select("*", { count: "exact", head: true })
+    .eq("category", "equity")
+    .eq("active", true)
+    .not("market_cap", "is", null)
+
+  const { count: over100m } = await supabase
+    .from("ticker_universe")
+    .select("*", { count: "exact", head: true })
+    .eq("category", "equity")
+    .eq("active", true)
+    .gt("market_cap", 100000000)
+
+  const { count: over1b } = await supabase
+    .from("ticker_universe")
+    .select("*", { count: "exact", head: true })
+    .eq("category", "equity")
+    .eq("active", true)
+    .gt("market_cap", 1000000000)
+
+  const { count: over10b } = await supabase
+    .from("ticker_universe")
+    .select("*", { count: "exact", head: true })
+    .eq("category", "equity")
+    .eq("active", true)
+    .gt("market_cap", 10000000000)
+
+  console.log(`  With market cap data:    ${(withMarketCap || 0).toLocaleString()}`)
+  console.log(`  > $100M market cap:      ${(over100m || 0).toLocaleString()}`)
+  console.log(`  > $1B market cap:        ${(over1b || 0).toLocaleString()}`)
+  console.log(`  > $10B market cap:       ${(over10b || 0).toLocaleString()}`)
+
+  console.log("\nSymbol Patterns:")
+  const { data: allSymbols } = await supabase
+    .from("ticker_universe")
+    .select("symbol")
+    .eq("category", "equity")
+    .eq("active", true)
+
+  const symbols = allSymbols?.map((s: any) => s.symbol) || []
+
+  const patterns = {
+    "Has dot (.)": symbols.filter((s) => s.includes(".")).length,
+    "Has dash (-)": symbols.filter((s) => s.includes("-")).length,
+    "Length > 5 chars": symbols.filter((s) => s.length > 5).length,
+  }
+
+  Object.entries(patterns).forEach(([pattern, count]) => {
+    console.log(`  ${pattern.padEnd(20)} ${count.toLocaleString()}`)
+  })
+
+  console.log("\n" + "=".repeat(80))
+  console.log("💡 Run: npx tsx scripts/data-manager.ts trim-equity\n")
+}
+
+async function trimEquityUniverse(): Promise<void> {
+  console.log("✂️  Trimming Equity Universe\n")
+  console.log("=".repeat(80))
+
+  const args = process.argv.slice(3)
+  const dryRun = !args.includes("--confirm")
+  const aggressive = args.includes("--aggressive")
+
+  if (dryRun) {
+    console.log("🔍 DRY RUN - Add --confirm to apply\n")
+  }
+
+  if (aggressive) {
+    console.log("⚡ AGGRESSIVE MODE - Top 5,000 only\n")
+  }
+
+  const EXCHANGES_TO_EXCLUDE = ["OTCM", "OTCQB", "PINK", "OTCBB", "OTC", "GREY"]
+
+  console.log("Rule 1: Excluding OTC/PINK exchanges")
+  const { data: badExchanges } = await supabase
+    .from("ticker_universe")
+    .select("symbol")
+    .eq("category", "equity")
+    .eq("active", true)
+    .in("exchange", EXCHANGES_TO_EXCLUDE)
+
+  console.log(`  Found ${badExchanges?.length || 0} symbols`)
+
+  console.log("\nRule 2: Excluding units/warrants (dots)")
+  const { data: allEquities } = await supabase
+    .from("ticker_universe")
+    .select("symbol, market_cap")
+    .eq("category", "equity")
+    .eq("active", true)
+
+  const symbolsWithDots = allEquities?.filter((s: any) => s.symbol.includes(".")) || []
+  console.log(`  Found ${symbolsWithDots.length} symbols`)
+
+  console.log("\nRule 3: Excluding long symbols (> 5 chars)")
+  const longSymbols = allEquities?.filter((s: any) => s.symbol.length > 5) || []
+  console.log(`  Found ${longSymbols.length} symbols`)
+
+  let outsideTop5000: any[] = []
+  if (aggressive) {
+    console.log("\nRule 4: Keep only top 5,000 by market cap")
+    const { data: sorted } = await supabase
+      .from("ticker_universe")
+      .select("symbol, market_cap")
+      .eq("category", "equity")
+      .eq("active", true)
+      .not("market_cap", "is", null)
+      .order("market_cap", { ascending: false })
+
+    const top5000 = new Set(sorted?.slice(0, 5000).map((s: any) => s.symbol))
+    outsideTop5000 = allEquities?.filter((s: any) => !top5000.has(s.symbol)) || []
+    console.log(`  ${outsideTop5000.length} outside top 5,000`)
+  }
+
+  const toRemove = new Set([
+    ...(badExchanges?.map((s: any) => s.symbol) || []),
+    ...symbolsWithDots.map((s: any) => s.symbol),
+    ...longSymbols.map((s: any) => s.symbol),
+    ...(aggressive ? outsideTop5000.map((s: any) => s.symbol) : []),
+  ])
+
+  console.log("\n" + "=".repeat(80))
+  console.log(`Current:   ${allEquities?.length || 0}`)
+  console.log(`Remove:    ${toRemove.size}`)
+  console.log(`Remaining: ${(allEquities?.length || 0) - toRemove.size}`)
+  console.log("=".repeat(80))
+
+  if (!dryRun) {
+    console.log("\n🔨 Applying...")
+    const arr = Array.from(toRemove)
+    for (let i = 0; i < arr.length; i += 1000) {
+      const batch = arr.slice(i, i + 1000)
+      await supabase.from("ticker_universe").update({ active: false }).in("symbol", batch)
+      console.log(`  Batch ${Math.floor(i / 1000) + 1} done`)
+    }
+    console.log("\n✅ Done! Run: npx tsx scripts/data-manager.ts universe-stats")
+  } else {
+    console.log("\n💡 To apply:")
+    console.log(
+      aggressive
+        ? "   npx tsx scripts/data-manager.ts trim-equity --aggressive --confirm"
+        : "   npx tsx scripts/data-manager.ts trim-equity --confirm"
+    )
   }
 }
