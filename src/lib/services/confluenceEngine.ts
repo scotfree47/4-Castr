@@ -176,19 +176,61 @@ interface LunarTiming {
   recommendation: "favorable_entry" | "favorable_exit" | "neutral" | "caution"
 }
 
+// ============================================================================
+// BINARY FRAMEWORK TYPES
+// ============================================================================
+
+export interface SubBitResult {
+  bit: 0 | 1
+  reason: string
+}
+
+export interface GateResult {
+  gate: 0 | 1
+  subBits: (0 | 1)[]
+  failures: string[]
+  diagnostic: string
+}
+
+export interface BinaryState {
+  bitString: string // "[11111110]"
+  gates: {
+    B1: GateResult
+    B2: GateResult
+    B3: GateResult
+    B4: GateResult
+    B5: GateResult
+    B6: GateResult
+    B7: GateResult
+    B8: GateResult | null // Post-trade only
+  }
+  tradeSignal: "EXECUTE" | "STRONG_SETUP" | "DO_NOT_TRADE"
+  diagnosticSummary: string[]
+}
+
+export interface TradeReport {
+  symbol: string
+  entryDate: string
+  entryPrice: number
+  exitDate: string
+  exitPrice: number
+  outcome: "win" | "loss"
+  pnlATR: number
+  binaryState: BinaryState
+  patterns: string[]
+  lessons: string[]
+}
+
 export interface ForecastedSwing {
   type: "high" | "low"
   price: number
   date: string
   convergingMethods: string[]
-  baseConfidence: number
-  astroBoost: number
-  finalConfidence: number
+  atrMultiple: number
   atrHorizon?: string
-  fibOverlap?: FibATROverlap
-  gannValidation?: GannValidation
-  lunarTiming?: LunarTiming
+  passedGates: string[]
   atrAnalysis?: ATRAnalysis
+  binaryState?: BinaryState // NEW: Full diagnostic state
 }
 
 interface SwingPoint {
@@ -277,43 +319,26 @@ function validateFibATROverlap(
   atr14: number,
   lastSwingPrice: number,
   lastSwingType: "high" | "low"
-): FibATROverlap | null {
-  if (!atr14 || atr14 === 0) return null
+): boolean {
+  if (!atr14 || atr14 === 0) return false
 
   const swingRange = Math.abs(currentPrice - lastSwingPrice)
-  const fibRatios = [
-    { ratio: 0.382, quality: "fair" as const, baseScore: 60 },
-    { ratio: 0.5, quality: "fair" as const, baseScore: 65 },
-    { ratio: 0.618, quality: "excellent" as const, baseScore: 90 },
-    { ratio: 1.0, quality: "good" as const, baseScore: 75 },
-    { ratio: 1.618, quality: "excellent" as const, baseScore: 95 },
-  ]
+  const fibRatios = [0.382, 0.5, 0.618, 1.0, 1.618]
 
-  const fibLevels = fibRatios.map((fib) => ({
+  const fibLevels = fibRatios.map((ratio) => ({
     price:
       lastSwingType === "low"
-        ? lastSwingPrice + swingRange * fib.ratio
-        : lastSwingPrice - swingRange * fib.ratio,
-    ratio: fib.ratio,
-    quality: fib.quality,
-    baseScore: fib.baseScore,
+        ? lastSwingPrice + swingRange * ratio
+        : lastSwingPrice - swingRange * ratio,
   }))
 
-  const priceDiff = Math.abs(targetPrice - currentPrice)
-  const atrMultiple = priceDiff / atr14
-
+  // Check if target is within 2% of ANY Fibonacci level
   for (const fib of fibLevels) {
     if (Math.abs(targetPrice - fib.price) / currentPrice < 0.02) {
-      return {
-        fibLevel: fib.price,
-        fibRatio: fib.ratio,
-        atrMultiple,
-        quality: fib.quality,
-        score: fib.baseScore,
-      }
+      return true
     }
   }
-  return null
+  return false
 }
 
 // ============================================================================
@@ -328,7 +353,7 @@ function validateGannStructure(
   lastSwingPrice: number,
   lastSwingType: "high" | "low",
   atr14: number
-): GannValidation {
+): boolean {
   const currentDate = new Date(),
     lastSwing = new Date(lastSwingDate),
     forecast = new Date(forecastDate)
@@ -348,14 +373,9 @@ function validateGannStructure(
   const angleRatio = pricePerDay / atrPerDay
   const angleHolding = angleRatio >= 0.8 && angleRatio <= 1.2
 
-  let score = 40
-  if (timeSymmetry) score += 20
-  if (priceSquare) score += 25
-  if (angleHolding) score += 15
-
-  const quality: "excellent" | "good" | "fair" | "poor" =
-    score >= 85 ? "excellent" : score >= 70 ? "good" : score >= 55 ? "fair" : "poor"
-  return { timeSymmetry, priceSquare, angleHolding, quality, score }
+  // Pass if ANY 2 of 3 tests pass
+  const passCount = [timeSymmetry, priceSquare, angleHolding].filter(Boolean).length
+  return passCount >= 2
 }
 
 // ============================================================================
@@ -384,40 +404,858 @@ function getLunarPhase(date?: Date): { phase: string; dayInCycle: number } {
   return { phase, dayInCycle }
 }
 
-function analyzeLunarTiming(
+function validateLunarTiming(
   forecastDate: string,
   swingType: "high" | "low",
   atrState: "compression" | "expansion" | "neutral"
-): LunarTiming {
+): boolean {
   const forecast = new Date(forecastDate)
-  const { phase, dayInCycle } = getLunarPhase(forecast)
+  const { phase } = getLunarPhase(forecast)
 
-  const daysToNewMoon = dayInCycle < 14.8 ? 0 - dayInCycle : 29.53 - dayInCycle
-  const daysToFullMoon = dayInCycle < 14.8 ? 14.8 - dayInCycle : 14.8 + (29.53 - dayInCycle)
-  const daysToPhase = Math.min(Math.abs(daysToNewMoon), Math.abs(daysToFullMoon))
+  let entryFavorable = false
 
-  let entryFavorability = 50
-  if (phase === "New Moon" || phase === "Waxing Crescent")
-    entryFavorability = swingType === "high" ? 90 : 40
-  else if (phase === "First Quarter" || phase === "Waxing Gibbous")
-    entryFavorability = swingType === "high" ? 85 : 45
-  else if (phase === "Last Quarter" || phase === "Waning Crescent")
-    entryFavorability = swingType === "low" ? 85 : 40
+  if (swingType === "high") {
+    // Bullish setups favor waxing moon
+    entryFavorable = ["New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous"].includes(
+      phase
+    )
+  } else {
+    // Bearish setups favor waning moon
+    entryFavorable = ["Full Moon", "Waning Gibbous", "Last Quarter", "Waning Crescent"].includes(
+      phase
+    )
+  }
 
-  if (atrState === "expansion" && (phase === "First Quarter" || phase === "Waxing Gibbous"))
-    entryFavorability = Math.min(100, entryFavorability + 10)
+  // Pass if lunar phase matches swing direction
+  return entryFavorable
+}
 
-  let exitFavorability = 50
-  if (phase === "Full Moon" || Math.abs(daysToFullMoon) <= 2) exitFavorability = 95
-  else if (phase === "Last Quarter") exitFavorability = 75
+// ============================================================================
+// B7 - BEHAVIORAL CONFIRMATION (Step 7)
+// ============================================================================
 
-  let recommendation: "favorable_entry" | "favorable_exit" | "neutral" | "caution"
-  if (entryFavorability >= 80 && atrState === "compression") recommendation = "favorable_entry"
-  else if (exitFavorability >= 85) recommendation = "favorable_exit"
-  else if (entryFavorability < 45) recommendation = "caution"
-  else recommendation = "neutral"
+function analyzeCandleStrength(bars: OHLCVBar[], index: number): SubBitResult {
+  if (index < 0 || index >= bars.length) {
+    return { bit: 0, reason: "Invalid bar index" }
+  }
 
-  return { phase, daysToPhase, entryFavorability, exitFavorability, recommendation }
+  const bar = bars[index]
+  const range = bar.high - bar.low
+
+  if (range === 0) {
+    return { bit: 0, reason: "Zero range candle - no movement" }
+  }
+
+  const closePosition = (bar.close - bar.low) / range
+
+  // Strong close = >60% of range for bullish, <40% for bearish
+  if (closePosition > 0.6) {
+    return { bit: 1, reason: `Bullish close at ${(closePosition * 100).toFixed(1)}% of range` }
+  } else if (closePosition < 0.4) {
+    return { bit: 1, reason: `Bearish close at ${(closePosition * 100).toFixed(1)}% of range` }
+  }
+
+  return {
+    bit: 0,
+    reason: `Weak close at ${(closePosition * 100).toFixed(1)}% - needs >60% or <40%`,
+  }
+}
+
+function detectContinuationPattern(bars: OHLCVBar[], lookback: number = 3): SubBitResult {
+  if (bars.length < lookback + 1) {
+    return { bit: 0, reason: "Insufficient bars for pattern detection" }
+  }
+
+  const recentBars = bars.slice(-lookback)
+  const closes = recentBars.map((b) => b.close)
+
+  // Check for consistent direction
+  let bullishCount = 0
+  let bearishCount = 0
+
+  for (let i = 1; i < closes.length; i++) {
+    if (closes[i] > closes[i - 1]) bullishCount++
+    if (closes[i] < closes[i - 1]) bearishCount++
+  }
+
+  const continuationThreshold = lookback - 1
+
+  if (bullishCount >= continuationThreshold) {
+    return { bit: 1, reason: `Bullish continuation: ${bullishCount}/${lookback - 1} up closes` }
+  }
+
+  if (bearishCount >= continuationThreshold) {
+    return { bit: 1, reason: `Bearish continuation: ${bearishCount}/${lookback - 1} down closes` }
+  }
+
+  return {
+    bit: 0,
+    reason: `Choppy action: ${bullishCount} up, ${bearishCount} down - no continuation`,
+  }
+}
+
+function detectWickRejection(
+  bars: OHLCVBar[],
+  index: number,
+  threshold: number = 0.3
+): SubBitResult {
+  if (index < 0 || index >= bars.length) {
+    return { bit: 0, reason: "Invalid bar index" }
+  }
+
+  const bar = bars[index]
+  const range = bar.high - bar.low
+
+  if (range === 0) {
+    return { bit: 1, reason: "Zero range - no wick possible" }
+  }
+
+  const body = Math.abs(bar.close - bar.open)
+  const upperWick = bar.high - Math.max(bar.close, bar.open)
+  const lowerWick = Math.min(bar.close, bar.open) - bar.low
+
+  const upperWickPct = upperWick / range
+  const lowerWickPct = lowerWick / range
+
+  if (upperWickPct > threshold) {
+    return {
+      bit: 0,
+      reason: `Upper wick ${(upperWickPct * 100).toFixed(1)}% of range - rejection at highs`,
+    }
+  }
+
+  if (lowerWickPct > threshold) {
+    return {
+      bit: 0,
+      reason: `Lower wick ${(lowerWickPct * 100).toFixed(1)}% of range - rejection at lows`,
+    }
+  }
+
+  return { bit: 1, reason: `Clean candle - wicks <${threshold * 100}% of range` }
+}
+
+function checkATRSpike(bars: OHLCVBar[], index: number, atrValues: number[]): SubBitResult {
+  if (index < 0 || index >= bars.length || index >= atrValues.length) {
+    return { bit: 0, reason: "Invalid index or insufficient ATR data" }
+  }
+
+  if (atrValues.length < 20) {
+    return { bit: 1, reason: "Insufficient ATR history - defaulting to pass" }
+  }
+
+  const currentATR = atrValues[index]
+  const recentATR = atrValues.slice(Math.max(0, index - 20), index)
+  const avgATR = recentATR.reduce((a, b) => a + b, 0) / recentATR.length
+
+  const spikeRatio = currentATR / avgATR
+
+  if (spikeRatio > 1.5) {
+    return { bit: 0, reason: `ATR spike ${spikeRatio.toFixed(2)}x average - volatility explosion` }
+  }
+
+  if (spikeRatio > 1.3) {
+    return { bit: 1, reason: `Elevated ATR ${spikeRatio.toFixed(2)}x average - monitor closely` }
+  }
+
+  return { bit: 1, reason: `Normal ATR ${spikeRatio.toFixed(2)}x average - clean volatility` }
+}
+
+function analyzeVolumeTrend(bars: OHLCVBar[], index: number): SubBitResult {
+  if (index < 0 || index >= bars.length) {
+    return { bit: 0, reason: "Invalid bar index" }
+  }
+
+  if (bars.length < 20) {
+    return { bit: 1, reason: "Insufficient volume history - defaulting to pass" }
+  }
+
+  const currentVolume = bars[index].volume
+  const recentVolumes = bars.slice(Math.max(0, index - 20), index).map((b) => b.volume)
+  const avgVolume = recentVolumes.reduce((a, b) => a + b, 0) / recentVolumes.length
+
+  if (avgVolume === 0) {
+    return { bit: 1, reason: "No volume data - defaulting to pass" }
+  }
+
+  const volumeRatio = currentVolume / avgVolume
+
+  if (volumeRatio >= 0.8) {
+    return {
+      bit: 1,
+      reason: `Volume ${(volumeRatio * 100).toFixed(0)}% of average - adequate participation`,
+    }
+  }
+
+  return {
+    bit: 0,
+    reason: `Low volume ${(volumeRatio * 100).toFixed(0)}% of average - weak participation`,
+  }
+}
+
+function validateBehavioralConfirmation(
+  bars: OHLCVBar[],
+  currentIndex: number,
+  atrValues: number[]
+): GateResult {
+  const subBits: (0 | 1)[] = []
+  const failures: string[] = []
+
+  // 7.1: Close strength
+  const closeStrength = analyzeCandleStrength(bars, currentIndex)
+  subBits.push(closeStrength.bit)
+  if (!closeStrength.bit) failures.push(`7.1: ${closeStrength.reason}`)
+
+  // 7.2: Continuation pattern
+  const continuation = detectContinuationPattern(bars, 3)
+  subBits.push(continuation.bit)
+  if (!continuation.bit) failures.push(`7.2: ${continuation.reason}`)
+
+  // 7.3: Wick rejection check
+  const wickCheck = detectWickRejection(bars, currentIndex, 0.3)
+  subBits.push(wickCheck.bit)
+  if (!wickCheck.bit) failures.push(`7.3: ${wickCheck.reason}`)
+
+  // 7.4: ATR spike warning
+  const atrSpike = checkATRSpike(bars, currentIndex, atrValues)
+  subBits.push(atrSpike.bit)
+  if (!atrSpike.bit) failures.push(`7.4: ${atrSpike.reason}`)
+
+  // 7.5: Price clarity (same as continuation for now)
+  subBits.push(continuation.bit)
+  if (!continuation.bit && !failures.includes(`7.5: ${continuation.reason}`)) {
+    failures.push(`7.5: ${continuation.reason}`)
+  }
+
+  // 7.6: Volume confirmation
+  const volume = analyzeVolumeTrend(bars, currentIndex)
+  subBits.push(volume.bit)
+  if (!volume.bit) failures.push(`7.6: ${volume.reason}`)
+
+  // 7.7: Rotation recognition (check last 5 bars for clean swing)
+  const rotation = detectContinuationPattern(bars, 5)
+  subBits.push(rotation.bit)
+  if (!rotation.bit) failures.push(`7.7: ${rotation.reason}`)
+
+  // 7.8: Complete setup (all 7 aligned)
+  const allAligned = subBits.every((bit) => bit === 1)
+  subBits.push(allAligned ? 1 : 0)
+  if (!allAligned) failures.push("7.8: Not all behavioral criteria met")
+
+  const gate: 0 | 1 = allAligned ? 1 : 0
+
+  return {
+    gate,
+    subBits,
+    failures,
+    diagnostic: gate
+      ? "B7 PASSED: Clean behavioral confirmation"
+      : `B7 FAILED: ${failures.length} sub-bits failed - ${failures[0]}`,
+  }
+}
+
+// ============================================================================
+// B8 - INTEGRATION/FEEDBACK LOOP (Post-Trade)
+// ============================================================================
+
+export function createTradeRecord(
+  symbol: string,
+  entryDate: string,
+  entryPrice: number,
+  exitDate: string,
+  exitPrice: number,
+  binaryState: BinaryState
+): TradeReport {
+  const outcome: "win" | "loss" = exitPrice > entryPrice ? "win" : "loss"
+  const priceDiff = Math.abs(exitPrice - entryPrice)
+  const atr = binaryState.gates.B1.diagnostic.match(/ATR: ([\d.]+)/)?.[1]
+  const pnlATR = atr ? priceDiff / parseFloat(atr) : 0
+
+  return {
+    symbol,
+    entryDate,
+    entryPrice,
+    exitDate,
+    exitPrice,
+    outcome,
+    pnlATR,
+    binaryState,
+    patterns: [],
+    lessons: [],
+  }
+}
+
+export function extractPatternSignature(report: TradeReport): string[] {
+  const patterns: string[] = []
+
+  // Check for common failure patterns
+  if (report.outcome === "loss") {
+    const { gates } = report.binaryState
+
+    if (gates.B7.gate === 0) {
+      const b7Failures = gates.B7.failures
+      if (b7Failures.some((f) => f.includes("ATR spike"))) {
+        patterns.push("Volatility trap - ATR spike on entry")
+      }
+      if (b7Failures.some((f) => f.includes("wick"))) {
+        patterns.push("False breakout - rejection wick")
+      }
+      if (b7Failures.some((f) => f.includes("volume"))) {
+        patterns.push("Low participation - weak volume")
+      }
+    }
+
+    if (gates.B6.diagnostic.includes("Full Moon")) {
+      patterns.push("Full Moon reversal")
+    }
+
+    if (gates.B4.failures.some((f) => f.includes("61.8"))) {
+      patterns.push("Failed 61.8% fib level")
+    }
+  }
+
+  return patterns
+}
+
+export function generateTradeReport(report: TradeReport): {
+  diagnostic: string
+  lessons: string[]
+} {
+  const lessons: string[] = []
+
+  // Extract lessons from failures
+  if (report.outcome === "loss") {
+    lessons.push(`Loss: ${report.pnlATR.toFixed(2)} ATR`)
+
+    const patterns = extractPatternSignature(report)
+    if (patterns.length > 0) {
+      lessons.push(`Patterns identified: ${patterns.join(", ")}`)
+    }
+
+    // Identify which gate failed
+    const { gates } = report.binaryState
+    const gateEntries = Object.entries(gates) as [string, GateResult | null][]
+    const failedGate = gateEntries.find(([, gate]) => gate !== null && gate.gate === 0)
+
+    if (failedGate) {
+      const [gateKey, gateData] = failedGate as [string, GateResult]
+      lessons.push(`Primary failure: ${gateKey} - ${gateData.failures[0]}`)
+    }
+  } else {
+    lessons.push(`Win: +${report.pnlATR.toFixed(2)} ATR`)
+    lessons.push(`Setup quality: ${report.binaryState.bitString}`)
+  }
+
+  const diagnostic = `
+Trade Report: ${report.symbol}
+Entry: ${report.entryDate} @ ${report.entryPrice}
+Exit: ${report.exitDate} @ ${report.exitPrice}
+Outcome: ${report.outcome.toUpperCase()} (${report.pnlATR > 0 ? "+" : ""}${report.pnlATR.toFixed(2)} ATR)
+Binary State: ${report.binaryState.bitString}
+Signal: ${report.binaryState.tradeSignal}
+
+${lessons.join("\n")}
+  `.trim()
+
+  return { diagnostic, lessons }
+}
+
+// ============================================================================
+// 64 SUB-BIT VALIDATORS (8 per gate)
+// ============================================================================
+
+// B1 SUB-BITS - Volatility Measurement (1.1-1.8)
+function checkATRVisibility(bars: OHLCVBar[]): SubBitResult {
+  if (bars.length < 15) {
+    return { bit: 0, reason: "Insufficient bars for ATR calculation (need 15+)" }
+  }
+  return { bit: 1, reason: `ATR calculable from ${bars.length} bars` }
+}
+
+function identifyATRDirection(atrAnalysis: ATRAnalysis): SubBitResult {
+  if (atrAnalysis.state === "neutral") {
+    return { bit: 0, reason: "ATR direction unclear - neutral state" }
+  }
+  return { bit: 1, reason: `ATR ${atrAnalysis.state} identified` }
+}
+
+function detectCompression(atrAnalysis: ATRAnalysis): SubBitResult {
+  if (atrAnalysis.state === "compression") {
+    return { bit: 1, reason: `Compression detected - ${atrAnalysis.strength.toFixed(0)}% strength` }
+  }
+  return { bit: 0, reason: "Not in compression state" }
+}
+
+function verifyPatience(atrAnalysis: ATRAnalysis): SubBitResult {
+  // If in compression, are we patient? (subjective - default to pass)
+  if (atrAnalysis.state === "compression" && atrAnalysis.strength > 60) {
+    return { bit: 1, reason: "Deep compression - patience required" }
+  }
+  return { bit: 1, reason: "Patience check passed" }
+}
+
+function analyzeHistoricalContext(atrAnalysis: ATRAnalysis, currentATR: number): SubBitResult {
+  const ratio = atrAnalysis.current / atrAnalysis.average
+  return { bit: 1, reason: `Current ATR ${ratio.toFixed(2)}x historical average` }
+}
+
+function recognizeExpansion(atrAnalysis: ATRAnalysis): SubBitResult {
+  if (atrAnalysis.state === "expansion") {
+    return { bit: 1, reason: `Expansion recognized - ${atrAnalysis.strength.toFixed(0)}% strength` }
+  }
+  return { bit: 0, reason: "Not in expansion state" }
+}
+
+function assessExhaustion(atrAnalysis: ATRAnalysis): SubBitResult {
+  if (atrAnalysis.state === "expansion" && atrAnalysis.strength > 75) {
+    return { bit: 1, reason: `Exhaustion detected - ${atrAnalysis.strength.toFixed(0)}% expansion` }
+  }
+  return { bit: 0, reason: "No exhaustion - expansion is sustainable" }
+}
+
+function acceptCompressionState(atrAnalysis: ATRAnalysis): SubBitResult {
+  // Psychological readiness (default to pass)
+  return { bit: 1, reason: "Compression state accepted" }
+}
+
+// B2 SUB-BITS - Anchoring (2.1-2.8)
+function identifySwingHigh(lastSwing: SwingPoint | null): SubBitResult {
+  if (!lastSwing || lastSwing.type !== "high") {
+    return { bit: 0, reason: "No swing high identified" }
+  }
+  return { bit: 1, reason: `Swing high at ${lastSwing.price} on ${lastSwing.date}` }
+}
+
+function identifySwingLow(lastSwing: SwingPoint | null): SubBitResult {
+  if (!lastSwing || lastSwing.type !== "low") {
+    return { bit: 0, reason: "No swing low identified" }
+  }
+  return { bit: 1, reason: `Swing low at ${lastSwing.price} on ${lastSwing.date}` }
+}
+
+function markRangeEdge(bars: OHLCVBar[]): SubBitResult {
+  if (bars.length < 20) {
+    return { bit: 0, reason: "Insufficient bars to identify range" }
+  }
+  const recent = bars.slice(-20)
+  const high = Math.max(...recent.map((b) => b.high))
+  const low = Math.min(...recent.map((b) => b.low))
+  return { bit: 1, reason: `Range: ${low.toFixed(2)} - ${high.toFixed(2)}` }
+}
+
+function measureTimeDuration(lastSwingDate: string): SubBitResult {
+  const now = new Date()
+  const swing = new Date(lastSwingDate)
+  const days = Math.floor((now.getTime() - swing.getTime()) / (1000 * 60 * 60 * 24))
+  return { bit: 1, reason: `${days} days since last swing` }
+}
+
+function calculateGannWindows(days: number): SubBitResult {
+  const gannBars = [5, 10, 20, 60]
+  const nearestWindow = gannBars.reduce((prev, curr) =>
+    Math.abs(curr - days) < Math.abs(prev - days) ? curr : prev
+  )
+  return { bit: 1, reason: `${days} days - nearest Gann window: ${nearestWindow}` }
+}
+
+function compareTimeRatios(currentDuration: number, priorDuration: number): SubBitResult {
+  if (priorDuration === 0) {
+    return { bit: 0, reason: "No prior swing for comparison" }
+  }
+  const ratio = currentDuration / priorDuration
+  return { bit: 1, reason: `Time ratio: ${ratio.toFixed(2)}x prior swing` }
+}
+
+function validateAnchorFlexibility(lastSwing: SwingPoint | null): SubBitResult {
+  // Check if we have a valid anchor point
+  if (!lastSwing) {
+    return { bit: 0, reason: "No anchor point established" }
+  }
+  return { bit: 1, reason: "Anchor flexibility validated" }
+}
+
+function confirmPriceTimeComplete(lastSwing: SwingPoint | null): SubBitResult {
+  if (!lastSwing) {
+    return { bit: 0, reason: "Price + Time anchor incomplete" }
+  }
+  return {
+    bit: 1,
+    reason: `Anchor complete: ${lastSwing.type} @ ${lastSwing.price} on ${lastSwing.date}`,
+  }
+}
+
+// B3 SUB-BITS - ATR Scaling (3.1-3.8)
+function validateWeekly(horizon: string | undefined, atrMultiple: number): SubBitResult {
+  if (horizon === "weekly" && atrMultiple >= 1 && atrMultiple <= 1.5) {
+    return { bit: 1, reason: `Weekly horizon with ${atrMultiple.toFixed(2)} ATR - appropriate` }
+  }
+  if (horizon === "weekly") {
+    return { bit: 0, reason: `Weekly horizon but ${atrMultiple.toFixed(2)} ATR - should be 1-1.5x` }
+  }
+  return { bit: 0, reason: "Not using weekly horizon" }
+}
+
+function validateBiweekly(horizon: string | undefined, atrMultiple: number): SubBitResult {
+  if (horizon === "biweekly" && atrMultiple >= 2 && atrMultiple <= 3) {
+    return { bit: 1, reason: `Biweekly horizon with ${atrMultiple.toFixed(2)} ATR - appropriate` }
+  }
+  if (horizon === "biweekly") {
+    return { bit: 0, reason: `Biweekly horizon but ${atrMultiple.toFixed(2)} ATR - should be 2-3x` }
+  }
+  return { bit: 0, reason: "Not using biweekly horizon" }
+}
+
+function validateMonthly(horizon: string | undefined, atrMultiple: number): SubBitResult {
+  if (horizon === "monthly" && atrMultiple >= 3 && atrMultiple <= 5) {
+    return { bit: 1, reason: `Monthly horizon with ${atrMultiple.toFixed(2)} ATR - appropriate` }
+  }
+  if (horizon === "monthly") {
+    return { bit: 0, reason: `Monthly horizon but ${atrMultiple.toFixed(2)} ATR - should be 3-5x` }
+  }
+  return { bit: 0, reason: "Not using monthly horizon" }
+}
+
+function validateQuarterly(horizon: string | undefined, atrMultiple: number): SubBitResult {
+  if (horizon === "quarterly" && atrMultiple >= 6 && atrMultiple <= 10) {
+    return { bit: 1, reason: `Quarterly horizon with ${atrMultiple.toFixed(2)} ATR - appropriate` }
+  }
+  if (horizon === "quarterly") {
+    return {
+      bit: 0,
+      reason: `Quarterly horizon but ${atrMultiple.toFixed(2)} ATR - should be 6-10x`,
+    }
+  }
+  return { bit: 0, reason: "Not using quarterly horizon" }
+}
+
+function checkIntentMatch(horizon: string | undefined): SubBitResult {
+  if (!horizon) {
+    return { bit: 0, reason: "No horizon selected" }
+  }
+  return { bit: 1, reason: `Intent matches ${horizon} timeframe` }
+}
+
+function verifyRangeMindset(atrMultiple: number): SubBitResult {
+  // Range thinking = understanding it's a zone, not a pinpoint target
+  return { bit: 1, reason: `Thinking in ranges: Â±${(atrMultiple * 0.2).toFixed(2)} ATR buffer` }
+}
+
+function confirmProperMultiple(horizon: string | undefined, atrMultiple: number): SubBitResult {
+  const horizonRanges: Record<string, [number, number]> = {
+    weekly: [1, 1.5],
+    biweekly: [2, 3],
+    monthly: [3, 5],
+    quarterly: [6, 10],
+  }
+
+  if (!horizon || !(horizon in horizonRanges)) {
+    return { bit: 0, reason: "Invalid or missing horizon" }
+  }
+
+  const [min, max] = horizonRanges[horizon]
+  if (atrMultiple >= min && atrMultiple <= max) {
+    return {
+      bit: 1,
+      reason: `${atrMultiple.toFixed(2)} ATR within ${horizon} range (${min}-${max}x)`,
+    }
+  }
+
+  return {
+    bit: 0,
+    reason: `${atrMultiple.toFixed(2)} ATR outside ${horizon} range (${min}-${max}x)`,
+  }
+}
+
+function assessTimeCommitment(horizon: string | undefined): SubBitResult {
+  const days: Record<string, number> = {
+    weekly: 5,
+    biweekly: 10,
+    monthly: 20,
+    quarterly: 60,
+  }
+
+  if (!horizon || !(horizon in days)) {
+    return { bit: 0, reason: "Time commitment unclear" }
+  }
+
+  return { bit: 1, reason: `Committed to ${days[horizon]}-day hold period` }
+}
+
+// B4 SUB-BITS - Fibonacci (4.1-4.8)
+function validateFibFramework(currentPrice: number, lastSwingPrice: number): SubBitResult {
+  const range = Math.abs(currentPrice - lastSwingPrice)
+  if (range < currentPrice * 0.01) {
+    return { bit: 0, reason: "Range too small for Fib framework (<1%)" }
+  }
+  return {
+    bit: 1,
+    reason: `Fib framework visible - ${((range / currentPrice) * 100).toFixed(1)}% range`,
+  }
+}
+
+function identify382(
+  currentPrice: number,
+  targetPrice: number,
+  lastSwingPrice: number,
+  lastSwingType: string
+): SubBitResult {
+  const range = Math.abs(currentPrice - lastSwingPrice)
+  const fib382 =
+    lastSwingType === "low" ? lastSwingPrice + range * 0.382 : lastSwingPrice - range * 0.382
+
+  const distance = Math.abs(targetPrice - fib382) / currentPrice
+  if (distance < 0.02) {
+    return { bit: 1, reason: `38.2% fib at ${fib382.toFixed(2)} - target within 2%` }
+  }
+  return {
+    bit: 0,
+    reason: `38.2% fib at ${fib382.toFixed(2)} - target ${(distance * 100).toFixed(1)}% away`,
+  }
+}
+
+function identify50(
+  currentPrice: number,
+  targetPrice: number,
+  lastSwingPrice: number,
+  lastSwingType: string
+): SubBitResult {
+  const range = Math.abs(currentPrice - lastSwingPrice)
+  const fib50 =
+    lastSwingType === "low" ? lastSwingPrice + range * 0.5 : lastSwingPrice - range * 0.5
+
+  const distance = Math.abs(targetPrice - fib50) / currentPrice
+  if (distance < 0.02) {
+    return { bit: 1, reason: `50% fib at ${fib50.toFixed(2)} - target within 2%` }
+  }
+  return {
+    bit: 0,
+    reason: `50% fib at ${fib50.toFixed(2)} - target ${(distance * 100).toFixed(1)}% away`,
+  }
+}
+
+function identify618(
+  currentPrice: number,
+  targetPrice: number,
+  lastSwingPrice: number,
+  lastSwingType: string
+): SubBitResult {
+  const range = Math.abs(currentPrice - lastSwingPrice)
+  const fib618 =
+    lastSwingType === "low" ? lastSwingPrice + range * 0.618 : lastSwingPrice - range * 0.618
+
+  const distance = Math.abs(targetPrice - fib618) / currentPrice
+  if (distance < 0.02) {
+    return { bit: 1, reason: `61.8% fib at ${fib618.toFixed(2)} - target within 2%` }
+  }
+  return {
+    bit: 0,
+    reason: `61.8% fib at ${fib618.toFixed(2)} - target ${(distance * 100).toFixed(1)}% away`,
+  }
+}
+
+function identifyExtensions(
+  currentPrice: number,
+  targetPrice: number,
+  lastSwingPrice: number,
+  lastSwingType: string
+): SubBitResult {
+  const range = Math.abs(currentPrice - lastSwingPrice)
+  const fib100 =
+    lastSwingType === "low" ? lastSwingPrice + range * 1.0 : lastSwingPrice - range * 1.0
+  const fib1618 =
+    lastSwingType === "low" ? lastSwingPrice + range * 1.618 : lastSwingPrice - range * 1.618
+
+  const dist100 = Math.abs(targetPrice - fib100) / currentPrice
+  const dist1618 = Math.abs(targetPrice - fib1618) / currentPrice
+
+  if (dist100 < 0.02) {
+    return { bit: 1, reason: `100% extension at ${fib100.toFixed(2)} - target within 2%` }
+  }
+  if (dist1618 < 0.02) {
+    return { bit: 1, reason: `161.8% extension at ${fib1618.toFixed(2)} - target within 2%` }
+  }
+  return {
+    bit: 0,
+    reason: `Extensions at ${fib100.toFixed(2)} / ${fib1618.toFixed(2)} - target not close`,
+  }
+}
+
+function checkPriceAtFib(fibPass: boolean): SubBitResult {
+  if (fibPass) {
+    return { bit: 1, reason: "Price at Fibonacci level (within 2%)" }
+  }
+  return { bit: 0, reason: "Price not at any Fibonacci level" }
+}
+
+function validateATRFibOverlap(fibPass: boolean, atrMultiple: number): SubBitResult {
+  if (fibPass && atrMultiple >= 2) {
+    return {
+      bit: 1,
+      reason: `ATR-Fib overlap confirmed - ${atrMultiple.toFixed(2)}x ATR to fib level`,
+    }
+  }
+  return { bit: 0, reason: "ATR range does not overlap with Fib level" }
+}
+
+function confirmPremiumConfluence(
+  currentPrice: number,
+  targetPrice: number,
+  lastSwingPrice: number,
+  lastSwingType: string,
+  atrMultiple: number
+): SubBitResult {
+  const range = Math.abs(currentPrice - lastSwingPrice)
+  const fib618 =
+    lastSwingType === "low" ? lastSwingPrice + range * 0.618 : lastSwingPrice - range * 0.618
+  const fib1618 =
+    lastSwingType === "low" ? lastSwingPrice + range * 1.618 : lastSwingPrice - range * 1.618
+
+  const at618 = Math.abs(targetPrice - fib618) / currentPrice < 0.02
+  const at1618 = Math.abs(targetPrice - fib1618) / currentPrice < 0.02
+
+  if ((at618 || at1618) && atrMultiple >= 2.5) {
+    return {
+      bit: 1,
+      reason: `Premium confluence - ${at618 ? "61.8%" : "161.8%"} fib + ${atrMultiple.toFixed(2)}x ATR`,
+    }
+  }
+  return { bit: 0, reason: "No premium confluence (61.8% or 161.8% + strong ATR)" }
+}
+
+// B5 SUB-BITS - Gann (5.1-5.8)
+function checkTimeSymmetry(forecastDuration: number, priorDuration: number): SubBitResult {
+  if (priorDuration === 0) {
+    return { bit: 0, reason: "No prior swing for time comparison" }
+  }
+  const ratio = forecastDuration / priorDuration
+  if (ratio >= 0.7 && ratio <= 1.3) {
+    return { bit: 1, reason: `Time symmetry: ${ratio.toFixed(2)}x prior swing (within Â±30%)` }
+  }
+  return { bit: 0, reason: `Time asymmetry: ${ratio.toFixed(2)}x prior swing (outside Â±30%)` }
+}
+
+function validatePriceSquare(forecastDuration: number): SubBitResult {
+  const gannBars = [5, 10, 20, 60]
+  const onSquare = gannBars.some((bars) => Math.abs(forecastDuration - bars) <= 2)
+  if (onSquare) {
+    return { bit: 1, reason: `Price square: ${forecastDuration} days within Â±2 of Gann cycle` }
+  }
+  return { bit: 0, reason: `Not on price square: ${forecastDuration} days not near 5/10/20/60` }
+}
+
+function check1x1Angle(pricePerDay: number, atrPerDay: number): SubBitResult {
+  const ratio = pricePerDay / atrPerDay
+  if (ratio >= 0.8 && ratio <= 1.2) {
+    return { bit: 1, reason: `1Ã—1 angle holding: ${ratio.toFixed(2)}x ATR-per-day` }
+  }
+  return { bit: 0, reason: `Angle break: ${ratio.toFixed(2)}x ATR-per-day (outside 0.8-1.2)` }
+}
+
+function assessAngleAlignment(pricePerDay: number, atrPerDay: number): SubBitResult {
+  const ratio = pricePerDay / atrPerDay
+  return { bit: 1, reason: `Angle ratio: ${ratio.toFixed(2)}x` }
+}
+
+function recognizeAngleBreak(pricePerDay: number, atrPerDay: number): SubBitResult {
+  const ratio = pricePerDay / atrPerDay
+  if (ratio > 1.5 || ratio < 0.5) {
+    return { bit: 1, reason: `Acceleration detected: ${ratio.toFixed(2)}x (>1.5 or <0.5)` }
+  }
+  return { bit: 0, reason: `No acceleration: ${ratio.toFixed(2)}x` }
+}
+
+function trackTimeWindow(forecastDuration: number): SubBitResult {
+  const gannBars = [5, 10, 20, 60]
+  const nearest = gannBars.reduce((prev, curr) =>
+    Math.abs(curr - forecastDuration) < Math.abs(prev - forecastDuration) ? curr : prev
+  )
+  const progress = (forecastDuration / nearest) * 100
+  return { bit: 1, reason: `${progress.toFixed(0)}% progress to ${nearest}-day Gann window` }
+}
+
+function verifyCluster(convergingMethods: string[]): SubBitResult {
+  const hasMultipleMethods = convergingMethods.length >= 2
+  if (hasMultipleMethods) {
+    return { bit: 1, reason: `Cluster confirmed: ${convergingMethods.length} methods agree` }
+  }
+  return { bit: 0, reason: `Isolated signal: only ${convergingMethods.length} method` }
+}
+
+function confirmCompleteGann(
+  timeSymmetry: boolean,
+  priceSquare: boolean,
+  angleHolding: boolean
+): SubBitResult {
+  const passedTests = [timeSymmetry, priceSquare, angleHolding].filter(Boolean).length
+  if (passedTests >= 2) {
+    return { bit: 1, reason: `Complete Gann: ${passedTests}/3 tests passed` }
+  }
+  return { bit: 0, reason: `Incomplete Gann: only ${passedTests}/3 tests passed` }
+}
+
+// B6 SUB-BITS - Lunar (6.1-6.8)
+function checkPhaseAwareness(phase: string): SubBitResult {
+  return { bit: 1, reason: `Lunar phase: ${phase}` }
+}
+
+function validateNewMoonEntry(phase: string, swingType: string): SubBitResult {
+  if (swingType === "high" && phase === "New Moon") {
+    return { bit: 1, reason: "New Moon + bullish entry - ideal alignment" }
+  }
+  return {
+    bit: 0,
+    reason: `Phase ${phase} not ideal for ${swingType === "high" ? "bullish" : "bearish"} entry`,
+  }
+}
+
+function validateFirstQuarter(phase: string): SubBitResult {
+  if (phase === "First Quarter" || phase === "Waxing Gibbous") {
+    return { bit: 1, reason: `${phase} - continuation phase` }
+  }
+  return { bit: 0, reason: `${phase} - not a continuation phase` }
+}
+
+function identifyFullMoonExtreme(phase: string): SubBitResult {
+  if (phase === "Full Moon") {
+    return { bit: 1, reason: "Full Moon - potential reversal zone" }
+  }
+  return { bit: 0, reason: `${phase} - not a Full Moon extreme` }
+}
+
+function validateLastQuarterExit(phase: string, swingType: string): SubBitResult {
+  if (swingType === "low" && phase === "Last Quarter") {
+    return { bit: 1, reason: "Last Quarter + bearish exit - ideal alignment" }
+  }
+  return {
+    bit: 0,
+    reason: `${phase} not ideal for ${swingType === "high" ? "bullish" : "bearish"} exit`,
+  }
+}
+
+function recognizeLastQuarterFail(phase: string): SubBitResult {
+  if (phase === "Last Quarter") {
+    return { bit: 1, reason: "Last Quarter - monitor for failure to reverse" }
+  }
+  return { bit: 0, reason: `${phase} - not Last Quarter` }
+}
+
+function checkFullMoonWindow(phase: string, daysToPhase: number): SubBitResult {
+  if (
+    phase === "Full Moon" ||
+    (["Waxing Gibbous", "Waning Gibbous"].includes(phase) && daysToPhase <= 2)
+  ) {
+    return { bit: 1, reason: `Within Full Moon window (Â±${daysToPhase} days)` }
+  }
+  return { bit: 0, reason: `Outside Full Moon window - ${daysToPhase} days away` }
+}
+
+function confirmLunarFilter(lunarPass: boolean, otherGatesPassed: boolean): SubBitResult {
+  if (lunarPass && otherGatesPassed) {
+    return { bit: 1, reason: "Lunar used as filter after B1-B5 validation" }
+  }
+  if (lunarPass && !otherGatesPassed) {
+    return { bit: 0, reason: "Lunar favorable but other gates failed - not standalone" }
+  }
+  return { bit: 0, reason: "Lunar filter not applicable" }
 }
 
 export async function calculateAstroConfirmation(
@@ -469,6 +1307,244 @@ export async function calculateAstroConfirmation(
   return {
     score: Math.round(totalScore),
     reasons: reasons.length > 0 ? reasons : ["Standard astrological conditions"],
+  }
+}
+
+// ============================================================================
+// BINARY STATE ORCHESTRATOR
+// ============================================================================
+
+async function assembleBinaryState(
+  bars: OHLCVBar[],
+  lastSwing: SwingPoint,
+  currentPrice: number,
+  targetPrice: number,
+  forecastDate: string,
+  atr14: number,
+  atrAnalysis: ATRAnalysis,
+  atrMultiple: number,
+  horizon: string | undefined,
+  fibPass: boolean,
+  gannPass: boolean,
+  lunarPass: boolean,
+  convergingMethods: string[]
+): Promise<BinaryState> {
+  const currentDate = new Date()
+  const forecast = new Date(forecastDate)
+  const forecastDuration = Math.floor(
+    (forecast.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+  )
+  const priorDuration = Math.floor(
+    (currentDate.getTime() - new Date(lastSwing.date).getTime()) / (1000 * 60 * 60 * 24)
+  )
+  const pricePerDay = Math.abs(targetPrice - currentPrice) / Math.max(1, forecastDuration)
+  const atrPerDay = atr14 / 14
+
+  // Calculate ATR values for B7
+  const highs = bars.map((b) => b.high)
+  const lows = bars.map((b) => b.low)
+  const closes = bars.map((b) => b.close)
+  const atrValues = ATR.calculate({ high: highs, low: lows, close: closes, period: 14 })
+
+  // B1 - ATR Volatility
+  const B1_subBits: (0 | 1)[] = [
+    checkATRVisibility(bars).bit,
+    identifyATRDirection(atrAnalysis).bit,
+    detectCompression(atrAnalysis).bit,
+    verifyPatience(atrAnalysis).bit,
+    analyzeHistoricalContext(atrAnalysis, atr14).bit,
+    recognizeExpansion(atrAnalysis).bit,
+    assessExhaustion(atrAnalysis).bit,
+    acceptCompressionState(atrAnalysis).bit,
+  ]
+  const B1_gate: 0 | 1 = B1_subBits.every((b) => b === 1) ? 1 : 0
+  const B1_failures = []
+  if (!B1_subBits[0]) B1_failures.push("1.1: ATR not calculable")
+  if (!B1_subBits[1]) B1_failures.push("1.2: ATR direction unclear")
+
+  // B2 - Anchoring
+  const B2_subBits: (0 | 1)[] = [
+    lastSwing.type === "high" ? identifySwingHigh(lastSwing).bit : 0,
+    lastSwing.type === "low" ? identifySwingLow(lastSwing).bit : 0,
+    markRangeEdge(bars).bit,
+    measureTimeDuration(lastSwing.date).bit,
+    calculateGannWindows(priorDuration).bit,
+    compareTimeRatios(forecastDuration, priorDuration).bit,
+    validateAnchorFlexibility(lastSwing).bit,
+    confirmPriceTimeComplete(lastSwing).bit,
+  ]
+  const B2_gate: 0 | 1 = B2_subBits.filter((b) => b === 1).length >= 6 ? 1 : 0
+  const B2_failures = []
+  if (!B2_subBits[7]) B2_failures.push("2.8: Price + Time anchor incomplete")
+
+  // B3 - Scaling
+  const B3_subBits: (0 | 1)[] = [
+    validateWeekly(horizon, atrMultiple).bit,
+    validateBiweekly(horizon, atrMultiple).bit,
+    validateMonthly(horizon, atrMultiple).bit,
+    validateQuarterly(horizon, atrMultiple).bit,
+    checkIntentMatch(horizon).bit,
+    verifyRangeMindset(atrMultiple).bit,
+    confirmProperMultiple(horizon, atrMultiple).bit,
+    assessTimeCommitment(horizon).bit,
+  ]
+  const B3_gate: 0 | 1 = B3_subBits.some((b) => b === 1) && B3_subBits[6] === 1 ? 1 : 0
+  const B3_failures = []
+  if (!B3_subBits[6]) B3_failures.push("3.7: ATR multiple doesn't match horizon")
+
+  // B4 - Fibonacci
+  const B4_subBits: (0 | 1)[] = [
+    validateFibFramework(currentPrice, lastSwing.price).bit,
+    identify382(currentPrice, targetPrice, lastSwing.price, lastSwing.type).bit,
+    identify50(currentPrice, targetPrice, lastSwing.price, lastSwing.type).bit,
+    identify618(currentPrice, targetPrice, lastSwing.price, lastSwing.type).bit,
+    identifyExtensions(currentPrice, targetPrice, lastSwing.price, lastSwing.type).bit,
+    checkPriceAtFib(fibPass).bit,
+    validateATRFibOverlap(fibPass, atrMultiple).bit,
+    confirmPremiumConfluence(
+      currentPrice,
+      targetPrice,
+      lastSwing.price,
+      lastSwing.type,
+      atrMultiple
+    ).bit,
+  ]
+  const B4_gate: 0 | 1 = fibPass ? 1 : 0
+  const B4_failures = []
+  if (!fibPass) B4_failures.push("4.6: Price not at Fibonacci level")
+
+  // B5 - Gann
+  const timeSymmetry =
+    forecastDuration / Math.max(1, priorDuration) >= 0.7 &&
+    forecastDuration / Math.max(1, priorDuration) <= 1.3
+  const priceSquare = [5, 10, 20, 60].some((bars) => Math.abs(forecastDuration - bars) <= 2)
+  const angleHolding = pricePerDay / atrPerDay >= 0.8 && pricePerDay / atrPerDay <= 1.2
+
+  const B5_subBits: (0 | 1)[] = [
+    checkTimeSymmetry(forecastDuration, priorDuration).bit,
+    validatePriceSquare(forecastDuration).bit,
+    check1x1Angle(pricePerDay, atrPerDay).bit,
+    assessAngleAlignment(pricePerDay, atrPerDay).bit,
+    recognizeAngleBreak(pricePerDay, atrPerDay).bit,
+    trackTimeWindow(forecastDuration).bit,
+    verifyCluster(convergingMethods).bit,
+    confirmCompleteGann(timeSymmetry, priceSquare, angleHolding).bit,
+  ]
+  const B5_gate: 0 | 1 = gannPass ? 1 : 0
+  const B5_failures = []
+  if (!gannPass) B5_failures.push("5.8: Incomplete Gann - <2 of 3 tests passed")
+
+  // B6 - Lunar
+  const { phase } = getLunarPhase(forecast)
+  const expectedSwingType = lastSwing.type === "high" ? "low" : "high"
+
+  const B6_subBits: (0 | 1)[] = [
+    checkPhaseAwareness(phase).bit,
+    validateNewMoonEntry(phase, expectedSwingType).bit,
+    validateFirstQuarter(phase).bit,
+    identifyFullMoonExtreme(phase).bit,
+    validateLastQuarterExit(phase, expectedSwingType).bit,
+    recognizeLastQuarterFail(phase).bit,
+    checkFullMoonWindow(phase, 0).bit,
+    confirmLunarFilter(
+      lunarPass,
+      B1_gate === 1 && B2_gate === 1 && B3_gate === 1 && B4_gate === 1 && B5_gate === 1
+    ).bit,
+  ]
+  const B6_gate: 0 | 1 = lunarPass ? 1 : 0
+  const B6_failures = []
+  if (!lunarPass)
+    B6_failures.push(`6.8: Lunar phase ${phase} doesn't align with ${expectedSwingType} swing`)
+
+  // B7 - Behavioral (requires real-time data, so we validate with available data)
+  const currentIndex = bars.length - 1
+  const B7_result = validateBehavioralConfirmation(bars, currentIndex, atrValues)
+
+  // B8 - Integration (post-trade only, set to null)
+  const B8_result: GateResult | null = null
+
+  const bitString = `[${B1_gate}${B2_gate}${B3_gate}${B4_gate}${B5_gate}${B6_gate}${B7_result.gate}0]`
+
+  let tradeSignal: "EXECUTE" | "STRONG_SETUP" | "DO_NOT_TRADE"
+  if (bitString === "[11111111]") {
+    tradeSignal = "EXECUTE"
+  } else if (bitString.startsWith("[111111") && B7_result.gate === 0) {
+    tradeSignal = "STRONG_SETUP"
+  } else {
+    tradeSignal = "DO_NOT_TRADE"
+  }
+
+  const diagnosticSummary: string[] = []
+  if (B1_gate === 0)
+    diagnosticSummary.push(`B1 FAILED: ${B1_failures[0] || "ATR volatility check failed"}`)
+  if (B2_gate === 0) diagnosticSummary.push(`B2 FAILED: ${B2_failures[0] || "Anchor incomplete"}`)
+  if (B3_gate === 0)
+    diagnosticSummary.push(`B3 FAILED: ${B3_failures[0] || "ATR scaling mismatch"}`)
+  if (B4_gate === 0)
+    diagnosticSummary.push(`B4 FAILED: ${B4_failures[0] || "Not at Fibonacci level"}`)
+  if (B5_gate === 0)
+    diagnosticSummary.push(`B5 FAILED: ${B5_failures[0] || "Gann structure broken"}`)
+  if (B6_gate === 0)
+    diagnosticSummary.push(`B6 FAILED: ${B6_failures[0] || "Lunar timing unfavorable"}`)
+  if (B7_result.gate === 0)
+    diagnosticSummary.push(
+      `B7 FAILED: ${B7_result.failures[0] || "Behavioral confirmation missing"}`
+    )
+
+  return {
+    bitString,
+    gates: {
+      B1: {
+        gate: B1_gate,
+        subBits: B1_subBits,
+        failures: B1_failures,
+        diagnostic: B1_gate
+          ? `B1 PASSED: ATR ${atrAnalysis.state}`
+          : `B1 FAILED: ${B1_failures[0]}`,
+      },
+      B2: {
+        gate: B2_gate,
+        subBits: B2_subBits,
+        failures: B2_failures,
+        diagnostic: B2_gate
+          ? `B2 PASSED: Anchor at ${lastSwing.price}`
+          : `B2 FAILED: ${B2_failures[0]}`,
+      },
+      B3: {
+        gate: B3_gate,
+        subBits: B3_subBits,
+        failures: B3_failures,
+        diagnostic: B3_gate
+          ? `B3 PASSED: ${horizon} horizon, ${atrMultiple.toFixed(2)}x ATR`
+          : `B3 FAILED: ${B3_failures[0]}`,
+      },
+      B4: {
+        gate: B4_gate,
+        subBits: B4_subBits,
+        failures: B4_failures,
+        diagnostic: B4_gate
+          ? "B4 PASSED: Fibonacci level confirmed"
+          : `B4 FAILED: ${B4_failures[0]}`,
+      },
+      B5: {
+        gate: B5_gate,
+        subBits: B5_subBits,
+        failures: B5_failures,
+        diagnostic: B5_gate
+          ? "B5 PASSED: Gann structure validated"
+          : `B5 FAILED: ${B5_failures[0]}`,
+      },
+      B6: {
+        gate: B6_gate,
+        subBits: B6_subBits,
+        failures: B6_failures,
+        diagnostic: B6_gate ? `B6 PASSED: ${phase} favorable` : `B6 FAILED: ${B6_failures[0]}`,
+      },
+      B7: B7_result,
+      B8: B8_result,
+    },
+    tradeSignal,
+    diagnosticSummary,
   }
 }
 
@@ -1765,17 +2841,25 @@ export async function detectConvergenceForecastedSwings(
 
       const expectedSwingType = lastSwing.type === "high" ? "low" : "high"
 
-      // Step 4: Fibonacci + ATR overlap validation
-      const fibOverlap = validateFibATROverlap(
+      // ===== GATE SYSTEM: Sequential pass/fail checks =====
+      const passedGates: string[] = []
+
+      // GATE 1: Convergence (already passed by being in validConvergences)
+      passedGates.push("Convergence")
+
+      // GATE 2: Fibonacci overlap validation
+      const fibPass = validateFibATROverlap(
         currentPrice,
         bestConvergence.price,
         atr14,
         lastSwing.price,
         lastSwing.type
       )
+      if (!fibPass) continue // Ã¢ÂÅ’ REJECTED: No Fib level alignment
+      passedGates.push("Fibonacci")
 
-      // Step 5: Gann structure validation
-      const gannValidation = validateGannStructure(
+      // GATE 3: Gann structure validation
+      const gannPass = validateGannStructure(
         currentPrice,
         bestConvergence.price,
         bestConvergence.date,
@@ -1784,49 +2868,55 @@ export async function detectConvergenceForecastedSwings(
         lastSwing.type,
         atr14
       )
+      if (!gannPass) continue // Ã¢ÂÅ’ REJECTED: Doesn't follow Gann rules
+      passedGates.push("Gann")
 
-      // Step 6: Lunar timing refinement
-      const lunarTiming = analyzeLunarTiming(
+      // GATE 4: Lunar timing validation
+      const lunarPass = validateLunarTiming(
         bestConvergence.date,
         expectedSwingType,
         atrAnalysis.state
       )
+      if (!lunarPass) continue // Ã¢ÂÅ’ REJECTED: Unfavorable lunar phase
+      passedGates.push("Lunar")
 
-      // Calculate final confidence with all validations
-      let baseConfidence = bestConvergence.confidence
+      // GATE 5: ATR threshold (already passed in validConvergences filter)
+      passedGates.push("ATR")
 
-      // Boost for excellent validations
-      if (fibOverlap?.quality === "excellent") baseConfidence = Math.min(1, baseConfidence + 0.1)
-      else if (fibOverlap?.quality === "good") baseConfidence = Math.min(1, baseConfidence + 0.05)
+      // Calculate ATR multiple for ranking
+      const priceDiff = Math.abs(bestConvergence.price - currentPrice)
+      const atrMultiple = priceDiff / atr14
 
-      if (gannValidation.quality === "excellent")
-        baseConfidence = Math.min(1, baseConfidence + 0.08)
-      else if (gannValidation.quality === "good")
-        baseConfidence = Math.min(1, baseConfidence + 0.04)
+      // ===== ASSEMBLE COMPLETE BINARY STATE =====
+      const binaryState = await assembleBinaryState(
+        bars,
+        lastSwing,
+        currentPrice,
+        bestConvergence.price,
+        bestConvergence.date,
+        atr14,
+        atrAnalysis,
+        atrMultiple,
+        bestConvergence.horizon,
+        fibPass,
+        gannPass,
+        lunarPass,
+        bestConvergence.methods
+      )
 
-      // Lunar timing adjustment (Â±5%)
-      let lunarBoost = 0
-      if (lunarTiming.recommendation === "favorable_entry") lunarBoost = 0.05
-      else if (lunarTiming.recommendation === "caution") lunarBoost = -0.05
-
-      const finalConfidence = Math.max(0, Math.min(1, baseConfidence + lunarBoost))
-
-      // Only include if final confidence meets minimum threshold
-      if (finalConfidence < 0.65) continue
+      // Only include if B7 (behavioral) passes OR if it's a strong setup (all other gates passed)
+      if (binaryState.tradeSignal === "DO_NOT_TRADE") continue
 
       const forecastedSwing: ForecastedSwing = {
         type: expectedSwingType,
         price: bestConvergence.price,
         date: bestConvergence.date,
         convergingMethods: bestConvergence.methods,
-        baseConfidence,
-        astroBoost: lunarBoost,
-        finalConfidence,
+        atrMultiple,
         atrHorizon: bestConvergence.horizon,
-        fibOverlap: fibOverlap || undefined,
-        gannValidation,
-        lunarTiming,
+        passedGates,
         atrAnalysis,
+        binaryState, // NEW: Include full binary diagnostic state
       }
 
       results.push({
@@ -1843,10 +2933,8 @@ export async function detectConvergenceForecastedSwings(
     }
   }
 
-  // Sort by final confidence descending
-  return results.sort(
-    (a, b) => b.forecastedSwing.finalConfidence - a.forecastedSwing.finalConfidence
-  )
+  // Sort by ATR multiple descending (biggest moves first)
+  return results.sort((a, b) => b.forecastedSwing.atrMultiple - a.forecastedSwing.atrMultiple)
 }
 
 // ============================================================================
@@ -1955,26 +3043,26 @@ export async function detectTradingWindows(
             reasons: string[] = []
           if (avgCombined >= 85) {
             type = "high_probability"
-            emoji = "ðŸŒž"
+            emoji = "ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã¢â‚¬â„¢Ãƒâ€¦Ã‚Â¾"
             reasons.push("Exceptional alignment of technical + astrological factors")
             if (avgTechnical >= 90) reasons.push("Price near critical confluence zone")
             if (avgAstrological >= 85) reasons.push("Highly harmonious planetary aspects")
           } else if (avgCombined >= 75) {
             type = "moderate"
-            emoji = "â›…"
+            emoji = "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂºÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦"
             reasons.push("Good alignment, favorable conditions")
             if (avgTechnical >= 80) reasons.push("Approaching key technical level")
           } else if (avgTechnical < 50 && avgAstrological < 50) {
             type = "avoid"
-            emoji = "ðŸŒ§ï¸"
+            emoji = "ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã¢â‚¬â„¢Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â"
             reasons.push("Low technical + low astrological alignment")
           } else if (avgAstrological < 40) {
             type = "extreme_volatility"
-            emoji = "âš¡"
+            emoji = "ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â¡"
             reasons.push("Challenging planetary aspects indicate volatility")
           } else {
             type = "moderate"
-            emoji = "â›…"
+            emoji = "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂºÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦"
             reasons.push("Mixed signals, proceed with caution")
           }
 
@@ -2013,7 +3101,10 @@ export async function detectTradingWindows(
         daysInWindow: windowDays.length,
         keyLevels,
         reasons: ["Trading window detected"],
-        emoji: avgCombined >= 85 ? "ðŸŒž" : "â›…",
+        emoji:
+          avgCombined >= 85
+            ? "ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã¢â‚¬â„¢Ãƒâ€¦Ã‚Â¾"
+            : "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂºÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦",
         atrState: windowStart.atrState,
         lunarPhase: windowStart.lunarPhase,
       })

@@ -71,3 +71,4 @@ session-notes/*.md
 session-notes/**/*.md
 !session-notes/README.md
 
+/test_binary_framework.sh

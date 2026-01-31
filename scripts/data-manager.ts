@@ -3514,8 +3514,8 @@ async function populateFeaturedTickers(): Promise<void> {
           days_until: Math.floor(
             (new Date(result.forecastedSwing.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
           ),
-          confluence_score: Math.round(result.forecastedSwing.finalConfidence * 100),
-          tradeability_score: Math.round(result.forecastedSwing.finalConfidence * 100),
+          confluence_score: Math.round(result.forecastedSwing.atrMultiple * 25), // Scale ATR multiple to 0-100
+          tradeability_score: Math.round(result.forecastedSwing.atrMultiple * 25), // Scale ATR multiple to 0-100
           reason: result.forecastedSwing.convergingMethods.join(", "),
           rank: idx + 1,
           updated_at: new Date().toISOString(),
@@ -3790,7 +3790,7 @@ async function runMonthlyIngressScan(): Promise<void> {
             volume: rating?.scores.volume || 0,
             technical: rating?.scores.technical || 0,
             fundamental: rating?.scores.fundamental || 0,
-            total: rating?.scores.total || Math.round(conv.forecastedSwing.finalConfidence * 100),
+            total: rating?.scores.total || Math.round(conv.forecastedSwing.atrMultiple * 25),
           },
           rating: rating?.rating || null,
           confidence: rating?.confidence || null,
@@ -3798,7 +3798,7 @@ async function runMonthlyIngressScan(): Promise<void> {
           convergence: {
             has_convergence: true,
             methods: conv.forecastedSwing.convergingMethods,
-            confidence: conv.forecastedSwing.finalConfidence,
+            confidence: conv.forecastedSwing.atrMultiple / 5, // Normalize ATR multiple to 0-1 range
             forecasted_swing: {
               type: conv.forecastedSwing.type,
               price: conv.forecastedSwing.price,
@@ -3811,23 +3811,23 @@ async function runMonthlyIngressScan(): Promise<void> {
           },
           validations: {
             fib: {
-              quality: conv.forecastedSwing.fibOverlap?.quality || "none",
-              ratio: conv.forecastedSwing.fibOverlap?.fibRatio || null,
-              score: conv.forecastedSwing.fibOverlap?.score || 0,
+              passed: conv.forecastedSwing.passedGates?.includes("Fibonacci") || false,
+              ratio: null, // No longer tracked in gate system
+              score: conv.forecastedSwing.passedGates?.includes("Fibonacci") ? 100 : 0,
             },
             gann: {
-              quality: conv.forecastedSwing.gannValidation?.quality || "none",
-              time_symmetry: conv.forecastedSwing.gannValidation?.timeSymmetry || false,
-              price_square: conv.forecastedSwing.gannValidation?.priceSquare || false,
-              angle_holding: conv.forecastedSwing.gannValidation?.angleHolding || false,
-              score: conv.forecastedSwing.gannValidation?.score || 0,
+              passed: conv.forecastedSwing.passedGates?.includes("Gann") || false,
+              time_symmetry: null, // No longer tracked individually
+              price_square: null, // No longer tracked individually
+              angle_holding: null, // No longer tracked individually
+              score: conv.forecastedSwing.passedGates?.includes("Gann") ? 100 : 0,
             },
             lunar: {
-              phase: conv.forecastedSwing.lunarTiming?.phase || null,
-              recommendation: conv.forecastedSwing.lunarTiming?.recommendation || null,
-              entry_favorability: conv.forecastedSwing.lunarTiming?.entryFavorability || null,
-              exit_favorability: conv.forecastedSwing.lunarTiming?.exitFavorability || null,
-              days_to_phase: conv.forecastedSwing.lunarTiming?.daysToPhase || null,
+              phase: null, // No longer tracked - only pass/fail
+              passed: conv.forecastedSwing.passedGates?.includes("Lunar") || false,
+              entry_favorability: null, // No longer tracked
+              exit_favorability: null, // No longer tracked
+              days_to_phase: null, // No longer tracked
             },
             atr: {
               state: conv.forecastedSwing.atrAnalysis?.state || null,
@@ -3848,7 +3848,7 @@ async function runMonthlyIngressScan(): Promise<void> {
             days_until_target: Math.floor(
               (new Date(conv.forecastedSwing.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
             ),
-            reach_probability: conv.forecastedSwing.finalConfidence,
+            reach_probability: conv.forecastedSwing.atrMultiple / 5, // Normalize ATR multiple to 0-1 range
             earliest_date: null,
             most_likely_date: conv.forecastedSwing.date,
             latest_date: null,
@@ -4299,7 +4299,7 @@ async function runFullIngressScanWithConvergence(): Promise<void> {
             volume: rating?.scores.volume || 0,
             technical: rating?.scores.technical || 0,
             fundamental: rating?.scores.fundamental || 0,
-            total: rating?.scores.total || Math.round(conv.forecastedSwing.finalConfidence * 100),
+            total: rating?.scores.total || Math.round(conv.forecastedSwing.atrMultiple * 25),
           },
           rating: rating?.rating || null,
           confidence: rating?.confidence || null,
@@ -4307,7 +4307,7 @@ async function runFullIngressScanWithConvergence(): Promise<void> {
           convergence: {
             has_convergence: true,
             methods: conv.forecastedSwing.convergingMethods,
-            confidence: conv.forecastedSwing.finalConfidence,
+            confidence: conv.forecastedSwing.atrMultiple / 5, // Normalize ATR multiple to 0-1 range
             forecasted_swing: {
               type: conv.forecastedSwing.type,
               price: conv.forecastedSwing.price,
@@ -4320,23 +4320,23 @@ async function runFullIngressScanWithConvergence(): Promise<void> {
           },
           validations: {
             fib: {
-              quality: conv.forecastedSwing.fibOverlap?.quality || "none",
-              ratio: conv.forecastedSwing.fibOverlap?.fibRatio || null,
-              score: conv.forecastedSwing.fibOverlap?.score || 0,
+              passed: conv.forecastedSwing.passedGates?.includes("Fibonacci") || false,
+              ratio: null, // No longer tracked in gate system
+              score: conv.forecastedSwing.passedGates?.includes("Fibonacci") ? 100 : 0,
             },
             gann: {
-              quality: conv.forecastedSwing.gannValidation?.quality || "none",
-              time_symmetry: conv.forecastedSwing.gannValidation?.timeSymmetry || false,
-              price_square: conv.forecastedSwing.gannValidation?.priceSquare || false,
-              angle_holding: conv.forecastedSwing.gannValidation?.angleHolding || false,
-              score: conv.forecastedSwing.gannValidation?.score || 0,
+              passed: conv.forecastedSwing.passedGates?.includes("Gann") || false,
+              time_symmetry: null, // No longer tracked individually
+              price_square: null, // No longer tracked individually
+              angle_holding: null, // No longer tracked individually
+              score: conv.forecastedSwing.passedGates?.includes("Gann") ? 100 : 0,
             },
             lunar: {
-              phase: conv.forecastedSwing.lunarTiming?.phase || null,
-              recommendation: conv.forecastedSwing.lunarTiming?.recommendation || null,
-              entry_favorability: conv.forecastedSwing.lunarTiming?.entryFavorability || null,
-              exit_favorability: conv.forecastedSwing.lunarTiming?.exitFavorability || null,
-              days_to_phase: conv.forecastedSwing.lunarTiming?.daysToPhase || null,
+              phase: null, // No longer tracked - only pass/fail
+              passed: conv.forecastedSwing.passedGates?.includes("Lunar") || false,
+              entry_favorability: null, // No longer tracked
+              exit_favorability: null, // No longer tracked
+              days_to_phase: null, // No longer tracked
             },
             atr: {
               state: conv.forecastedSwing.atrAnalysis?.state || null,
@@ -4357,7 +4357,7 @@ async function runFullIngressScanWithConvergence(): Promise<void> {
             days_until_target: Math.floor(
               (new Date(conv.forecastedSwing.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
             ),
-            reach_probability: conv.forecastedSwing.finalConfidence,
+            reach_probability: conv.forecastedSwing.atrMultiple / 5, // Normalize ATR multiple to 0-1 range
             earliest_date: null,
             most_likely_date: conv.forecastedSwing.date,
             latest_date: null,
@@ -4675,12 +4675,11 @@ async function getFeaturedTickersFromCache(category?: string): Promise<any[]> {
           t.rating_data.convergence?.forecasted_swing?.date ||
           t.rating_data.projections?.most_likely_date,
         convergingMethods: t.rating_data.convergence?.methods || ["Technical Analysis"],
-        baseConfidence: t.rating_data.convergence?.confidence || t.rating_data.scores?.total / 100,
-        astroBoost: 0,
-        finalConfidence: t.rating_data.convergence?.confidence || t.rating_data.scores?.total / 100,
-        fibOverlap: t.rating_data.validations?.fib,
-        gannValidation: t.rating_data.validations?.gann,
-        lunarTiming: t.rating_data.validations?.lunar,
+        atrMultiple: t.rating_data.convergence?.confidence
+          ? t.rating_data.convergence.confidence * 5
+          : t.rating_data.scores?.total / 25,
+        passedGates: t.rating_data.convergence?.methods || [],
+
         atrAnalysis: t.rating_data.validations?.atr,
       },
       ingressValidity: true,
@@ -5203,6 +5202,7 @@ async function backfillEquityMetadata(): Promise<void> {
 
   // US exchanges list (for filtering)
   const US_EXCHANGES = new Set([
+    // MIC codes
     "XNAS",
     "XNYS",
     "ARCX",
@@ -5216,11 +5216,31 @@ async function backfillEquityMetadata(): Promise<void> {
     "OTCQB",
     "PINK",
     "US",
-    "NASDAQ NMS - GLOBAL MARKET",
-    "NYSE AMERICAN",
-    "NYSE ARCA",
-    "BATS GLOBAL MARKETS",
     "CBOE",
+
+    // Full names (what APIs actually return)
+    "NASDAQ",
+    "NASDAQ NMS - GLOBAL MARKET",
+    "NASDAQ CAPITAL MARKET",
+    "NASDAQ GLOBAL MARKET",
+    "NASDAQ GLOBAL SELECT MARKET",
+    "NYSE",
+    "NEW YORK STOCK EXCHANGE",
+    "NEW YORK STOCK EXCHANGE, INC.",
+    "NYSE AMERICAN",
+    "NYSE AMERICAN, LLC",
+    "NYSE ARCA",
+    "NYSE ARCA, INC.",
+    "BATS GLOBAL MARKETS",
+    "BATS",
+    "CBOE BZX",
+    "CBOE",
+    "OTC",
+    "OTC MARKETS",
+    "OTCQB",
+    "OTCQX",
+    "PINK",
+    "PINK SHEETS",
   ])
 
   // Single pre-filter — no duplicate
@@ -5430,7 +5450,9 @@ async function filterEquityUniverse(): Promise<void> {
   console.log("=".repeat(80))
   console.log("Criteria:")
   console.log("  ✓ Security type: CS (Common Stock) or ETF")
-  console.log("  ✓ Exchange: XNAS, XNYS, ARCX, BATS")
+  console.log(
+    "  ✓ Exchange: XNAS, XNYS, ARCX, BATS, NASDAQ, NYSE, AMEX, XASE, OTC, OTCM, OTCQB, PINK, CBOE"
+  )
   console.log("  ✓ Not mutual fund (no suffix 'X')")
   console.log("  ✓ Not OTC/Pink/Grey")
   console.log("  ✓ Avg volume > 250k")

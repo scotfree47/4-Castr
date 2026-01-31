@@ -1,6 +1,6 @@
-import { SentinelsOverview } from "../components/sentinels-overview"
-import { Tickers } from "./components/tickers"
+import SentinelsOverview from "../components/sentinels-overview"
 import { getH1Tickers } from "../data"
+import { Tickers } from "./components/tickers"
 
 export default function AllTickers() {
   const tickerData = getH1Tickers()
@@ -29,4 +29,3 @@ export default function AllTickers() {
     </div>
   )
 }
-
